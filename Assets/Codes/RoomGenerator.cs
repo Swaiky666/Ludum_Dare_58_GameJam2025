@@ -872,6 +872,7 @@ public class RoomGenerator : MonoBehaviour
             }
         }
     }
+
     void InstantiateFloors()
     {
         for (int x = 0; x < roomSize.x; x++)
@@ -897,7 +898,7 @@ public class RoomGenerator : MonoBehaviour
     }
 
     /// <summary>
-    /// 生成宝箱（仅在宝箱房）
+    /// 生成宝箱（仅在宝箱房）- 优化版本使用Flood Fill
     /// </summary>
     void GenerateTreasureChest()
     {
@@ -908,57 +909,77 @@ public class RoomGenerator : MonoBehaviour
         }
 
         Vector2Int spawnGrid = WorldToGrid(playerSpawnPosition);
+
+        // 使用Flood Fill一次性标记所有可达区域
+        HashSet<Vector2Int> reachableTiles = FloodFillReachable(spawnGrid);
+
         List<Vector2Int> validPositions = new List<Vector2Int>();
 
-        // 收集所有可通行且玩家能到达的格子
-        for (int x = 0; x < roomSize.x; x++)
+        // 从可达区域中筛选有效位置
+        foreach (Vector2Int pos in reachableTiles)
         {
-            for (int y = 0; y < roomSize.y; y++)
+            // 不在玩家起点附近
+            if (Vector2Int.Distance(pos, spawnGrid) < playerSafeRange) continue;
+
+            // 不在门附近
+            bool tooCloseToExit = false;
+            foreach (var door in exitDoors)
             {
-                if (floorGrid[x, y].type != FloorType.Walkable) continue;
-
-                Vector2Int pos = new Vector2Int(x, y);
-
-                // 不在玩家起点附近
-                if (Vector2Int.Distance(pos, spawnGrid) < playerSafeRange) continue;
-
-                // 不在门附近
-                bool tooCloseToExit = false;
-                foreach (var door in exitDoors)
+                Vector2Int doorGrid = WorldToGrid(door.position);
+                if (Vector2Int.Distance(pos, doorGrid) < doorSafeRange)
                 {
-                    Vector2Int doorGrid = WorldToGrid(door.position);
-                    if (Vector2Int.Distance(pos, doorGrid) < doorSafeRange)
-                    {
-                        tooCloseToExit = true;
-                        break;
-                    }
-                }
-                if (tooCloseToExit) continue;
-
-                // 使用A*验证玩家能到达
-                List<Vector2Int> path = FindPath(spawnGrid, pos);
-                if (path != null && path.Count > 0)
-                {
-                    validPositions.Add(pos);
+                    tooCloseToExit = true;
+                    break;
                 }
             }
+            if (tooCloseToExit) continue;
+
+            validPositions.Add(pos);
         }
 
         if (validPositions.Count > 0)
         {
-            // 随机选择一个位置
             Vector2Int chestPos = validPositions[Random.Range(0, validPositions.Count)];
             Vector3 worldPos = floorGrid[chestPos.x, chestPos.y].worldPosition;
 
             GameObject chest = Instantiate(treasureChestPrefab, worldPos, Quaternion.identity, currentRoomContainer.transform);
             chest.name = "TreasureChest";
 
-            Debug.Log($"<color=yellow>宝箱生成在: ({chestPos.x}, {chestPos.y}), 世界坐标: {worldPos}</color>");
+            Debug.Log($"<color=yellow>宝箱生成在: ({chestPos.x}, {chestPos.y}), 可达格子数: {reachableTiles.Count}, 有效位置数: {validPositions.Count}</color>");
         }
         else
         {
             Debug.LogWarning("没有找到合适的宝箱生成位置！");
         }
+    }
+
+    /// <summary>
+    /// Flood Fill算法：从起点标记所有可达的格子
+    /// </summary>
+    HashSet<Vector2Int> FloodFillReachable(Vector2Int start)
+    {
+        HashSet<Vector2Int> reachable = new HashSet<Vector2Int>();
+        Queue<Vector2Int> queue = new Queue<Vector2Int>();
+
+        queue.Enqueue(start);
+        reachable.Add(start);
+
+        while (queue.Count > 0)
+        {
+            Vector2Int current = queue.Dequeue();
+
+            foreach (Vector2Int neighbor in GetNeighbors(current))
+            {
+                if (reachable.Contains(neighbor)) continue;
+                if (!IsValidGrid(neighbor)) continue;
+                if (floorGrid[neighbor.x, neighbor.y].type != FloorType.Walkable) continue;
+
+                reachable.Add(neighbor);
+                queue.Enqueue(neighbor);
+            }
+        }
+
+        return reachable;
     }
 
     /// <summary>
@@ -1029,8 +1050,6 @@ public class RoomGenerator : MonoBehaviour
                 Debug.Log($"玩家进入门 {i}");
                 roomMapSystem.MoveToConnectedRoom(exitDoors[i].connectedRoomIndex);
                 GenerateRoom();
-                // 注意：GenerateRoom() 已经会设置 hasCheckedPlayer = false
-                // 所以这里不需要再设置，直接返回即可
                 return;
             }
         }

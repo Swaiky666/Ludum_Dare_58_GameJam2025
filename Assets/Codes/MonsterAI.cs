@@ -21,31 +21,31 @@ public class MonsterAI : MonoBehaviour
     [SerializeField] private RoomGenerator roomGenerator;
 
     [Header("Detection Settings")]
-    [SerializeField] private float detectionRange = 10f;     // 检测范围
-    [SerializeField] private float loseTargetRange = 15f;    // 失去目标范围
+    [SerializeField] private float detectionRange = 10f;
+    [SerializeField] private float loseTargetRange = 15f;
 
     [Header("Movement Settings")]
-    [SerializeField] private float moveSpeed = 3f;           // 移动速度
-    [SerializeField] private float rotationSpeed = 5f;       // 旋转速度
-    [SerializeField] private float waypointReachDistance = 0.5f; // 到达路径点的距离
+    [SerializeField] private float moveSpeed = 3f;
+    [SerializeField] private float rotationSpeed = 5f;
+    [SerializeField] private float waypointReachDistance = 0.5f;
 
     [Header("Patrol Settings")]
-    [SerializeField] private float minPatrolTime = 1f;       // 最小巡逻移动时间
-    [SerializeField] private float maxPatrolTime = 3f;       // 最大巡逻移动时间
-    [SerializeField] private float minWaitTime = 1f;         // 最小等待时间
-    [SerializeField] private float maxWaitTime = 3f;         // 最大等待时间
-    [SerializeField] private float patrolRadius = 5f;        // 巡逻半径
+    [SerializeField] private float minPatrolTime = 1f;
+    [SerializeField] private float maxPatrolTime = 3f;
+    [SerializeField] private float minWaitTime = 1f;
+    [SerializeField] private float maxWaitTime = 3f;
+    [SerializeField] private float patrolRadius = 5f;
 
     [Header("Chase Settings")]
-    [SerializeField] private float pathUpdateInterval = 0.5f; // 路径更新间隔
-    [SerializeField] private float teleportDistance = 3f;     // 瞬移到玩家的距离
-    [SerializeField] private int maxPathfindingAttempts = 3;  // 最大寻路尝试次数
+    [SerializeField] private float pathUpdateInterval = 0.5f;
+    [SerializeField] private float teleportDistance = 3f;
+    [SerializeField] private int maxPathfindingAttempts = 3;
 
     [Header("Attack Settings")]
-    [SerializeField] private float attackRange = 2f;          // 攻击范围
-    [SerializeField] private float attackDamage = 20f;        // 攻击伤害
-    [SerializeField] private float attackCooldown = 1.5f;     // 攻击冷却时间
-    [SerializeField] private float knockbackForce = 10f;      // 击退力度
+    [SerializeField] private float attackRange = 2f;
+    [SerializeField] private float attackDamage = 20f;
+    [SerializeField] private float attackCooldown = 1.5f;
+    [SerializeField] private float knockbackForce = 10f;
 
     // 私有变量
     private MonsterState currentState = MonsterState.Patrol;
@@ -62,6 +62,14 @@ public class MonsterAI : MonoBehaviour
     private Vector3 spawnPosition;
     private float attackCooldownTimer;
     private PlayerController targetPlayer;
+
+    // 静态缓存（所有怪物共享）
+    private static readonly Vector2Int[] NeighborDirections = {
+        new Vector2Int(0, 1), new Vector2Int(1, 0),
+        new Vector2Int(0, -1), new Vector2Int(-1, 0),
+        new Vector2Int(1, 1), new Vector2Int(1, -1),
+        new Vector2Int(-1, 1), new Vector2Int(-1, -1)
+    };
 
     void Start()
     {
@@ -91,21 +99,21 @@ public class MonsterAI : MonoBehaviour
             roomGenerator = FindObjectOfType<RoomGenerator>();
         }
 
+        // 错开路径更新时间，避免所有怪物同时更新
+        pathUpdateTimer = Random.Range(0f, pathUpdateInterval);
+
         StartPatrol();
     }
 
     void Update()
     {
-        // 检测玩家
         CheckPlayerDetection();
 
-        // 更新攻击冷却
         if (attackCooldownTimer > 0)
         {
             attackCooldownTimer -= Time.deltaTime;
         }
 
-        // 根据状态执行行为
         switch (currentState)
         {
             case MonsterState.Patrol:
@@ -117,9 +125,6 @@ public class MonsterAI : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 检测玩家（圆形范围）
-    /// </summary>
     void CheckPlayerDetection()
     {
         if (playerTransform == null) return;
@@ -128,10 +133,8 @@ public class MonsterAI : MonoBehaviour
 
         if (currentState == MonsterState.Patrol)
         {
-            // 巡逻状态：检测是否发现玩家
             if (distanceToPlayer <= detectionRange)
             {
-                // 可选：检查是否有障碍物阻挡
                 Vector3 directionToPlayer = (playerTransform.position - transform.position).normalized;
                 if (!Physics.Raycast(transform.position + Vector3.up, directionToPlayer, distanceToPlayer, LayerMask.GetMask("Obstacle")))
                 {
@@ -141,7 +144,6 @@ public class MonsterAI : MonoBehaviour
         }
         else if (currentState == MonsterState.Chase)
         {
-            // 追击状态：检查是否失去目标
             if (distanceToPlayer > loseTargetRange)
             {
                 SwitchToPatrol();
@@ -151,27 +153,19 @@ public class MonsterAI : MonoBehaviour
 
     #region 巡逻状态
 
-    /// <summary>
-    /// 开始巡逻
-    /// </summary>
     void StartPatrol()
     {
         isWaiting = true;
         waitTimer = Random.Range(minWaitTime, maxWaitTime);
     }
 
-    /// <summary>
-    /// 更新巡逻
-    /// </summary>
     void UpdatePatrol()
     {
         if (isWaiting)
         {
-            // 等待状态
             waitTimer -= Time.deltaTime;
             if (waitTimer <= 0)
             {
-                // 等待结束，开始移动
                 SetRandomPatrolTarget();
                 isWaiting = false;
                 patrolTimer = Random.Range(minPatrolTime, maxPatrolTime);
@@ -179,43 +173,34 @@ public class MonsterAI : MonoBehaviour
         }
         else
         {
-            // 移动状态
             patrolTimer -= Time.deltaTime;
 
             if (patrolTimer <= 0 || Vector3.Distance(transform.position, patrolTarget) < waypointReachDistance)
             {
-                // 移动时间到或到达目标，开始等待
                 isWaiting = true;
                 waitTimer = Random.Range(minWaitTime, maxWaitTime);
             }
             else
             {
-                // 继续移动
                 MoveTowards(patrolTarget);
             }
         }
     }
 
-    /// <summary>
-    /// 设置随机巡逻目标
-    /// </summary>
     void SetRandomPatrolTarget()
     {
-        // 在巡逻半径内随机选择一个可通行的点
         Vector3 randomDirection = Random.insideUnitSphere * patrolRadius;
         randomDirection.y = 0;
         Vector3 targetPosition = spawnPosition + randomDirection;
 
-        // 检查目标位置是否可通行
         Vector2Int gridPos = WorldToGrid(targetPosition);
         if (IsWalkable(gridPos))
         {
             patrolTarget = targetPosition;
-            patrolTarget.y = transform.position.y; // 保持高度
+            patrolTarget.y = transform.position.y;
         }
         else
         {
-            // 如果不可通行，尝试找一个可通行的点
             for (int i = 0; i < 10; i++)
             {
                 randomDirection = Random.insideUnitSphere * patrolRadius;
@@ -231,7 +216,6 @@ public class MonsterAI : MonoBehaviour
                 }
             }
 
-            // 如果还是找不到，就在原地等待
             patrolTarget = transform.position;
         }
     }
@@ -240,9 +224,6 @@ public class MonsterAI : MonoBehaviour
 
     #region 追击状态
 
-    /// <summary>
-    /// 切换到追击状态
-    /// </summary>
     void SwitchToChase()
     {
         currentState = MonsterState.Chase;
@@ -251,9 +232,6 @@ public class MonsterAI : MonoBehaviour
         Debug.Log($"{gameObject.name}: 发现玩家，开始追击！");
     }
 
-    /// <summary>
-    /// 切换到巡逻状态
-    /// </summary>
     void SwitchToPatrol()
     {
         currentState = MonsterState.Patrol;
@@ -262,19 +240,14 @@ public class MonsterAI : MonoBehaviour
         Debug.Log($"{gameObject.name}: 失去目标，返回巡逻");
     }
 
-    /// <summary>
-    /// 更新追击
-    /// </summary>
     void UpdateChase()
     {
         if (playerTransform == null) return;
 
         float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
 
-        // 检查是否在攻击范围内
         if (distanceToPlayer <= attackRange)
         {
-            // 停止移动，尝试攻击
             if (attackCooldownTimer <= 0)
             {
                 AttackPlayer();
@@ -282,7 +255,6 @@ public class MonsterAI : MonoBehaviour
             return;
         }
 
-        // 更新路径
         pathUpdateTimer -= Time.deltaTime;
         if (pathUpdateTimer <= 0)
         {
@@ -290,40 +262,27 @@ public class MonsterAI : MonoBehaviour
             UpdatePathToPlayer();
         }
 
-        // 沿路径移动
         if (currentPath != null && currentPath.Count > 0)
         {
             FollowPath();
         }
         else
         {
-            // 没有路径，直接朝玩家移动（可能会卡住）
             MoveTowards(playerTransform.position);
         }
     }
 
-    /// <summary>
-    /// 攻击玩家
-    /// </summary>
     void AttackPlayer()
     {
         if (targetPlayer == null) return;
 
-        // 计算击退方向
         Vector3 knockbackDirection = (playerTransform.position - transform.position).normalized;
-
-        // 对玩家造成伤害
         targetPlayer.TakeDamage(attackDamage, knockbackDirection, knockbackForce);
-
-        // 重置攻击冷却
         attackCooldownTimer = attackCooldown;
 
         Debug.Log($"{gameObject.name} 攻击了玩家！伤害: {attackDamage}");
     }
 
-    /// <summary>
-    /// 更新到玩家的路径
-    /// </summary>
     void UpdatePathToPlayer()
     {
         Vector2Int startGrid = WorldToGrid(transform.position);
@@ -336,7 +295,6 @@ public class MonsterAI : MonoBehaviour
             pathfindingFailCount++;
             Debug.LogWarning($"{gameObject.name}: 无法找到路径到玩家 (失败次数: {pathfindingFailCount})");
 
-            // 多次失败后瞬移
             if (pathfindingFailCount >= maxPathfindingAttempts)
             {
                 TeleportNearPlayer();
@@ -351,9 +309,6 @@ public class MonsterAI : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 沿路径移动
-    /// </summary>
     void FollowPath()
     {
         if (currentPathIndex >= currentPath.Count)
@@ -375,14 +330,10 @@ public class MonsterAI : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 瞬移到玩家附近
-    /// </summary>
     void TeleportNearPlayer()
     {
         if (playerTransform == null) return;
 
-        // 在玩家周围找一个可通行的位置
         Vector3 playerPos = playerTransform.position;
         List<Vector3> validPositions = new List<Vector3>();
 
@@ -425,17 +376,19 @@ public class MonsterAI : MonoBehaviour
 
     #endregion
 
-    #region A*寻路算法
+    #region A*寻路算法（优化版）
 
     /// <summary>
-    /// A*寻路
+    /// A*寻路 - 使用优化的节点选择
     /// </summary>
     List<Vector2Int> FindPathAStar(Vector2Int start, Vector2Int end)
     {
         if (roomGenerator == null || roomGenerator.FloorGrid == null) return null;
 
-        List<MonsterPathNode> openList = new List<MonsterPathNode>();
-        HashSet<Vector2Int> closedSet = new HashSet<Vector2Int>();
+        // 使用 SortedSet 替代 List + OrderBy，自动保持排序
+        var openSet = new SortedSet<MonsterPathNode>(new PathNodeComparer());
+        var openSetLookup = new Dictionary<Vector2Int, MonsterPathNode>();
+        var closedSet = new HashSet<Vector2Int>();
 
         MonsterPathNode startNode = new MonsterPathNode
         {
@@ -443,29 +396,43 @@ public class MonsterAI : MonoBehaviour
             gCost = 0,
             hCost = Vector2Int.Distance(start, end)
         };
-        openList.Add(startNode);
 
-        while (openList.Count > 0)
+        openSet.Add(startNode);
+        openSetLookup[start] = startNode;
+
+        while (openSet.Count > 0)
         {
-            MonsterPathNode current = openList.OrderBy(n => n.fCost).First();
+            // 直接获取最小节点（已排序）
+            MonsterPathNode current = openSet.Min;
 
             if (current.position == end)
             {
                 return ReconstructPath(current);
             }
 
-            openList.Remove(current);
+            openSet.Remove(current);
+            openSetLookup.Remove(current.position);
             closedSet.Add(current.position);
 
-            foreach (Vector2Int neighbor in GetNeighbors(current.position))
+            foreach (Vector2Int neighbor in GetNeighborsOptimized(current.position))
             {
                 if (closedSet.Contains(neighbor)) continue;
                 if (!IsWalkable(neighbor)) continue;
 
                 float tentativeG = current.gCost + Vector2Int.Distance(current.position, neighbor);
 
-                MonsterPathNode neighborNode = openList.FirstOrDefault(n => n.position == neighbor);
-                if (neighborNode == null)
+                if (openSetLookup.TryGetValue(neighbor, out MonsterPathNode neighborNode))
+                {
+                    if (tentativeG < neighborNode.gCost)
+                    {
+                        // 需要更新节点，先移除再重新添加
+                        openSet.Remove(neighborNode);
+                        neighborNode.gCost = tentativeG;
+                        neighborNode.parent = current;
+                        openSet.Add(neighborNode);
+                    }
+                }
+                else
                 {
                     neighborNode = new MonsterPathNode
                     {
@@ -474,12 +441,8 @@ public class MonsterAI : MonoBehaviour
                         hCost = Vector2Int.Distance(neighbor, end),
                         parent = current
                     };
-                    openList.Add(neighborNode);
-                }
-                else if (tentativeG < neighborNode.gCost)
-                {
-                    neighborNode.gCost = tentativeG;
-                    neighborNode.parent = current;
+                    openSet.Add(neighborNode);
+                    openSetLookup[neighbor] = neighborNode;
                 }
             }
         }
@@ -487,9 +450,6 @@ public class MonsterAI : MonoBehaviour
         return null;
     }
 
-    /// <summary>
-    /// 重建路径
-    /// </summary>
     List<Vector2Int> ReconstructPath(MonsterPathNode endNode)
     {
         List<Vector2Int> path = new List<Vector2Int>();
@@ -506,20 +466,13 @@ public class MonsterAI : MonoBehaviour
     }
 
     /// <summary>
-    /// 获取邻居节点
+    /// 获取邻居节点（优化版 - 使用缓存的方向数组）
     /// </summary>
-    List<Vector2Int> GetNeighbors(Vector2Int pos)
+    List<Vector2Int> GetNeighborsOptimized(Vector2Int pos)
     {
-        List<Vector2Int> neighbors = new List<Vector2Int>();
-        Vector2Int[] directions = {
-            new Vector2Int(0, 1), new Vector2Int(1, 0),
-            new Vector2Int(0, -1), new Vector2Int(-1, 0),
-            // 对角线
-            new Vector2Int(1, 1), new Vector2Int(1, -1),
-            new Vector2Int(-1, 1), new Vector2Int(-1, -1)
-        };
+        List<Vector2Int> neighbors = new List<Vector2Int>(8);
 
-        foreach (var dir in directions)
+        foreach (var dir in NeighborDirections)
         {
             neighbors.Add(pos + dir);
         }
@@ -531,15 +484,11 @@ public class MonsterAI : MonoBehaviour
 
     #region 移动和辅助方法
 
-    /// <summary>
-    /// 朝目标移动
-    /// </summary>
     void MoveTowards(Vector3 targetPosition)
     {
         Vector3 direction = (targetPosition - transform.position).normalized;
         direction.y = 0;
 
-        // 移动
         if (characterController != null)
         {
             characterController.Move(direction * moveSpeed * Time.deltaTime);
@@ -549,7 +498,6 @@ public class MonsterAI : MonoBehaviour
             transform.position += direction * moveSpeed * Time.deltaTime;
         }
 
-        // 旋转朝向移动方向
         if (direction != Vector3.zero)
         {
             Quaternion targetRotation = Quaternion.LookRotation(direction);
@@ -557,9 +505,6 @@ public class MonsterAI : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 世界坐标转网格坐标
-    /// </summary>
     Vector2Int WorldToGrid(Vector3 worldPos)
     {
         if (roomGenerator == null) return Vector2Int.zero;
@@ -575,9 +520,6 @@ public class MonsterAI : MonoBehaviour
         );
     }
 
-    /// <summary>
-    /// 网格坐标转世界坐标
-    /// </summary>
     Vector3 GridToWorld(Vector2Int gridPos)
     {
         if (roomGenerator == null) return Vector3.zero;
@@ -586,9 +528,6 @@ public class MonsterAI : MonoBehaviour
         return new Vector3(gridPos.x * tileSize, 0, gridPos.y * tileSize);
     }
 
-    /// <summary>
-    /// 检查格子是否可通行
-    /// </summary>
     bool IsWalkable(Vector2Int gridPos)
     {
         if (roomGenerator == null || roomGenerator.FloorGrid == null) return false;
@@ -608,18 +547,15 @@ public class MonsterAI : MonoBehaviour
     {
         if (!Application.isPlaying) return;
 
-        // 绘制检测范围（圆形）
         Gizmos.color = currentState == MonsterState.Patrol ? Color.yellow : Color.red;
         Gizmos.DrawWireSphere(transform.position, detectionRange);
 
-        // 绘制攻击范围
         if (currentState == MonsterState.Chase)
         {
             Gizmos.color = new Color(1, 0, 0, 0.3f);
             Gizmos.DrawWireSphere(transform.position, attackRange);
         }
 
-        // 绘制巡逻目标
         if (currentState == MonsterState.Patrol && !isWaiting)
         {
             Gizmos.color = Color.green;
@@ -627,7 +563,6 @@ public class MonsterAI : MonoBehaviour
             Gizmos.DrawWireSphere(patrolTarget, 0.5f);
         }
 
-        // 绘制追击路径
         if (currentState == MonsterState.Chase && currentPath != null)
         {
             Gizmos.color = Color.red;
@@ -655,4 +590,22 @@ public class MonsterPathNode
     public float hCost;
     public float fCost => gCost + hCost;
     public MonsterPathNode parent;
+}
+
+/// <summary>
+/// 路径节点比较器（用于SortedSet自动排序）
+/// </summary>
+public class PathNodeComparer : IComparer<MonsterPathNode>
+{
+    public int Compare(MonsterPathNode a, MonsterPathNode b)
+    {
+        int fCompare = a.fCost.CompareTo(b.fCost);
+        if (fCompare != 0) return fCompare;
+
+        // fCost相同时，比较位置（避免被认为是重复）
+        int xCompare = a.position.x.CompareTo(b.position.x);
+        if (xCompare != 0) return xCompare;
+
+        return a.position.y.CompareTo(b.position.y);
+    }
 }

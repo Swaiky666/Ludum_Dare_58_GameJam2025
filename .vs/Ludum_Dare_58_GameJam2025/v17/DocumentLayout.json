@@ -3,8 +3,12 @@
   "WorkspaceRootPath": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|c:\\users\\weiqi\\ludum_dare_58_gamejam2025\\assets\\newbehaviourscript.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|solutionrelative:assets\\newbehaviourscript.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|c:\\users\\weiqi\\ludum_dare_58_gamejam2025\\assets\\codes\\playermovement.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|solutionrelative:assets\\codes\\playermovement.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|c:\\users\\weiqi\\ludum_dare_58_gamejam2025\\assets\\codes\\camerafollow.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|solutionrelative:assets\\codes\\camerafollow.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -19,14 +23,27 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "NewBehaviourScript.cs",
-              "DocumentMoniker": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\NewBehaviourScript.cs",
-              "RelativeDocumentMoniker": "Assets\\NewBehaviourScript.cs",
-              "ToolTip": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\NewBehaviourScript.cs",
-              "RelativeToolTip": "Assets\\NewBehaviourScript.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAAAAAAAAAAAAA==",
+              "Title": "PlayerMovement.cs",
+              "DocumentMoniker": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\PlayerMovement.cs",
+              "RelativeDocumentMoniker": "Assets\\Codes\\PlayerMovement.cs",
+              "ToolTip": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\PlayerMovement.cs",
+              "RelativeToolTip": "Assets\\Codes\\PlayerMovement.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-04T14:37:52.294Z",
+              "WhenOpened": "2025-10-04T15:28:20.039Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "CameraFollow.cs",
+              "DocumentMoniker": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\CameraFollow.cs",
+              "RelativeDocumentMoniker": "Assets\\Codes\\CameraFollow.cs",
+              "ToolTip": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\CameraFollow.cs",
+              "RelativeToolTip": "Assets\\Codes\\CameraFollow.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-04T15:27:36.816Z",
               "EditorCaption": ""
             }
           ]

@@ -353,7 +353,9 @@
 -analyzer:"C:/Program Files/Unity/Hub/Editor/2022.3.36f1/Editor/Data/Tools/Unity.SourceGenerators/Unity.Properties.SourceGenerator.dll"
 -analyzer:"C:/Program Files/Unity/Hub/Editor/2022.3.36f1/Editor/Data/Tools/Unity.SourceGenerators/Unity.SourceGenerators.dll"
 "Assets/Codes/CameraFollow.cs"
+"Assets/Codes/MinimapSystem.cs"
 "Assets/Codes/PlayerMovement.cs"
+"Assets/Codes/RoomGenerator.cs"
 "Assets/Codes/RoomMapSystem.cs"
 "Assets/NewBehaviourScript.cs"
 -langversion:9.0

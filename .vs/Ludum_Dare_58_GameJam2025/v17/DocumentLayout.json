@@ -3,11 +3,19 @@
   "WorkspaceRootPath": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|c:\\users\\weiqi\\ludum_dare_58_gamejam2025\\assets\\codes\\playermovement.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|c:\\users\\weiqi\\ludum_dare_58_gamejam2025\\assets\\codes\\roomgenerator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|solutionrelative:assets\\codes\\roomgenerator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|c:\\users\\weiqi\\ludum_dare_58_gamejam2025\\assets\\codes\\roommapsystem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|solutionrelative:assets\\codes\\roommapsystem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\assets\\codes\\playermovement.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|solutionrelative:assets\\codes\\playermovement.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|c:\\users\\weiqi\\ludum_dare_58_gamejam2025\\assets\\codes\\camerafollow.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\assets\\codes\\camerafollow.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|solutionrelative:assets\\codes\\camerafollow.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
@@ -23,19 +31,45 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "RoomGenerator.cs",
+              "DocumentMoniker": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\RoomGenerator.cs",
+              "RelativeDocumentMoniker": "Assets\\Codes\\RoomGenerator.cs",
+              "ToolTip": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\RoomGenerator.cs",
+              "RelativeToolTip": "Assets\\Codes\\RoomGenerator.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAOoDAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-04T17:13:20.395Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "RoomMapSystem.cs",
+              "DocumentMoniker": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\RoomMapSystem.cs",
+              "RelativeDocumentMoniker": "Assets\\Codes\\RoomMapSystem.cs",
+              "ToolTip": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\RoomMapSystem.cs",
+              "RelativeToolTip": "Assets\\Codes\\RoomMapSystem.cs",
+              "ViewState": "AgIAAFYCAAAAAAAAAAAIwHgCAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-04T16:41:10.624Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
               "Title": "PlayerMovement.cs",
               "DocumentMoniker": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\PlayerMovement.cs",
               "RelativeDocumentMoniker": "Assets\\Codes\\PlayerMovement.cs",
               "ToolTip": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\PlayerMovement.cs",
               "RelativeToolTip": "Assets\\Codes\\PlayerMovement.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAB8AAAAAAAAAAAAIwEEAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-10-04T15:28:20.039Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 3,
               "Title": "CameraFollow.cs",
               "DocumentMoniker": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\CameraFollow.cs",
               "RelativeDocumentMoniker": "Assets\\Codes\\CameraFollow.cs",
@@ -43,8 +77,7 @@
               "RelativeToolTip": "Assets\\Codes\\CameraFollow.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-04T15:27:36.816Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-10-04T15:27:36.816Z"
             }
           ]
         }

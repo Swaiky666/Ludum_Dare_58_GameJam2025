@@ -63,7 +63,9 @@
     <Compile Include="Assets\Codes\PlayerMovement.cs" />
     <Compile Include="Assets\Codes\RoomMapSystem.cs" />
     <Compile Include="Assets\NewBehaviourScript.cs" />
+    <Compile Include="Assets\Codes\RoomGenerator.cs" />
     <Compile Include="Assets\Codes\CameraFollow.cs" />
+    <Compile Include="Assets\Codes\MinimapSystem.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

@@ -123,7 +123,58 @@ public class RoomMapSystem : MonoBehaviour
         // 计算所有房间的绘制位置
         CalculateRoomPositions();
 
+        // 验证并修复所有房间的连接
+        ValidateAndFixConnections();
+
         Debug.Log($"地图生成完成！共{currentColumnCount + 1}列，总房间数：{roomIdCounter}");
+    }
+
+    /// <summary>
+    /// 验证并修复房间连接，确保每个房间都有入口
+    /// </summary>
+    void ValidateAndFixConnections()
+    {
+        int fixedCount = 0;
+
+        // 从第2列开始检查（第1列是起始房间，肯定有入口）
+        for (int col = 1; col < roomColumns.Count; col++)
+        {
+            List<Room> currentColumn = roomColumns[col];
+            List<Room> previousColumn = roomColumns[col - 1];
+
+            foreach (Room room in currentColumn)
+            {
+                // 检查是否有任何上一列的房间连接到这个房间
+                bool hasIncomingConnection = false;
+
+                foreach (Room prevRoom in previousColumn)
+                {
+                    if (prevRoom.connectedRooms.Contains(room))
+                    {
+                        hasIncomingConnection = true;
+                        break;
+                    }
+                }
+
+                // 如果没有入口，随机从上一列选一个房间连接到它
+                if (!hasIncomingConnection)
+                {
+                    Room randomPrevRoom = previousColumn[Random.Range(0, previousColumn.Count)];
+                    randomPrevRoom.connectedRooms.Add(room);
+                    fixedCount++;
+                    Debug.LogWarning($"修复连接：房间{randomPrevRoom.id}(列{col - 1}) -> 房间{room.id}(列{col})");
+                }
+            }
+        }
+
+        if (fixedCount > 0)
+        {
+            Debug.Log($"<color=yellow>修复了 {fixedCount} 个缺失的房间连接</color>");
+        }
+        else
+        {
+            Debug.Log("<color=green>所有房间连接正常✓</color>");
+        }
     }
 
     /// <summary>
@@ -177,10 +228,11 @@ public class RoomMapSystem : MonoBehaviour
     }
 
     /// <summary>
-    /// 扩展阶段连接：每个房间连接1-2个下一列房间
+    /// 扩展阶段连接：每个房间连接1-2个下一列房间，并确保下一列每个房间都有入口
     /// </summary>
     void ConnectRoomsExpanding(List<Room> fromColumn, List<Room> toColumn)
     {
+        // 第一步：每个房间连接1-2个下一列房间
         for (int i = 0; i < fromColumn.Count; i++)
         {
             Room fromRoom = fromColumn[i];
@@ -205,10 +257,32 @@ public class RoomMapSystem : MonoBehaviour
                 fromRoom.connectedRooms.Add(toColumn[Mathf.Min(i, toColumn.Count - 1)]);
             }
         }
+
+        // 第二步：检查下一列是否有房间没被连接，如果有就补连接
+        foreach (Room toRoom in toColumn)
+        {
+            bool hasConnection = false;
+            foreach (Room fromRoom in fromColumn)
+            {
+                if (fromRoom.connectedRooms.Contains(toRoom))
+                {
+                    hasConnection = true;
+                    break;
+                }
+            }
+
+            // 如果没有连接，随机从上一列选一个房间连接过来
+            if (!hasConnection)
+            {
+                Room randomFromRoom = fromColumn[Random.Range(0, fromColumn.Count)];
+                randomFromRoom.connectedRooms.Add(toRoom);
+                Debug.Log($"扩展阶段补充连接：房间{randomFromRoom.id} -> 房间{toRoom.id}");
+            }
+        }
     }
 
     /// <summary>
-    /// 收束阶段连接：多个房间连接到一个房间
+    /// 收束阶段连接：多个房间连接到一个房间，确保每个房间都有连接
     /// </summary>
     void ConnectRoomsConverging(List<Room> fromColumn, List<Room> toColumn)
     {
@@ -220,28 +294,61 @@ public class RoomMapSystem : MonoBehaviour
             targetIndex = Mathf.Min(targetIndex, toColumn.Count - 1);
             fromColumn[i].connectedRooms.Add(toColumn[targetIndex]);
         }
+
+        // 验证下一列每个房间都有入口
+        foreach (Room toRoom in toColumn)
+        {
+            bool hasConnection = false;
+            foreach (Room fromRoom in fromColumn)
+            {
+                if (fromRoom.connectedRooms.Contains(toRoom))
+                {
+                    hasConnection = true;
+                    break;
+                }
+            }
+
+            // 如果没有连接，随机选一个上一列房间连接过来
+            if (!hasConnection)
+            {
+                Room randomFromRoom = fromColumn[Random.Range(0, fromColumn.Count)];
+                randomFromRoom.connectedRooms.Add(toRoom);
+                Debug.Log($"收束阶段补充连接：房间{randomFromRoom.id} -> 房间{toRoom.id}");
+            }
+        }
     }
 
     /// <summary>
-    /// 计算所有房间的绘制位置（左上角对齐，适应屏幕分辨率）
+    /// 计算所有房间的绘制位置（左上角对齐，适应屏幕分辨率，每列竖直居中）
     /// </summary>
     void CalculateRoomPositions()
     {
         // 左上角起始位置（GL坐标系左下角是原点，所以Y要从屏幕高度减去）
         Vector2 startPosition = new Vector2(
-            screenPadding + roomSize * mapScale / 2,  // 加上半个房间大小，让房间不贴边
+            screenPadding + roomSize * mapScale / 2,
             Screen.height - screenPadding - roomSize * mapScale / 2
         );
+
+        // 找到最大列高度（用于居中参考）
+        float maxColumnHeight = 0;
+        foreach (var column in roomColumns)
+        {
+            float columnHeight = (column.Count - 1) * rowSpacing * mapScale;
+            if (columnHeight > maxColumnHeight)
+            {
+                maxColumnHeight = columnHeight;
+            }
+        }
 
         for (int col = 0; col < roomColumns.Count; col++)
         {
             List<Room> column = roomColumns[col];
 
             // 计算这一列的总高度
-            float totalHeight = (column.Count - 1) * rowSpacing * mapScale;
+            float columnHeight = (column.Count - 1) * rowSpacing * mapScale;
 
-            // 这一列从起始Y位置往下排列
-            float columnStartY = startPosition.y;
+            // 计算这一列的起始Y位置（居中）
+            float columnStartY = startPosition.y - (maxColumnHeight - columnHeight) / 2;
 
             for (int row = 0; row < column.Count; row++)
             {
@@ -289,6 +396,25 @@ public class RoomMapSystem : MonoBehaviour
         {
             Debug.LogWarning("连接索引超出范围！");
         }
+    }
+
+    /// <summary>
+    /// 获取当前房间连接的所有房间（供外部调用）
+    /// </summary>
+    public List<Room> GetCurrentRoomConnections()
+    {
+        if (currentRoom == null)
+            return new List<Room>();
+
+        return new List<Room>(currentRoom.connectedRooms);
+    }
+
+    /// <summary>
+    /// 获取当前房间信息（供外部调用）
+    /// </summary>
+    public Room GetCurrentRoom()
+    {
+        return currentRoom;
     }
 
     /// <summary>
@@ -504,26 +630,6 @@ public class RoomMapSystem : MonoBehaviour
         GL.Vertex3(center.x - halfSize, center.y - halfSize, 0);
 
         GL.End();
-    }
-
-    // ==================== 测试用的键盘输入 ====================
-    void Update()
-    {
-        // 按空格键随机移动到下一个房间
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            if (currentRoom != null && currentRoom.connectedRooms.Count > 0)
-            {
-                int randomIndex = Random.Range(0, currentRoom.connectedRooms.Count);
-                MoveToConnectedRoom(randomIndex);
-            }
-        }
-
-        // 按R键重新生成地图
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            GenerateMap();
-        }
     }
 
     // ==================== Inspector参数变化时重新计算位置 ====================

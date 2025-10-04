@@ -122,6 +122,124 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &85173677
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 85173679}
+  - component: {fileID: 85173678}
+  m_Layer: 0
+  m_Name: RoomGenerator
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &85173678
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 85173677}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 847802a23a05f2e42bd671e122941a73, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  roomSize: {x: 30, y: 20}
+  tileSize: 1
+  maxDepth: 4
+  splitChance: 0.7
+  minRegionSize: 3
+  obstacleDensity: 0.35
+  transparentDensity: 0.2
+  scatterObstacleDensity: 0.05
+  pathWidth: 2
+  doorDetectionRange: 1
+  monsterSpawnChance: 0.1
+  playerSafeRange: 5
+  doorSafeRange: 3
+  walkableFloorPrefab: {fileID: 9067344110672823401, guid: 98135e8b252dd454fb62864dd07cf24e, type: 3}
+  unwalkableFloorPrefab: {fileID: 2052053460299959166, guid: 09ceaa31c5db0b64fb5ede8b96796544, type: 3}
+  transparentFloorPrefab: {fileID: 7365813651155538567, guid: d958a21b08d9d074ea11ef1469860b10, type: 3}
+  exitDoorPrefab: {fileID: 5200299255755562888, guid: a288f48319f953944b4ee5c7a955db89, type: 3}
+  treasureChestPrefab: {fileID: 0}
+  monsterPrefabs:
+  - {fileID: 1647115850597729540, guid: 32912a2d0b967dc40813ce0d116e0c68, type: 3}
+  bossRoomPrefabs: []
+  roomMapSystem: {fileID: 627761977}
+  playerTransform: {fileID: 1610514695}
+--- !u!4 &85173679
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 85173677}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -2.146123, y: 2.5443497, z: 8.2076025}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &627761976
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 627761978}
+  - component: {fileID: 627761977}
+  m_Layer: 0
+  m_Name: RoomMapSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &627761977
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 627761976}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 408e05b97cb7a5844b29eee6c307c9c5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxRoomHalf: 3
+  treasureChance: 0.3
+  mapScale: 0.3
+  roomSize: 40
+  columnSpacing: 100
+  rowSpacing: 80
+  screenPadding: 25
+--- !u!4 &627761978
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 627761976}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.8421834, y: 0.10871353, z: 1.6214329}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
@@ -323,6 +441,59 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   target: {fileID: 1610514695}
   dampSpeed: 5
+--- !u!1 &1013001489
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1013001491}
+  - component: {fileID: 1013001490}
+  m_Layer: 0
+  m_Name: MinimapSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1013001490
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1013001489}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: acff746ffc0720c4d9a7602df1d4f734, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  roomGenerator: {fileID: 85173678}
+  roomMapSystem: {fileID: 627761977}
+  playerTransform: {fileID: 1610514695}
+  mapScale: 5
+  mapOffset: {x: 20, y: 20}
+  bossRoomTexture: {fileID: 0}
+  walkableColor: {r: 0.8, g: 0.8, b: 0.8, a: 0.8}
+  unwalkableColor: {r: 0.2, g: 0.2, b: 0.2, a: 0.8}
+  playerColor: {r: 0, g: 1, b: 0, a: 1}
+--- !u!4 &1013001491
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1013001489}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 14.202792, y: -20.546524, z: 14.710259}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1610514690
 GameObject:
   m_ObjectHideFlags: 0
@@ -336,6 +507,7 @@ GameObject:
   - component: {fileID: 1610514693}
   - component: {fileID: 1610514692}
   - component: {fileID: 1610514691}
+  - component: {fileID: 1610514696}
   m_Layer: 0
   m_Name: Cube
   m_TagString: Untagged
@@ -356,6 +528,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 5
+  dashDistance: 8
+  dashCooldown: 2
+  health: 100
+  currentShield: 50
+  maxShield: 100
+  shieldRegenSpeed: 10
 --- !u!65 &1610514692
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -397,7 +575,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -437,11 +615,37 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.5, y: 1, z: 0.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!143 &1610514696
+CharacterController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1610514690}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Height: 1
+  m_Radius: 0.5
+  m_SlopeLimit: 45
+  m_StepOffset: 0.3
+  m_SkinWidth: 0.08
+  m_MinMoveDistance: 0.001
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -449,3 +653,6 @@ SceneRoots:
   - {fileID: 963194228}
   - {fileID: 705507995}
   - {fileID: 1610514695}
+  - {fileID: 627761978}
+  - {fileID: 85173679}
+  - {fileID: 1013001491}

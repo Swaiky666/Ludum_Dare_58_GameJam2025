@@ -13,9 +13,10 @@ GameObject:
   - component: {fileID: 5385316448923298579}
   - component: {fileID: 1096315971394503129}
   - component: {fileID: 4111412187475131876}
+  - component: {fileID: 3707151464157902364}
   m_Layer: 0
   m_Name: Monster
-  m_TagString: Untagged
+  m_TagString: Monster
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -139,3 +140,16 @@ MonoBehaviour:
   attackDamage: 20
   attackCooldown: 0.8
   knockbackForce: 5
+--- !u!114 &3707151464157902364
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 226442075022878172}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d550be478073c847b52b73c06cc22d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 100

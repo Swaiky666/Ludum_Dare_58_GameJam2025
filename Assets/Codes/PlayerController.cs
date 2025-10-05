@@ -1,27 +1,36 @@
 ﻿using UnityEngine;
 
 /// <summary>
-/// 玩家控制器
+/// 玩家控制器（完整版 - 包含移动、朝向鼠标、装备系统、后坐力、震动等）
 /// </summary>
 public class PlayerController : MonoBehaviour
 {
     [Header("Movement Settings")]
-    [SerializeField] private float moveSpeed = 5f;           // 移动速度
+    [SerializeField] private float moveSpeed = 5f;
 
     [Header("Dash Settings")]
-    [SerializeField] private float dashDistance = 5f;        // 冲刺距离
-    [SerializeField] private float dashDuration = 0.2f;      // 冲刺持续时间
-    [SerializeField] private float dashCooldown = 1f;        // 冲刺冷却时间
+    [SerializeField] private float dashDistance = 5f;
+    [SerializeField] private float dashDuration = 0.2f;
+    [SerializeField] private float dashCooldown = 1f;
 
     [Header("Health & Shield")]
-    [SerializeField] private float maxHealth = 100f;         // 最大生命值
-    [SerializeField] private float maxShield = 50f;          // 最大护盾值
-    [SerializeField] private float shieldRegenRate = 5f;     // 护盾恢复速度（每秒）
-    [SerializeField] private float armor = 10f;              // 护甲值
+    [SerializeField] private float maxHealth = 100f;
+    [SerializeField] private float maxShield = 50f;
+    [SerializeField] private float shieldRegenRate = 5f;
+    [SerializeField] private float armor = 10f;
+
+    [Header("Rotation Settings")]
+    [SerializeField] private float rotationSpeed = 720f;  // 度/秒
 
     [Header("References")]
-    [SerializeField] private RoomGenerator roomGenerator;    // 房间生成器引用
-    [SerializeField] private float collisionRadius = 0.4f;   // 碰撞检测半径
+    [SerializeField] private RoomGenerator roomGenerator;
+    [SerializeField] private float collisionRadius = 0.4f;
+    [SerializeField] private EquipmentManager equipmentManager;
+    [SerializeField] private Camera mainCamera;
+
+    [Header("Camera Shake")]
+    [SerializeField] private float damageShakeDuration = 0.3f;
+    [SerializeField] private float damageShakeMagnitude = 0.2f;
 
     // 当前状态
     private float currentHealth;
@@ -31,6 +40,8 @@ public class PlayerController : MonoBehaviour
     private float dashCooldownTimer;
     private Vector3 dashDirection;
     private CharacterController characterController;
+    private bool canRotate = true;  // 控制旋转锁定
+    private CameraShake cameraShake;
 
     // 公共访问器
     public float CurrentHealth => currentHealth;
@@ -39,7 +50,7 @@ public class PlayerController : MonoBehaviour
     public float MaxShield => maxShield;
     public float Armor => armor;
     public bool IsDashing => isDashing;
-    public float DashCooldownRatio => Mathf.Clamp01(dashCooldownTimer / dashCooldown); // 0=就绪, 1=刚冲刺完
+    public float DashCooldownRatio => Mathf.Clamp01(dashCooldownTimer / dashCooldown);
 
     void Start()
     {
@@ -51,7 +62,6 @@ public class PlayerController : MonoBehaviour
             characterController.height = 2f;
         }
 
-        // 查找房间生成器
         if (roomGenerator == null)
         {
             roomGenerator = FindObjectOfType<RoomGenerator>();
@@ -61,16 +71,89 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // 初始化生命值和护盾
+        if (equipmentManager == null)
+        {
+            equipmentManager = GetComponent<EquipmentManager>();
+        }
+
+        if (mainCamera == null)
+        {
+            mainCamera = Camera.main;
+        }
+
+        // 获取或添加相机震动组件
+        if (mainCamera != null)
+        {
+            cameraShake = mainCamera.GetComponent<CameraShake>();
+            if (cameraShake == null)
+            {
+                cameraShake = mainCamera.gameObject.AddComponent<CameraShake>();
+            }
+        }
+
         currentHealth = maxHealth;
         currentShield = maxShield;
     }
 
     void Update()
     {
+        HandleRotation();
         HandleMovement();
         HandleDash();
+        HandleShooting();
         RegenerateShield();
+    }
+
+    /// <summary>
+    /// 处理朝向鼠标
+    /// </summary>
+    void HandleRotation()
+    {
+        if (!canRotate || mainCamera == null) return;
+
+        // 获取鼠标在世界中的位置
+        Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
+        Plane groundPlane = new Plane(Vector3.up, transform.position);
+
+        if (groundPlane.Raycast(ray, out float distance))
+        {
+            Vector3 hitPoint = ray.GetPoint(distance);
+            Vector3 lookDirection = hitPoint - transform.position;
+            lookDirection.y = 0;
+
+            if (lookDirection.sqrMagnitude > 0.01f)
+            {
+                Quaternion targetRotation = Quaternion.LookRotation(lookDirection);
+                transform.rotation = Quaternion.RotateTowards(
+                    transform.rotation,
+                    targetRotation,
+                    rotationSpeed * Time.deltaTime
+                );
+            }
+        }
+    }
+
+    /// <summary>
+    /// 处理射击输入（支持按住持续射击）
+    /// </summary>
+    void HandleShooting()
+    {
+        if (equipmentManager == null) return;
+
+        Vector3 shootDirection = transform.forward;
+        Vector3 shootOrigin = transform.position;
+
+        // 左键 - 按住持续使用槽位0的装备
+        if (Input.GetMouseButton(0))
+        {
+            equipmentManager.UseEquipment(0, shootDirection, shootOrigin);
+        }
+
+        // 右键 - 按住持续使用槽位1的装备
+        if (Input.GetMouseButton(1))
+        {
+            equipmentManager.UseEquipment(1, shootDirection, shootOrigin);
+        }
     }
 
     /// <summary>
@@ -80,33 +163,24 @@ public class PlayerController : MonoBehaviour
     {
         if (isDashing) return;
 
-        // 获取输入
         float horizontal = Input.GetAxis("Horizontal");
         float vertical = Input.GetAxis("Vertical");
 
         Vector3 inputDirection = new Vector3(horizontal, 0, vertical).normalized;
 
-        // 移动
         if (inputDirection.magnitude > 0.1f)
         {
             Vector3 movement = inputDirection * moveSpeed * Time.deltaTime;
             Vector3 targetPosition = transform.position + movement;
 
-            // 尝试移动到目标位置
             if (CanMoveTo(targetPosition))
             {
-                // 可以直接移动
                 characterController.Move(movement);
             }
             else
             {
-                // 不能直接移动，尝试墙壁滑行
                 TrySlideAlongWall(movement);
-                // 滑行可能失败（完全卡住），但这也没关系
             }
-
-            // 朝向移动方向
-            transform.rotation = Quaternion.LookRotation(inputDirection);
         }
     }
 
@@ -115,18 +189,15 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     void HandleDash()
     {
-        // 更新冷却
         if (dashCooldownTimer > 0)
         {
             dashCooldownTimer -= Time.deltaTime;
         }
 
-        // 冲刺中
         if (isDashing)
         {
             dashTimer -= Time.deltaTime;
 
-            // 执行冲刺移动（检测地形）
             float dashSpeed = dashDistance / dashDuration;
             Vector3 dashMovement = dashDirection * dashSpeed * Time.deltaTime;
             Vector3 targetPosition = transform.position + dashMovement;
@@ -137,10 +208,8 @@ public class PlayerController : MonoBehaviour
             }
             else
             {
-                // 碰到墙壁，尝试滑行
                 if (!TrySlideAlongWall(dashMovement))
                 {
-                    // 完全阻挡，停止冲刺
                     isDashing = false;
                 }
             }
@@ -150,54 +219,19 @@ public class PlayerController : MonoBehaviour
                 isDashing = false;
             }
         }
-        // 检测冲刺输入
         else if (Input.GetKeyDown(KeyCode.Space) && dashCooldownTimer <= 0)
         {
             StartDash();
         }
     }
 
-    /// <summary>
-    /// 尝试沿墙壁滑行
-    /// </summary>
-    bool TrySlideAlongWall(Vector3 movement)
-    {
-        // 分解移动向量为X和Z两个分量
-        Vector3 movementX = new Vector3(movement.x, 0, 0);
-        Vector3 movementZ = new Vector3(0, 0, movement.z);
-
-        // 尝试只沿X轴移动
-        Vector3 targetX = transform.position + movementX;
-        if (CanMoveTo(targetX))
-        {
-            characterController.Move(movementX);
-            return true;
-        }
-
-        // 尝试只沿Z轴移动
-        Vector3 targetZ = transform.position + movementZ;
-        if (CanMoveTo(targetZ))
-        {
-            characterController.Move(movementZ);
-            return true;
-        }
-
-        // 两个方向都不行，完全阻挡
-        return false;
-    }
-
-    /// <summary>
-    /// 开始冲刺
-    /// </summary>
     void StartDash()
     {
-        // 获取冲刺方向
         float horizontal = Input.GetAxis("Horizontal");
         float vertical = Input.GetAxis("Vertical");
 
         Vector3 inputDirection = new Vector3(horizontal, 0, vertical).normalized;
 
-        // 如果没有输入，使用当前朝向
         if (inputDirection.magnitude < 0.1f)
         {
             inputDirection = transform.forward;
@@ -212,8 +246,39 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// 恢复护盾
+    /// 外部调用的冲刺方法（供技能使用）
     /// </summary>
+    public void StartDashInDirection(Vector3 direction, float distance, float duration)
+    {
+        dashDirection = direction.normalized;
+        dashDistance = distance;
+        dashDuration = duration;
+        isDashing = true;
+        dashTimer = duration;
+    }
+
+    bool TrySlideAlongWall(Vector3 movement)
+    {
+        Vector3 movementX = new Vector3(movement.x, 0, 0);
+        Vector3 movementZ = new Vector3(0, 0, movement.z);
+
+        Vector3 targetX = transform.position + movementX;
+        if (CanMoveTo(targetX))
+        {
+            characterController.Move(movementX);
+            return true;
+        }
+
+        Vector3 targetZ = transform.position + movementZ;
+        if (CanMoveTo(targetZ))
+        {
+            characterController.Move(movementZ);
+            return true;
+        }
+
+        return false;
+    }
+
     void RegenerateShield()
     {
         if (currentShield < maxShield)
@@ -228,13 +293,11 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     public void TakeDamage(float damage, Vector3 knockbackDirection, float knockbackForce)
     {
-        // 根据护甲计算实际伤害
         float damageReduction = armor / (armor + 100f);
         float actualDamage = damage * (1f - damageReduction);
 
         Debug.Log($"受到攻击 - 原始伤害: {damage}, 护甲减免: {damageReduction * 100f}%, 实际伤害: {actualDamage}");
 
-        // 优先扣除护盾
         if (currentShield > 0)
         {
             if (currentShield >= actualDamage)
@@ -256,13 +319,17 @@ public class PlayerController : MonoBehaviour
             Debug.Log($"生命值受到 {actualDamage} 伤害，剩余生命: {currentHealth}");
         }
 
-        // 击退效果
+        // 相机震动 - 受伤效果
+        if (cameraShake != null)
+        {
+            cameraShake.Shake(damageShakeDuration, damageShakeMagnitude);
+        }
+
         if (!isDashing && knockbackForce > 0)
         {
             StartCoroutine(ApplyKnockback(knockbackDirection, knockbackForce));
         }
 
-        // 检查死亡
         if (currentHealth <= 0)
         {
             Die();
@@ -270,27 +337,26 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// 应用击退
+    /// 应用击退（击退时禁用旋转）
     /// </summary>
     System.Collections.IEnumerator ApplyKnockback(Vector3 direction, float force)
     {
+        canRotate = false;  // 禁用鼠标旋转
         float knockbackDuration = 0.2f;
         float elapsed = 0;
 
         while (elapsed < knockbackDuration)
         {
-            float knockbackSpeed = force * (1 - elapsed / knockbackDuration); // 逐渐减弱
+            float knockbackSpeed = force * (1 - elapsed / knockbackDuration);
             Vector3 knockbackMovement = direction.normalized * knockbackSpeed * Time.deltaTime;
             Vector3 targetPosition = transform.position + knockbackMovement;
 
-            // 尝试移动，如果碰墙则尝试滑行
             if (CanMoveTo(targetPosition))
             {
                 characterController.Move(knockbackMovement);
             }
             else
             {
-                // 尝试滑行，如果完全阻挡则停止击退
                 if (!TrySlideAlongWall(knockbackMovement))
                 {
                     break;
@@ -300,45 +366,77 @@ public class PlayerController : MonoBehaviour
             elapsed += Time.deltaTime;
             yield return null;
         }
+
+        canRotate = true;  // 恢复鼠标旋转
     }
 
     /// <summary>
-    /// 死亡
+    /// 应用武器后坐力
     /// </summary>
+    public void ApplyRecoil(Vector3 recoilDirection, float recoilForce)
+    {
+        if (isDashing) return;
+
+        StartCoroutine(ApplyRecoilEffect(recoilDirection, recoilForce));
+    }
+
+    /// <summary>
+    /// 后坐力效果
+    /// </summary>
+    private System.Collections.IEnumerator ApplyRecoilEffect(Vector3 direction, float force)
+    {
+        float recoilDuration = 0.1f;
+        float elapsed = 0;
+
+        direction.y = 0;
+
+        while (elapsed < recoilDuration)
+        {
+            float recoilSpeed = force * (1 - elapsed / recoilDuration);
+            Vector3 recoilMovement = direction.normalized * recoilSpeed * Time.deltaTime;
+            Vector3 targetPosition = transform.position + recoilMovement;
+
+            if (CanMoveTo(targetPosition))
+            {
+                characterController.Move(recoilMovement);
+            }
+            else
+            {
+                break;
+            }
+
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+    }
+
     void Die()
     {
         Debug.Log("玩家死亡！");
-        // 这里可以添加死亡逻辑，但用户说不要实现额外内容
     }
 
-    /// <summary>
-    /// 检测是否可以移动到目标位置（考虑玩家半径）
-    /// </summary>
     bool CanMoveTo(Vector3 targetPosition)
     {
         if (roomGenerator == null || roomGenerator.FloorGrid == null)
         {
-            return true; // 如果没有地形数据，允许移动
+            return true;
         }
 
-        // 检测中心点
         if (!IsPositionWalkable(targetPosition))
         {
             return false;
         }
 
-        // 检测玩家周围8个方向的边缘点
         Vector3[] checkPoints = new Vector3[8];
-        checkPoints[0] = targetPosition + new Vector3(collisionRadius, 0, 0);          // 右
-        checkPoints[1] = targetPosition + new Vector3(-collisionRadius, 0, 0);         // 左
-        checkPoints[2] = targetPosition + new Vector3(0, 0, collisionRadius);          // 前
-        checkPoints[3] = targetPosition + new Vector3(0, 0, -collisionRadius);         // 后
-        checkPoints[4] = targetPosition + new Vector3(collisionRadius, 0, collisionRadius);    // 右前
-        checkPoints[5] = targetPosition + new Vector3(-collisionRadius, 0, collisionRadius);   // 左前
-        checkPoints[6] = targetPosition + new Vector3(collisionRadius, 0, -collisionRadius);   // 右后
-        checkPoints[7] = targetPosition + new Vector3(-collisionRadius, 0, -collisionRadius);  // 左后
+        checkPoints[0] = targetPosition + new Vector3(collisionRadius, 0, 0);
+        checkPoints[1] = targetPosition + new Vector3(-collisionRadius, 0, 0);
+        checkPoints[2] = targetPosition + new Vector3(0, 0, collisionRadius);
+        checkPoints[3] = targetPosition + new Vector3(0, 0, -collisionRadius);
+        checkPoints[4] = targetPosition + new Vector3(collisionRadius, 0, collisionRadius);
+        checkPoints[5] = targetPosition + new Vector3(-collisionRadius, 0, collisionRadius);
+        checkPoints[6] = targetPosition + new Vector3(collisionRadius, 0, -collisionRadius);
+        checkPoints[7] = targetPosition + new Vector3(-collisionRadius, 0, -collisionRadius);
 
-        // 所有检测点都必须可通行
         foreach (Vector3 point in checkPoints)
         {
             if (!IsPositionWalkable(point))
@@ -350,9 +448,6 @@ public class PlayerController : MonoBehaviour
         return true;
     }
 
-    /// <summary>
-    /// 检测某个位置是否可通行
-    /// </summary>
     bool IsPositionWalkable(Vector3 position)
     {
         if (roomGenerator == null || roomGenerator.FloorGrid == null)
@@ -371,9 +466,6 @@ public class PlayerController : MonoBehaviour
         return floor.type == FloorType.Walkable;
     }
 
-    /// <summary>
-    /// 世界坐标转网格坐标
-    /// </summary>
     Vector2Int WorldToGrid(Vector3 worldPos)
     {
         if (roomGenerator == null) return Vector2Int.zero;
@@ -389,9 +481,6 @@ public class PlayerController : MonoBehaviour
         );
     }
 
-    /// <summary>
-    /// 检查网格坐标是否有效
-    /// </summary>
     bool IsValidGrid(Vector2Int gridPos)
     {
         if (roomGenerator == null) return false;
@@ -401,7 +490,6 @@ public class PlayerController : MonoBehaviour
                gridPos.y >= 0 && gridPos.y < roomSize.y;
     }
 
-    // 可视化碰撞半径
     void OnDrawGizmos()
     {
         if (!Application.isPlaying) return;
@@ -409,5 +497,9 @@ public class PlayerController : MonoBehaviour
         // 绘制玩家碰撞半径
         Gizmos.color = new Color(0, 1, 0, 0.3f);
         Gizmos.DrawWireSphere(transform.position, collisionRadius);
+
+        // 绘制朝向
+        Gizmos.color = Color.blue;
+        Gizmos.DrawRay(transform.position, transform.forward * 2f);
     }
 }

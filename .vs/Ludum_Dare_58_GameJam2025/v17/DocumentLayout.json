@@ -7,8 +7,48 @@
       "RelativeMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|solutionrelative:assets\\codes\\playercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|c:\\users\\weiqi\\ludum_dare_58_gamejam2025\\assets\\codes\\monsterhealth.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|solutionrelative:assets\\codes\\monsterhealth.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\assets\\codes\\weaponsys\\bullet.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|solutionrelative:assets\\codes\\weaponsys\\bullet.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\assets\\codes\\weaponsys\\gun.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|solutionrelative:assets\\codes\\weaponsys\\gun.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\assets\\codes\\weaponsys\\weaponbase.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|solutionrelative:assets\\codes\\weaponsys\\weaponbase.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\assets\\codes\\weaponsys\\dashskill.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|solutionrelative:assets\\codes\\weaponsys\\dashskill.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\assets\\codes\\weaponsys\\skillbase.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|solutionrelative:assets\\codes\\weaponsys\\skillbase.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\assets\\codes\\weaponsys\\equipmentmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|solutionrelative:assets\\codes\\weaponsys\\equipmentmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\assets\\codes\\weaponsys\\iequippable.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|solutionrelative:assets\\codes\\weaponsys\\iequippable.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\assets\\codes\\monsterai.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|solutionrelative:assets\\codes\\monsterai.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\assets\\codes\\roomgenerator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|solutionrelative:assets\\codes\\roomgenerator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\assets\\codes\\playerui.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|solutionrelative:assets\\codes\\playerui.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\assets\\codes\\collectionsys\\collectibleitemui.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -35,10 +75,6 @@
       "RelativeMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|solutionrelative:assets\\codes\\roommapsystem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\assets\\codes\\roomgenerator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|solutionrelative:assets\\codes\\roomgenerator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\assets\\codes\\minimapsystem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{F1E7199D-6BBE-1BCD-62C8-3AD599E1B282}|Assembly-CSharp.csproj|solutionrelative:assets\\codes\\minimapsystem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -58,8 +94,108 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 8,
           "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "MonsterHealth.cs",
+              "DocumentMoniker": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\MonsterHealth.cs",
+              "RelativeDocumentMoniker": "Assets\\Codes\\MonsterHealth.cs",
+              "ToolTip": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\MonsterHealth.cs",
+              "RelativeToolTip": "Assets\\Codes\\MonsterHealth.cs",
+              "ViewState": "AgIAAD0AAAAAAAAAAAAIwF8AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-05T00:04:50.303Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "SkillBase.cs",
+              "DocumentMoniker": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\WeaponSys\\SkillBase.cs",
+              "RelativeDocumentMoniker": "Assets\\Codes\\WeaponSys\\SkillBase.cs",
+              "ToolTip": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\WeaponSys\\SkillBase.cs",
+              "RelativeToolTip": "Assets\\Codes\\WeaponSys\\SkillBase.cs",
+              "ViewState": "AgIAABEAAAAAAAAAAAAxwDIAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-05T00:03:31.491Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Bullet.cs",
+              "DocumentMoniker": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\WeaponSys\\Bullet.cs",
+              "RelativeDocumentMoniker": "Assets\\Codes\\WeaponSys\\Bullet.cs",
+              "ToolTip": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\WeaponSys\\Bullet.cs",
+              "RelativeToolTip": "Assets\\Codes\\WeaponSys\\Bullet.cs",
+              "ViewState": "AgIAACsAAAAAAAAAAAAIwE0AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-05T00:03:12.536Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Gun.cs",
+              "DocumentMoniker": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\WeaponSys\\Gun.cs",
+              "RelativeDocumentMoniker": "Assets\\Codes\\WeaponSys\\Gun.cs",
+              "ToolTip": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\WeaponSys\\Gun.cs",
+              "RelativeToolTip": "Assets\\Codes\\WeaponSys\\Gun.cs",
+              "ViewState": "AgIAABoAAAAAAAAAAAAIwDwAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-05T00:02:55.776Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "WeaponBase.cs",
+              "DocumentMoniker": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\WeaponSys\\WeaponBase.cs",
+              "RelativeDocumentMoniker": "Assets\\Codes\\WeaponSys\\WeaponBase.cs",
+              "ToolTip": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\WeaponSys\\WeaponBase.cs",
+              "RelativeToolTip": "Assets\\Codes\\WeaponSys\\WeaponBase.cs",
+              "ViewState": "AgIAAD0AAAAAAAAAAAAIwF8AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-05T00:02:35.084Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "EquipmentManager.cs",
+              "DocumentMoniker": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\WeaponSys\\EquipmentManager.cs",
+              "RelativeDocumentMoniker": "Assets\\Codes\\WeaponSys\\EquipmentManager.cs",
+              "ToolTip": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\WeaponSys\\EquipmentManager.cs",
+              "RelativeToolTip": "Assets\\Codes\\WeaponSys\\EquipmentManager.cs",
+              "ViewState": "AgIAAEsAAAAAAAAAAAAIwG0AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-05T00:02:14.392Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "IEquippable.cs",
+              "DocumentMoniker": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\WeaponSys\\IEquippable.cs",
+              "RelativeDocumentMoniker": "Assets\\Codes\\WeaponSys\\IEquippable.cs",
+              "ToolTip": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\WeaponSys\\IEquippable.cs",
+              "RelativeToolTip": "Assets\\Codes\\WeaponSys\\IEquippable.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAVAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-05T00:01:56.907Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "PlayerUI.cs",
+              "DocumentMoniker": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\PlayerUI.cs",
+              "RelativeDocumentMoniker": "Assets\\Codes\\PlayerUI.cs",
+              "ToolTip": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\PlayerUI.cs",
+              "RelativeToolTip": "Assets\\Codes\\PlayerUI.cs",
+              "ViewState": "AgIAAEoAAAAAAAAAAAAywF8AAAASAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-04T23:11:38.369Z"
+            },
             {
               "$type": "Document",
               "DocumentIndex": 0,
@@ -68,39 +204,26 @@
               "RelativeDocumentMoniker": "Assets\\Codes\\PlayerController.cs",
               "ToolTip": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\PlayerController.cs",
               "RelativeToolTip": "Assets\\Codes\\PlayerController.cs",
-              "ViewState": "AgIAAHoBAAAAAAAAAAAIwJwBAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAJ8AAAAAAAAAAAAQwLMAAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-10-04T22:54:08.357Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "MonsterAI.cs",
-              "DocumentMoniker": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\MonsterAI.cs",
-              "RelativeDocumentMoniker": "Assets\\Codes\\MonsterAI.cs",
-              "ToolTip": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\MonsterAI.cs",
-              "RelativeToolTip": "Assets\\Codes\\MonsterAI.cs",
-              "ViewState": "AgIAAIoAAAAAAAAAAAAIwJECAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-04T22:12:51.788Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "CollectibleData.cs",
-              "DocumentMoniker": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\CollectionSys\\CollectibleData.cs",
-              "RelativeDocumentMoniker": "Assets\\Codes\\CollectionSys\\CollectibleData.cs",
-              "ToolTip": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\CollectionSys\\CollectibleData.cs",
-              "RelativeToolTip": "Assets\\Codes\\CollectionSys\\CollectibleData.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-04T21:14:04.733Z"
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 5,
+              "Title": "DashSkill.cs",
+              "DocumentMoniker": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\WeaponSys\\DashSkill.cs",
+              "RelativeDocumentMoniker": "Assets\\Codes\\WeaponSys\\DashSkill.cs",
+              "ToolTip": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\WeaponSys\\DashSkill.cs",
+              "RelativeToolTip": "Assets\\Codes\\WeaponSys\\DashSkill.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABcAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-05T00:03:47.157Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
               "Title": "CollectibleRuntimeData.cs",
               "DocumentMoniker": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\CollectionSys\\CollectibleRuntimeData.cs",
               "RelativeDocumentMoniker": "Assets\\Codes\\CollectionSys\\CollectibleRuntimeData.cs",
@@ -112,7 +235,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 13,
               "Title": "CollectionUI.cs",
               "DocumentMoniker": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\CollectionSys\\CollectionUI.cs",
               "RelativeDocumentMoniker": "Assets\\Codes\\CollectionSys\\CollectionUI.cs",
@@ -124,7 +247,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 14,
               "Title": "CollectionManager.cs",
               "DocumentMoniker": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\CollectionSys\\CollectionManager.cs",
               "RelativeDocumentMoniker": "Assets\\Codes\\CollectionSys\\CollectionManager.cs",
@@ -136,7 +259,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 12,
               "Title": "CollectibleItemUI.cs",
               "DocumentMoniker": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\CollectionSys\\CollectibleItemUI.cs",
               "RelativeDocumentMoniker": "Assets\\Codes\\CollectionSys\\CollectibleItemUI.cs",
@@ -148,7 +271,43 @@
             },
             {
               "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "RoomGenerator.cs",
+              "DocumentMoniker": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\RoomGenerator.cs",
+              "RelativeDocumentMoniker": "Assets\\Codes\\RoomGenerator.cs",
+              "ToolTip": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\RoomGenerator.cs",
+              "RelativeToolTip": "Assets\\Codes\\RoomGenerator.cs",
+              "ViewState": "AgIAACkEAAAAAAAAAAAIwEsEAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-04T17:13:20.395Z"
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 9,
+              "Title": "MonsterAI.cs",
+              "DocumentMoniker": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\MonsterAI.cs",
+              "RelativeDocumentMoniker": "Assets\\Codes\\MonsterAI.cs",
+              "ToolTip": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\MonsterAI.cs",
+              "RelativeToolTip": "Assets\\Codes\\MonsterAI.cs",
+              "ViewState": "AgIAAOMBAAAAAAAAAAAIwGICAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-04T22:12:51.788Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "CollectibleData.cs",
+              "DocumentMoniker": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\CollectionSys\\CollectibleData.cs",
+              "RelativeDocumentMoniker": "Assets\\Codes\\CollectionSys\\CollectibleData.cs",
+              "ToolTip": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\CollectionSys\\CollectibleData.cs",
+              "RelativeToolTip": "Assets\\Codes\\CollectionSys\\CollectibleData.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-04T21:14:04.733Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
               "Title": "MinimapSystem.cs",
               "DocumentMoniker": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\MinimapSystem.cs",
               "RelativeDocumentMoniker": "Assets\\Codes\\MinimapSystem.cs",
@@ -160,19 +319,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "RoomGenerator.cs",
-              "DocumentMoniker": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\RoomGenerator.cs",
-              "RelativeDocumentMoniker": "Assets\\Codes\\RoomGenerator.cs",
-              "ToolTip": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\RoomGenerator.cs",
-              "RelativeToolTip": "Assets\\Codes\\RoomGenerator.cs",
-              "ViewState": "AgIAABYEAAAAAAAAAAAIwDgEAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-04T17:13:20.395Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 17,
               "Title": "RoomMapSystem.cs",
               "DocumentMoniker": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\RoomMapSystem.cs",
               "RelativeDocumentMoniker": "Assets\\Codes\\RoomMapSystem.cs",
@@ -184,7 +331,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 20,
               "Title": "PlayerMovement.cs",
               "DocumentMoniker": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\PlayerMovement.cs",
               "RelativeDocumentMoniker": "Assets\\Codes\\PlayerMovement.cs",
@@ -196,7 +343,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 19,
               "Title": "CameraFollow.cs",
               "DocumentMoniker": "C:\\Users\\Weiqi\\Ludum_Dare_58_GameJam2025\\Assets\\Codes\\CameraFollow.cs",
               "RelativeDocumentMoniker": "Assets\\Codes\\CameraFollow.cs",

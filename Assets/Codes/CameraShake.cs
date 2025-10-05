@@ -28,6 +28,12 @@ public class CameraShake : MonoBehaviour
             return;
         }
 
+        // 如果游戏暂停，不触发震动
+        if (Time.timeScale == 0)
+        {
+            return;
+        }
+
         if (!isShaking)
         {
             StartCoroutine(ShakeCoroutine(duration, magnitude));
@@ -41,6 +47,14 @@ public class CameraShake : MonoBehaviour
 
         while (elapsed < duration)
         {
+            // 如果游戏暂停，停止震动并恢复位置
+            if (Time.timeScale == 0)
+            {
+                transform.localPosition = originalLocalPosition;
+                isShaking = false;
+                yield break;
+            }
+
             // 只在局部空间震动，不影响世界坐标
             float x = Random.Range(-1f, 1f) * magnitude;
             float y = Random.Range(-1f, 1f) * magnitude;

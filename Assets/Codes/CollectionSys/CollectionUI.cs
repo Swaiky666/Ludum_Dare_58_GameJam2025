@@ -22,6 +22,9 @@ public class CollectionUI : MonoBehaviour
     [SerializeField] private Button sortByNameButton;
     [SerializeField] private Button sortByTimeButton;
 
+    [Header("导航按钮")]
+    [SerializeField] private Button backToMenuButton;
+
     private List<CollectibleItemUI> currentItems = new List<CollectibleItemUI>();
     private FilterMode currentFilter = FilterMode.All;
     private SortMode currentSort = SortMode.ById;
@@ -80,6 +83,9 @@ public class CollectionUI : MonoBehaviour
 
         if (sortByTimeButton != null)
             sortByTimeButton.onClick.AddListener(() => SetSort(SortMode.ByTime));
+
+        if (backToMenuButton != null)
+            backToMenuButton.onClick.AddListener(OnBackToMenu);
     }
 
     public void SetFilter(FilterMode mode)
@@ -194,6 +200,18 @@ public class CollectionUI : MonoBehaviour
         if (progressText != null)
         {
             progressText.text = $"{(progress * 100f):F1}%";
+        }
+    }
+
+    private void OnBackToMenu()
+    {
+        if (GameSceneManager.Instance != null)
+        {
+            GameSceneManager.Instance.LoadMainMenu();
+        }
+        else
+        {
+            Debug.LogError("GameSceneManager.Instance is null!");
         }
     }
 }

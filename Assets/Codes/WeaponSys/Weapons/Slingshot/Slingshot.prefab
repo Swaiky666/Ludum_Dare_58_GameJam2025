@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 8666518277691529737}
   - component: {fileID: 491074805110546947}
   m_Layer: 0
-  m_Name: gun
+  m_Name: Slingshot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -46,16 +46,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   weaponName: Weapon
   icon: {fileID: 0}
-  cooldown: 0.1
-  damage: 30
-  playerRecoilForce: 2
-  enemyKnockbackForce: 5
+  cooldown: 0.5
+  damage: 25
+  playerRecoilForce: 3
+  enemyKnockbackForce: 2
   firePoint: {fileID: 0}
   fireSound: {fileID: 0}
-  bulletPrefab: {fileID: 4339031229521375225, guid: e9c676563e0697141b96c1bad91acb94, type: 3}
-  bulletSpeed: 60
+  bulletPrefab: {fileID: 1979403604311268, guid: bc0b77b5d64c11e48b0a22fadb7489ce, type: 3}
+  bulletSpeed: 30
   bulletsPerShot: 1
   spreadAngle: 0
+  fireRate: 2
   muzzleFlash: {fileID: 0}
   shakeDuration: 0.1
   shakeMagnitude: 0.05

@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 1096315971394503129}
   - component: {fileID: 4111412187475131876}
   - component: {fileID: 3707151464157902364}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Monster
   m_TagString: Monster
   m_Icon: {fileID: 0}
@@ -153,3 +153,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 100
+  knockbackDuration: 0.2
+  deathDelay: 0.5
+  deathKnockbackMultiplier: 0.15

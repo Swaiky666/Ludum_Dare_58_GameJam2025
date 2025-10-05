@@ -1,23 +1,64 @@
 ﻿using UnityEngine;
 
 /// <summary>
-/// 子弹（增加击退效果）
+/// 子弹游戏逻辑（配合 ProjectileMover 使用）
 /// </summary>
 public class Bullet : MonoBehaviour
 {
     [Header("Bullet Settings")]
     [SerializeField] private float lifetime = 5f;
-    [SerializeField] private LayerMask hitLayers;
 
-    [Header("Visual Effects")]
-    [SerializeField] private GameObject hitEffectPrefab;
-    [SerializeField] private TrailRenderer trailRenderer;
+    [Header("Explosion Settings")]
+    [SerializeField] private bool isExplosive = false;
+    [SerializeField] private float explosionRadius = 3f;
+    [SerializeField] private float explosionDamage = 15f;
+    [SerializeField] private float explosionKnockback = 8f;
+    [SerializeField] private bool damageDecay = true;
+
+    [Header("Bounce Settings")]
+    [SerializeField] private bool isBouncy = false;
+    [SerializeField] private int maxBounces = 3;
+    [SerializeField] private float bounceSpeedMultiplier = 0.8f;
+    [SerializeField] private GameObject bulletPrefab;
+
+    [Header("Slow Effect Settings")]
+    [SerializeField] private bool hasSlowEffect = false;
+    [SerializeField] private float slowMultiplier = 0.5f;
+    [SerializeField] private float slowDuration = 2f;
+
+    [Header("Homing Settings")]
+    [SerializeField] private bool isHoming = false;
+    [SerializeField] private float homingTurnSpeed = 180f;
+    [SerializeField] private float homingRange = 15f;
+    [SerializeField] private float homingActivationDelay = 0.1f;
+    [SerializeField] private bool usePredictiveAiming = true;
+    [SerializeField] private float maxTrackingAngle = 60f;
+    [SerializeField] private float giveUpAngle = 90f;
+
+    [Header("Piercing & AOE Damage Settings")]
+    [SerializeField] private bool isPiercing = false;
+    [SerializeField] private float piercingDamageRadius = 2f;
+    [SerializeField] private float piercingDamageInterval = 0.2f;
+    [SerializeField] private float piercingDamage = 10f;
+    [SerializeField] private float piercingLifetime = 3f;
 
     private Vector3 direction;
     private float speed;
     private float damage;
     private float knockbackForce;
+    private int currentBounces = 0;
+
     private Rigidbody rb;
+    private ProjectileMover projectileMover;
+    private bool hasCollided = false;
+
+    private Transform targetEnemy;
+    private float homingTimer = 0f;
+    private Vector3 lastTargetPosition;
+    private Vector3 lastTargetVelocity;
+
+    private float piercingDamageTimer = 0f;
+    private float piercingExistTime = 0f;
 
     void Awake()
     {
@@ -27,52 +68,517 @@ public class Bullet : MonoBehaviour
             rb = gameObject.AddComponent<Rigidbody>();
             rb.useGravity = false;
         }
+
+        rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+        projectileMover = GetComponent<ProjectileMover>();
+
+        // 如果是穿透子弹，设置Layer并忽略Monster层的碰撞
+        if (isPiercing)
+        {
+            // 将子弹设置到 "PiercingBullet" Layer（如果没有该Layer则使用默认Layer）
+            int piercingLayer = LayerMask.NameToLayer("PiercingBullet");
+            if (piercingLayer == -1)
+            {
+                // 如果没有PiercingBullet Layer，创建或使用其他可用Layer
+                // 这里使用游戏对象当前的Layer，但添加Layer忽略规则
+                piercingLayer = gameObject.layer;
+            }
+
+            gameObject.layer = piercingLayer;
+
+            // 忽略 PiercingBullet Layer 与 Monster Layer 之间的碰撞
+            int monsterLayer = LayerMask.NameToLayer("Monster");
+            if (monsterLayer != -1)
+            {
+                Physics.IgnoreLayerCollision(piercingLayer, monsterLayer, true);
+            }
+        }
     }
 
-    public void Initialize(Vector3 dir, float spd, float dmg, float knockback = 0f)
+    void Start()
+    {
+        IgnoreOtherBullets();
+        IgnorePlayer();
+
+        if (isHoming)
+        {
+            FindNearestEnemy();
+        }
+    }
+
+    void Update()
+    {
+        if (isHoming)
+        {
+            homingTimer += Time.deltaTime;
+
+            if (homingTimer >= homingActivationDelay && targetEnemy != null)
+            {
+                UpdateHoming();
+            }
+        }
+
+        if (isPiercing)
+        {
+            piercingExistTime += Time.deltaTime;
+            piercingDamageTimer += Time.deltaTime;
+
+            if (piercingDamageTimer >= piercingDamageInterval)
+            {
+                DealPiercingDamage();
+                piercingDamageTimer = 0f;
+            }
+
+            if (piercingExistTime >= piercingLifetime)
+            {
+                Destroy(gameObject);
+            }
+        }
+    }
+
+    void IgnoreOtherBullets()
+    {
+        Bullet[] allBullets = FindObjectsOfType<Bullet>();
+        Collider myCollider = GetComponent<Collider>();
+
+        if (myCollider == null) return;
+
+        foreach (Bullet otherBullet in allBullets)
+        {
+            if (otherBullet == this) continue;
+
+            Collider otherCollider = otherBullet.GetComponent<Collider>();
+            if (otherCollider != null)
+            {
+                Physics.IgnoreCollision(myCollider, otherCollider, true);
+            }
+        }
+    }
+
+    void IgnorePlayer()
+    {
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            Collider myCollider = GetComponent<Collider>();
+            Collider playerCollider = player.GetComponent<Collider>();
+
+            if (myCollider != null && playerCollider != null)
+            {
+                Physics.IgnoreCollision(myCollider, playerCollider, true);
+            }
+        }
+    }
+
+    public void Initialize(Vector3 dir, float spd, float dmg, float knockback = 0f, int bounces = 0)
     {
         direction = dir.normalized;
         speed = spd;
         damage = dmg;
         knockbackForce = knockback;
+        currentBounces = bounces;
 
-        rb.velocity = direction * speed;
+        if (projectileMover != null)
+        {
+            projectileMover.speed = speed;
+        }
+        else
+        {
+            rb.velocity = direction * speed;
+        }
 
-        // 自动销毁
-        Destroy(gameObject, lifetime);
+        if (isPiercing)
+        {
+            Destroy(gameObject, piercingLifetime);
+        }
+        else
+        {
+            Destroy(gameObject, lifetime);
+        }
     }
 
+    /// <summary>
+    /// 供 ProjectileMover 调用，判断是否是穿透子弹
+    /// </summary>
+    public bool IsPiercing()
+    {
+        return isPiercing;
+    }
+
+    void DealPiercingDamage()
+    {
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, piercingDamageRadius);
+
+        foreach (Collider hitCollider in hitColliders)
+        {
+            if (hitCollider.CompareTag("Monster"))
+            {
+                MonsterHealth monsterHealth = hitCollider.GetComponent<MonsterHealth>();
+                if (monsterHealth != null)
+                {
+                    Vector3 damageDirection = (hitCollider.transform.position - transform.position).normalized;
+                    monsterHealth.TakeDamage(piercingDamage, damageDirection, knockbackForce * 0.3f);
+
+                    if (hasSlowEffect)
+                    {
+                        MonsterAI monsterAI = hitCollider.GetComponent<MonsterAI>();
+                        if (monsterAI != null)
+                        {
+                            monsterAI.ApplySlow(slowMultiplier, slowDuration);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    void FindNearestEnemy()
+    {
+        GameObject[] enemies = GameObject.FindGameObjectsWithTag("Monster");
+        float closestDistance = homingRange;
+        Transform closestEnemy = null;
+
+        foreach (GameObject enemy in enemies)
+        {
+            float distance = Vector3.Distance(transform.position, enemy.transform.position);
+            if (distance < closestDistance)
+            {
+                closestDistance = distance;
+                closestEnemy = enemy.transform;
+            }
+        }
+
+        if (closestEnemy != null)
+        {
+            targetEnemy = closestEnemy;
+            lastTargetPosition = targetEnemy.position;
+            lastTargetPosition.y = transform.position.y;
+            lastTargetVelocity = Vector3.zero;
+        }
+    }
+
+    void UpdateHoming()
+    {
+        if (targetEnemy == null)
+        {
+            FindNearestEnemy();
+            return;
+        }
+
+        float distanceToTarget = Vector3.Distance(transform.position, targetEnemy.position);
+        if (distanceToTarget > homingRange)
+        {
+            targetEnemy = null;
+            return;
+        }
+
+        Vector3 currentTargetPosition = targetEnemy.position;
+        currentTargetPosition.y = transform.position.y;
+
+        Vector3 toTarget = currentTargetPosition - transform.position;
+        toTarget.y = 0;
+
+        if (toTarget.sqrMagnitude < 0.01f)
+        {
+            return;
+        }
+
+        Vector3 currentDirection = rb.velocity;
+        currentDirection.y = 0;
+
+        if (currentDirection.sqrMagnitude < 0.01f)
+        {
+            currentDirection = direction;
+            currentDirection.y = 0;
+        }
+
+        currentDirection = currentDirection.normalized;
+
+        float angleToTarget = Vector3.Angle(currentDirection, toTarget.normalized);
+
+        if (angleToTarget > giveUpAngle)
+        {
+            targetEnemy = null;
+            return;
+        }
+
+        if (angleToTarget > maxTrackingAngle)
+        {
+            return;
+        }
+
+        Vector3 targetVelocity = (currentTargetPosition - lastTargetPosition) / Time.deltaTime;
+        targetVelocity.y = 0;
+
+        targetVelocity = Vector3.Lerp(lastTargetVelocity, targetVelocity, 0.5f);
+        lastTargetVelocity = targetVelocity;
+        lastTargetPosition = currentTargetPosition;
+
+        Vector3 targetPosition;
+        if (usePredictiveAiming && targetVelocity.magnitude > 0.1f)
+        {
+            targetPosition = CalculateInterceptPoint(currentTargetPosition, targetVelocity);
+        }
+        else
+        {
+            targetPosition = currentTargetPosition;
+        }
+
+        Vector3 toTargetFinal = targetPosition - transform.position;
+        toTargetFinal.y = 0;
+        Vector3 desiredDirection = toTargetFinal.normalized;
+
+        float maxRotationDelta = homingTurnSpeed * Time.deltaTime;
+
+        Vector3 newDirection = Vector3.RotateTowards(
+            currentDirection,
+            desiredDirection,
+            maxRotationDelta * Mathf.Deg2Rad,
+            0f
+        );
+
+        newDirection.y = 0;
+        newDirection = newDirection.normalized;
+
+        rb.velocity = new Vector3(newDirection.x * speed, 0, newDirection.z * speed);
+
+        if (projectileMover != null)
+        {
+            projectileMover.speed = speed;
+            transform.rotation = Quaternion.LookRotation(newDirection);
+        }
+    }
+
+    Vector3 CalculateInterceptPoint(Vector3 targetPos, Vector3 targetVel)
+    {
+        Vector3 toTarget = targetPos - transform.position;
+        toTarget.y = 0;
+
+        float a = targetVel.sqrMagnitude - speed * speed;
+        float b = 2 * Vector3.Dot(targetVel, toTarget);
+        float c = toTarget.sqrMagnitude;
+
+        float discriminant = b * b - 4 * a * c;
+
+        if (discriminant < 0)
+        {
+            return targetPos;
+        }
+
+        float t1 = (-b + Mathf.Sqrt(discriminant)) / (2 * a);
+        float t2 = (-b - Mathf.Sqrt(discriminant)) / (2 * a);
+
+        float t = (t1 > 0 && t2 > 0) ? Mathf.Min(t1, t2) : Mathf.Max(t1, t2);
+
+        if (t < 0)
+        {
+            return targetPos;
+        }
+
+        Vector3 interceptPoint = targetPos + targetVel * t;
+        interceptPoint.y = transform.position.y;
+        return interceptPoint;
+    }
+
+    public bool ShouldBounce(Collision collision)
+    {
+        if (hasCollided) return false;
+
+        if (collision.gameObject.layer == LayerMask.NameToLayer("Player"))
+        {
+            return false;
+        }
+
+        if (collision.gameObject.CompareTag("Obstacle") || collision.gameObject.CompareTag("Wall"))
+        {
+            return isBouncy && currentBounces < maxBounces;
+        }
+
+        return false;
+    }
+
+    // 新增：穿透子弹使用OnTriggerEnter
     void OnTriggerEnter(Collider other)
     {
-        // 检查是否击中敌人
-        if (other.CompareTag("Monster"))
+        // 不再使用Trigger模式，删除此方法
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.GetComponent<Bullet>() != null)
         {
-            // 对怪物造成伤害
-            MonsterHealth monsterHealth = other.GetComponent<MonsterHealth>();
+            return;
+        }
+
+        if (collision == null || collision.contacts.Length == 0)
+        {
+            return;
+        }
+
+        if (collision.gameObject.layer == LayerMask.NameToLayer("Player"))
+        {
+            return;
+        }
+
+        Vector3 hitPoint = collision.contacts[0].point;
+        Vector3 hitNormal = collision.contacts[0].normal;
+
+        if (collision.gameObject.CompareTag("Monster"))
+        {
+            // 穿透子弹通过Layer忽略，理论上不会碰到怪物
+            if (isPiercing)
+            {
+                Debug.LogWarning("穿透子弹碰到了怪物！请检查Layer设置。");
+                return;
+            }
+
+            // 非穿透模式：正常碰撞销毁
+            if (hasCollided) return;
+            hasCollided = true;
+
+            MonsterHealth monsterHealth = collision.gameObject.GetComponent<MonsterHealth>();
             if (monsterHealth != null)
             {
                 monsterHealth.TakeDamage(damage, direction, knockbackForce);
+
+                if (hasSlowEffect)
+                {
+                    MonsterAI monsterAI = collision.gameObject.GetComponent<MonsterAI>();
+                    if (monsterAI != null)
+                    {
+                        monsterAI.ApplySlow(slowMultiplier, slowDuration);
+                    }
+                }
             }
 
-            // 显示击中特效
-            SpawnHitEffect();
+            if (isExplosive)
+            {
+                TriggerExplosion(hitPoint);
+            }
 
-            // 销毁子弹
             Destroy(gameObject);
         }
-        // 检查是否击中障碍物
-        else if (other.CompareTag("Obstacle") || other.CompareTag("Wall"))
+        else if (collision.gameObject.CompareTag("Obstacle") || collision.gameObject.CompareTag("Wall"))
         {
-            SpawnHitEffect();
-            Destroy(gameObject);
+            if (hasCollided) return;
+            hasCollided = true;
+
+            if (isExplosive)
+            {
+                TriggerExplosion(hitPoint);
+            }
+
+            if (isBouncy && currentBounces < maxBounces)
+            {
+                CreateBounceBullet(hitPoint, hitNormal);
+                Destroy(gameObject);
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
         }
     }
 
-    void SpawnHitEffect()
+    void CreateBounceBullet(Vector3 bouncePosition, Vector3 bounceNormal)
     {
-        if (hitEffectPrefab != null)
+        if (bulletPrefab == null)
         {
-            Instantiate(hitEffectPrefab, transform.position, Quaternion.identity);
+            Debug.LogWarning("反弹子弹预制体未设置！");
+            return;
+        }
+
+        Vector3 reflectDirection = Vector3.Reflect(direction, bounceNormal);
+        float newSpeed = speed * bounceSpeedMultiplier;
+
+        GameObject bounceBullet = Instantiate(bulletPrefab, bouncePosition + reflectDirection * 0.1f, Quaternion.LookRotation(reflectDirection));
+
+        Bullet bulletScript = bounceBullet.GetComponent<Bullet>();
+        if (bulletScript != null)
+        {
+            bulletScript.Initialize(reflectDirection, newSpeed, damage, knockbackForce, currentBounces + 1);
+        }
+    }
+
+    void TriggerExplosion(Vector3 explosionCenter)
+    {
+        Collider[] hitColliders = Physics.OverlapSphere(explosionCenter, explosionRadius);
+
+        int hitCount = 0;
+        foreach (Collider hitCollider in hitColliders)
+        {
+            if (hitCollider.CompareTag("Monster"))
+            {
+                MonsterHealth monsterHealth = hitCollider.GetComponent<MonsterHealth>();
+                if (monsterHealth != null)
+                {
+                    float distance = Vector3.Distance(explosionCenter, hitCollider.transform.position);
+
+                    float finalDamage = explosionDamage;
+                    float finalKnockback = explosionKnockback;
+
+                    if (damageDecay)
+                    {
+                        float damageMultiplier = 1f - (distance / explosionRadius);
+                        finalDamage *= damageMultiplier;
+                        finalKnockback *= damageMultiplier;
+                    }
+
+                    Vector3 knockbackDirection = (hitCollider.transform.position - explosionCenter).normalized;
+
+                    monsterHealth.TakeDamage(finalDamage, knockbackDirection, finalKnockback);
+
+                    if (hasSlowEffect)
+                    {
+                        MonsterAI monsterAI = hitCollider.GetComponent<MonsterAI>();
+                        if (monsterAI != null)
+                        {
+                            monsterAI.ApplySlow(slowMultiplier, slowDuration);
+                        }
+                    }
+
+                    hitCount++;
+                }
+            }
+        }
+    }
+
+    void OnDrawGizmosSelected()
+    {
+        if (isExplosive)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(transform.position, explosionRadius);
+        }
+
+        if (isBouncy)
+        {
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawLine(transform.position, transform.position + transform.forward * 2f);
+        }
+
+        if (hasSlowEffect)
+        {
+            Gizmos.color = Color.blue;
+            Gizmos.DrawWireSphere(transform.position, 0.3f);
+        }
+
+        if (isHoming)
+        {
+            Gizmos.color = Color.magenta;
+            Gizmos.DrawWireSphere(transform.position, homingRange);
+
+            if (targetEnemy != null)
+            {
+                Gizmos.color = Color.yellow;
+                Gizmos.DrawLine(transform.position, targetEnemy.position);
+            }
+        }
+
+        if (isPiercing)
+        {
+            Gizmos.color = Color.green;
+            Gizmos.DrawWireSphere(transform.position, piercingDamageRadius);
         }
     }
 }

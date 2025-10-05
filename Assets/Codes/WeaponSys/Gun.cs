@@ -11,6 +11,9 @@ public class Gun : WeaponBase
     [SerializeField] private int bulletsPerShot = 1;        // 每次射击的子弹数
     [SerializeField] private float spreadAngle = 0f;        // 散射角度
 
+    [Header("Fire Rate")]
+    [SerializeField] private float fireRate = 2f;           // 射速：每秒射击次数（新增）
+
     [Header("Visual Effects")]
     [SerializeField] private ParticleSystem muzzleFlash;
 
@@ -24,6 +27,9 @@ public class Gun : WeaponBase
     {
         base.Awake();
 
+        // 根据射速计算冷却时间
+        cooldown = 1f / fireRate;
+
         // 获取相机震动组件
         if (Camera.main != null)
         {
@@ -32,6 +38,15 @@ public class Gun : WeaponBase
             {
                 cameraShake = Camera.main.gameObject.AddComponent<CameraShake>();
             }
+        }
+    }
+
+    void OnValidate()
+    {
+        // 在编辑器中修改 fireRate 时自动更新 cooldown
+        if (fireRate > 0)
+        {
+            cooldown = 1f / fireRate;
         }
     }
 
@@ -83,6 +98,6 @@ public class Gun : WeaponBase
         // 重置冷却
         currentCooldown = cooldown;
 
-        Debug.Log($"{weaponName} 开火！");
+        Debug.Log($"{weaponName} 开火！射速: {fireRate} 发/秒");
     }
 }

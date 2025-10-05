@@ -31,21 +31,42 @@ public class ProjectileMover : MonoBehaviour
                 Destroy(flashInstance, flashPsParts.main.duration);
             }
         }
-        Destroy(gameObject,5);
-	}
+        Destroy(gameObject, 5);
+    }
 
-    void FixedUpdate ()
+    void FixedUpdate()
     {
-		if (speed != 0)
+        if (speed != 0)
         {
             rb.velocity = transform.forward * speed;
-            //transform.position += transform.forward * (speed * Time.deltaTime);         
         }
-	}
+    }
 
-    //https ://docs.unity3d.com/ScriptReference/Rigidbody.OnCollisionEnter.html
     void OnCollisionEnter(Collision collision)
     {
+        // 检查是否有 Bullet 组件
+        Bullet bulletScript = GetComponent<Bullet>();
+
+        // 穿透子弹碰到怪物时，由Bullet脚本处理，这里不销毁
+        if (bulletScript != null && bulletScript.IsPiercing() && collision.gameObject.CompareTag("Monster"))
+        {
+            return;
+        }
+
+        // 检查 collision 是否有效
+        if (collision == null || collision.contacts.Length == 0)
+        {
+            return;
+        }
+
+        // 检查是否需要反弹
+        if (bulletScript != null && bulletScript.ShouldBounce(collision))
+        {
+            // 如果需要反弹，交给 Bullet 处理，这里什么都不做
+            return;
+        }
+
+        // 正常的碰撞处理（不反弹的情况）
         //Lock all axes movement and rotation
         rb.constraints = RigidbodyConstraints.FreezeAll;
         speed = 0;
@@ -57,21 +78,45 @@ public class ProjectileMover : MonoBehaviour
         if (hit != null)
         {
             var hitInstance = Instantiate(hit, pos, rot);
-            if (UseFirePointRotation) { hitInstance.transform.rotation = gameObject.transform.rotation * Quaternion.Euler(0, 180f, 0); }
-            else if (rotationOffset != Vector3.zero) { hitInstance.transform.rotation = Quaternion.Euler(rotationOffset); }
-            else { hitInstance.transform.LookAt(contact.point + contact.normal); }
+            if (UseFirePointRotation)
+            {
+                hitInstance.transform.rotation = gameObject.transform.rotation * Quaternion.Euler(0, 180f, 0);
+            }
+            else if (rotationOffset != Vector3.zero)
+            {
+                hitInstance.transform.rotation = Quaternion.Euler(rotationOffset);
+            }
+            else
+            {
+                hitInstance.transform.LookAt(contact.point + contact.normal);
+            }
 
+            // 修复：添加完整的空检查
             var hitPs = hitInstance.GetComponent<ParticleSystem>();
             if (hitPs != null)
             {
                 Destroy(hitInstance, hitPs.main.duration);
             }
-            else
+            else if (hitInstance.transform.childCount > 0)
             {
                 var hitPsParts = hitInstance.transform.GetChild(0).GetComponent<ParticleSystem>();
-                Destroy(hitInstance, hitPsParts.main.duration);
+                if (hitPsParts != null)
+                {
+                    Destroy(hitInstance, hitPsParts.main.duration);
+                }
+                else
+                {
+                    // 如果子对象也没有粒子系统，默认2秒后销毁
+                    Destroy(hitInstance, 2f);
+                }
+            }
+            else
+            {
+                // 如果没有任何粒子系统，默认2秒后销毁
+                Destroy(hitInstance, 2f);
             }
         }
+
         foreach (var detachedPrefab in Detached)
         {
             if (detachedPrefab != null)

@@ -909,7 +909,7 @@ GameObject:
   m_Component:
   - component: {fileID: 670673307}
   - component: {fileID: 670673308}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Spot Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1217,7 +1217,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 954119347}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: leftFirePoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1233,7 +1233,7 @@ Transform:
   m_GameObject: {fileID: 954119346}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.36, y: 0.48, z: 0.647}
+  m_LocalPosition: {x: -0.437, y: 0.48, z: 0.822}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1836,7 +1836,7 @@ GameObject:
   - component: {fileID: 1610514696}
   - component: {fileID: 1610514697}
   - component: {fileID: 1610514698}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Player
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -1997,8 +1997,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3dfbbbf49a48b47428afb24f7f385330, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  leftHandEquipmentPrefab: {fileID: 8220254170530117568, guid: 8ca3ebacca419bb478d14e4e0bc9f240, type: 3}
-  rightHandEquipmentPrefab: {fileID: 8220254170530117568, guid: 8ca3ebacca419bb478d14e4e0bc9f240, type: 3}
+  leftHandEquipmentPrefab: {fileID: 8220254170530117568, guid: 03c90cd5636438b469d43fe0853baa3f, type: 3}
+  rightHandEquipmentPrefab: {fileID: 8220254170530117568, guid: 168ef0e3283190f43a9d8411c345ba0e, type: 3}
   leftFirePoint: {fileID: 954119347}
   rightFirePoint: {fileID: 1905339896}
 --- !u!1 &1683597026
@@ -2250,7 +2250,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1905339896}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: rightFirePoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2266,7 +2266,7 @@ Transform:
   m_GameObject: {fileID: 1905339895}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.348, y: 0.45, z: 0.663}
+  m_LocalPosition: {x: 0.498, y: 0.45, z: 0.838}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

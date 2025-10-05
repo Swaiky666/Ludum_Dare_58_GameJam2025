@@ -1,8 +1,5 @@
 ﻿using UnityEngine;
 
-/// <summary>
-/// 怪物血量管理（增加击退效果）
-/// </summary>
 public class MonsterHealth : MonoBehaviour
 {
     [Header("Health Settings")]
@@ -11,10 +8,15 @@ public class MonsterHealth : MonoBehaviour
     [Header("Knockback Settings")]
     [SerializeField] private float knockbackDuration = 0.2f;
 
+    [Header("Death Settings")]
+    [SerializeField] private float deathDelay = 0.5f;
+    [SerializeField] private float deathKnockbackMultiplier = 0.15f;  // 死亡击退 = 伤害 × 此倍率
+
     private float currentHealth;
     private CharacterController characterController;
     private MonsterAI monsterAI;
     private bool isKnockedBack = false;
+    private bool isDying = false;
 
     void Start()
     {
@@ -23,34 +25,30 @@ public class MonsterHealth : MonoBehaviour
         monsterAI = GetComponent<MonsterAI>();
     }
 
-    /// <summary>
-    /// 受到伤害（带击退）
-    /// </summary>
     public void TakeDamage(float damage, Vector3 knockbackDirection, float knockbackForce)
     {
+        if (isDying) return;
+
         currentHealth -= damage;
         Debug.Log($"{gameObject.name} 受到 {damage} 伤害，剩余血量: {currentHealth}");
 
-        // 应用击退效果
-        if (knockbackForce > 0 && !isKnockedBack)
-        {
-            StartCoroutine(ApplyKnockback(knockbackDirection, knockbackForce));
-        }
-
         if (currentHealth <= 0)
         {
-            Die();
+            // 死亡时：根据致命一击的伤害计算击退力
+            float deathKnockback = damage * deathKnockbackMultiplier;
+            Die(knockbackDirection, deathKnockback);
+        }
+        else if (knockbackForce > 0 && !isKnockedBack)
+        {
+            // 平时受伤：使用子弹设置的击退力
+            StartCoroutine(ApplyKnockback(knockbackDirection, knockbackForce));
         }
     }
 
-    /// <summary>
-    /// 应用击退
-    /// </summary>
     System.Collections.IEnumerator ApplyKnockback(Vector3 direction, float force)
     {
         isKnockedBack = true;
 
-        // 暂时禁用怪物AI
         if (monsterAI != null)
         {
             monsterAI.enabled = false;
@@ -65,7 +63,6 @@ public class MonsterHealth : MonoBehaviour
             float knockbackSpeed = force * (1 - elapsed / knockbackDuration);
             Vector3 knockbackMovement = knockbackDir * knockbackSpeed * Time.deltaTime;
 
-            // 使用 CharacterController 移动
             if (characterController != null)
             {
                 characterController.Move(knockbackMovement);
@@ -79,7 +76,6 @@ public class MonsterHealth : MonoBehaviour
             yield return null;
         }
 
-        // 恢复怪物AI
         if (monsterAI != null)
         {
             monsterAI.enabled = true;
@@ -88,9 +84,43 @@ public class MonsterHealth : MonoBehaviour
         isKnockedBack = false;
     }
 
-    void Die()
+    void Die(Vector3 lastKnockbackDirection, float lastKnockbackForce)
     {
-        Debug.Log($"{gameObject.name} 死亡！");
+        isDying = true;
+        Debug.Log($"{gameObject.name} 死亡！击退力: {lastKnockbackForce}");
+
+        if (monsterAI != null)
+        {
+            monsterAI.enabled = false;
+        }
+
+        StartCoroutine(DeathSequence(lastKnockbackDirection, lastKnockbackForce));
+    }
+
+    System.Collections.IEnumerator DeathSequence(Vector3 direction, float force)
+    {
+        float elapsed = 0;
+        Vector3 knockbackDir = direction.normalized;
+        knockbackDir.y = 0;
+
+        while (elapsed < deathDelay)
+        {
+            float knockbackSpeed = force * (1 - elapsed / deathDelay);
+            Vector3 knockbackMovement = knockbackDir * knockbackSpeed * Time.deltaTime;
+
+            if (characterController != null)
+            {
+                characterController.Move(knockbackMovement);
+            }
+            else
+            {
+                transform.position += knockbackMovement;
+            }
+
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
         Destroy(gameObject);
     }
 }

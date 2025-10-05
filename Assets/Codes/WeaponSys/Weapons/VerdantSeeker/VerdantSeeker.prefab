@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &8220254170530117568
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8666518277691529737}
+  - component: {fileID: 491074805110546947}
+  m_Layer: 0
+  m_Name: VerdantSeeker
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8666518277691529737
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8220254170530117568}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 24.853863, y: 1.389151, z: 43.564007}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &491074805110546947
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8220254170530117568}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c17ab68334223414b8367dfe834c0e34, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  weaponName: Weapon
+  icon: {fileID: 0}
+  cooldown: 0.25
+  damage: 35
+  playerRecoilForce: 5
+  enemyKnockbackForce: 5
+  firePoint: {fileID: 0}
+  fireSound: {fileID: 0}
+  bulletPrefab: {fileID: 1985767573034186, guid: 7e5debf0606b3254faa6bca9a70b6713, type: 3}
+  bulletSpeed: 50
+  bulletsPerShot: 1
+  spreadAngle: 0
+  fireRate: 4
+  muzzleFlash: {fileID: 0}
+  shakeDuration: 0.1
+  shakeMagnitude: 0.05

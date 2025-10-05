@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -12,7 +13,7 @@ public enum MonsterState
 }
 
 /// <summary>
-/// 怪物AI控制器
+/// 怪物AI控制器（添加减速系统）
 /// </summary>
 public class MonsterAI : MonoBehaviour
 {
@@ -63,6 +64,11 @@ public class MonsterAI : MonoBehaviour
     private float attackCooldownTimer;
     private PlayerController targetPlayer;
 
+    // 减速系统变量
+    private bool isSlowed = false;
+    private float originalMoveSpeed;
+    private Coroutine slowCoroutine;
+
     // 静态缓存（所有怪物共享）
     private static readonly Vector2Int[] NeighborDirections = {
         new Vector2Int(0, 1), new Vector2Int(1, 0),
@@ -83,6 +89,7 @@ public class MonsterAI : MonoBehaviour
         }
 
         spawnPosition = transform.position;
+        originalMoveSpeed = moveSpeed; // 保存原始速度
 
         if (playerTransform == null)
         {
@@ -124,6 +131,49 @@ public class MonsterAI : MonoBehaviour
                 break;
         }
     }
+
+    #region 减速系统
+
+    /// <summary>
+    /// 应用减速效果（由子弹调用）
+    /// </summary>
+    public void ApplySlow(float slowMultiplier, float duration)
+    {
+        // 如果已经有减速效果，先停止旧的
+        if (slowCoroutine != null)
+        {
+            StopCoroutine(slowCoroutine);
+        }
+
+        slowCoroutine = StartCoroutine(SlowCoroutine(slowMultiplier, duration));
+    }
+
+    IEnumerator SlowCoroutine(float slowMultiplier, float duration)
+    {
+        // 应用减速
+        if (!isSlowed)
+        {
+            isSlowed = true;
+            moveSpeed = originalMoveSpeed * slowMultiplier;
+            Debug.Log($"{gameObject.name} 被减速！速度: {originalMoveSpeed} → {moveSpeed}，持续 {duration} 秒");
+        }
+        else
+        {
+            // 已经减速，更新速度
+            moveSpeed = originalMoveSpeed * slowMultiplier;
+            Debug.Log($"{gameObject.name} 减速效果刷新！新速度: {moveSpeed}");
+        }
+
+        // 等待持续时间
+        yield return new WaitForSeconds(duration);
+
+        // 恢复速度
+        isSlowed = false;
+        moveSpeed = originalMoveSpeed;
+        Debug.Log($"{gameObject.name} 减速效果结束，速度恢复: {moveSpeed}");
+    }
+
+    #endregion
 
     void CheckPlayerDetection()
     {
@@ -491,6 +541,7 @@ public class MonsterAI : MonoBehaviour
 
         if (characterController != null)
         {
+            // 使用当前速度（可能被减速影响）
             characterController.Move(direction * moveSpeed * Time.deltaTime);
         }
         else
@@ -546,6 +597,13 @@ public class MonsterAI : MonoBehaviour
     void OnDrawGizmos()
     {
         if (!Application.isPlaying) return;
+
+        // 减速状态用蓝色圈显示
+        if (isSlowed)
+        {
+            Gizmos.color = Color.blue;
+            Gizmos.DrawWireSphere(transform.position, detectionRange * 0.3f);
+        }
 
         Gizmos.color = currentState == MonsterState.Patrol ? Color.yellow : Color.red;
         Gizmos.DrawWireSphere(transform.position, detectionRange);

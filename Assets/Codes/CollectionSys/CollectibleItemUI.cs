@@ -13,19 +13,105 @@ public class CollectibleItemUI : MonoBehaviour
     public TextMeshProUGUI timeText;
     public TextMeshProUGUI descriptionText;
 
-    private CollectibleRuntimeData runtimeData;
+    [Header("装备按钮")]
+    public Button equipButton;  // 装备按钮
+    public TextMeshProUGUI equipButtonText;  // 按钮文字
 
-    public void Setup(CollectibleRuntimeData runtimeData)
+    [Header("装备武器数据")]
+    public EquippedWeaponData equippedWeaponData;  // 携带武器的 ScriptableObject
+
+    private CollectibleData data;
+
+    public void Setup(CollectibleData collectibleData)
     {
-        this.runtimeData = runtimeData;
+        this.data = collectibleData;
         UpdateDisplay();
+        SetupEquipButton();
+    }
+
+    private void SetupEquipButton()
+    {
+        if (equipButton != null)
+        {
+            // 移除旧的监听器
+            equipButton.onClick.RemoveAllListeners();
+
+            // 添加新的监听器
+            equipButton.onClick.AddListener(OnEquipButtonClicked);
+
+            // 更新按钮状态
+            UpdateEquipButton();
+        }
+    }
+
+    private void OnEquipButtonClicked()
+    {
+        if (data == null || equippedWeaponData == null)
+        {
+            Debug.LogWarning("数据为空，无法装备武器！");
+            return;
+        }
+
+        // 检查是否已收集
+        if (!data.isCollected)
+        {
+            Debug.LogWarning($"{data.itemName} 尚未收集，无法装备！");
+            return;
+        }
+
+        // 装备武器
+        equippedWeaponData.EquipWeapon(data);
+
+        // 更新按钮显示
+        UpdateEquipButton();
+    }
+
+    private void UpdateEquipButton()
+    {
+        if (equipButton == null) return;
+
+        // 如果未收集，禁用按钮
+        if (data == null || !data.isCollected)
+        {
+            equipButton.interactable = false;
+            if (equipButtonText != null)
+            {
+                equipButtonText.text = "未收集";
+            }
+        }
+        else
+        {
+            equipButton.interactable = true;
+
+            // 检查是否是当前装备的武器
+            if (equippedWeaponData != null && equippedWeaponData.weaponId == data.id)
+            {
+                if (equipButtonText != null)
+                {
+                    equipButtonText.text = "已装备";
+                }
+                // 可以给按钮换个颜色表示已装备
+                ColorBlock colors = equipButton.colors;
+                colors.normalColor = Color.green;
+                equipButton.colors = colors;
+            }
+            else
+            {
+                if (equipButtonText != null)
+                {
+                    equipButtonText.text = "装备";
+                }
+                // 恢复默认颜色
+                ColorBlock colors = equipButton.colors;
+                colors.normalColor = Color.white;
+                equipButton.colors = colors;
+            }
+        }
     }
 
     public void UpdateDisplay()
     {
-        if (runtimeData == null || runtimeData.data == null) return;
-
-        CollectibleData data = runtimeData.data;
+        if (data == null) return;
 
         // 设置基本信息
         if (nameText != null)
@@ -43,7 +129,7 @@ public class CollectibleItemUI : MonoBehaviour
             iconImage.sprite = data.icon;
 
             // 根据是否收集设置图片颜色
-            if (runtimeData.isCollected)
+            if (data.isCollected)
             {
                 iconImage.color = Color.white; // 正常颜色
             }
@@ -56,14 +142,14 @@ public class CollectibleItemUI : MonoBehaviour
         // 设置高亮边框
         if (highlightBorder != null)
         {
-            highlightBorder.gameObject.SetActive(runtimeData.isCollected);
+            highlightBorder.gameObject.SetActive(data.isCollected);
         }
 
         // 设置收集次数
         if (countText != null)
         {
-            if (runtimeData.isCollected)
-                countText.text = $"Collected: {runtimeData.collectionCount}";
+            if (data.isCollected)
+                countText.text = $"Collected: {data.collectionCount}";
             else
                 countText.text = "Not Collected";
         }
@@ -71,15 +157,18 @@ public class CollectibleItemUI : MonoBehaviour
         // 设置收集时间
         if (timeText != null)
         {
-            if (runtimeData.isCollected && runtimeData.collectionTime != System.DateTime.MinValue)
-                timeText.text = $"Time: {runtimeData.collectionTime:yyyy/MM/dd HH:mm}";
+            if (data.isCollected && !string.IsNullOrEmpty(data.collectionTime))
+                timeText.text = $"Time: {data.collectionTime}";
             else
                 timeText.text = "";
         }
+
+        // 更新装备按钮
+        UpdateEquipButton();
     }
 
-    public CollectibleRuntimeData GetRuntimeData()
+    public CollectibleData GetData()
     {
-        return runtimeData;
+        return data;
     }
 }

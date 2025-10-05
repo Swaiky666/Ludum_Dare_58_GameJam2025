@@ -1,71 +1,84 @@
 ﻿using UnityEngine;
 
 /// <summary>
-/// 装备管理器 - 管理玩家的左右键装备
+/// 装备管理器 - 管理玩家的左右键装备（从 EquippedWeaponData 初始化左手装备）
 /// </summary>
 public class EquipmentManager : MonoBehaviour
 {
-    [Header("Equipment Slots")]
-    [SerializeField] private GameObject leftHandEquipmentPrefab;   // 左键装备预制体
-    [SerializeField] private GameObject rightHandEquipmentPrefab;  // 右键装备预制体
+    [Header("Equipment Prefabs (Fallback)")]
+    [SerializeField] private GameObject leftHandEquipmentPrefab;   // 备用：左手默认预制体（当SO里没有时使用）
+    [SerializeField] private GameObject rightHandEquipmentPrefab;  // 备用：右手默认预制体（本版本启动时不装备）
 
     [Header("Fire Points")]
-    [SerializeField] private Transform leftFirePoint;   // 左键开火点
-    [SerializeField] private Transform rightFirePoint;  // 右键开火点
+    [SerializeField] private Transform leftFirePoint;   // 左手开火点 / 武器父节点
+    [SerializeField] private Transform rightFirePoint;  // 右手开火点 / 武器父节点
 
-    private IEquippable leftHandEquipment;   // 左键装备实例
-    private IEquippable rightHandEquipment;  // 右键装备实例
+    [Header("Equipped Data (ScriptableObject)")]
+    [SerializeField] private EquippedWeaponData equippedWeaponData; // 与主菜单共用的SO，启动时从这里同步装备
 
-    // 公共访问器
+    private IEquippable leftHandEquipment;   // 左手装备实例
+    private IEquippable rightHandEquipment;  // 右手装备实例
+
+    // 公共只读访问器（其他系统查询当前装备）
     public IEquippable LeftHandEquipment => leftHandEquipment;
     public IEquippable RightHandEquipment => rightHandEquipment;
 
-    void Start()
+    private void Start()
     {
-        // 初始化装备
-        if (leftHandEquipmentPrefab != null)
+        // —— 左手：优先用 SO 的武器
+        GameObject leftPrefabToUse = null;
+        if (equippedWeaponData != null && equippedWeaponData.IsEquipped() && equippedWeaponData.weaponPrefab != null)
         {
-            EquipToSlot(leftHandEquipmentPrefab, 0);
+            leftPrefabToUse = equippedWeaponData.weaponPrefab;
+        }
+        else
+        {
+            // 若 SO 为空或未设置，则退回到 Inspector 里的备用预制体
+            leftPrefabToUse = leftHandEquipmentPrefab;
         }
 
-        if (rightHandEquipmentPrefab != null)
+        if (leftPrefabToUse != null)
         {
-            EquipToSlot(rightHandEquipmentPrefab, 1);
+            EquipToSlot(leftPrefabToUse, 0);
         }
+        else
+        {
+            ClearSlot(0); // 左手清空
+        }
+
+        // —— 右手：按你的最新需求，启动时不装备任何东西
+        ClearSlot(1);
+        // 如果你之后想允许从 Inspector 启动就给右手一个备用武器，可改成：
+        // if (rightHandEquipmentPrefab != null) EquipToSlot(rightHandEquipmentPrefab, 1);
     }
 
-    void Update()
+    private void Update()
     {
-        // 更新冷却时间
+        // 更新冷却
         leftHandEquipment?.UpdateCooldown(Time.deltaTime);
         rightHandEquipment?.UpdateCooldown(Time.deltaTime);
     }
 
     /// <summary>
-    /// 装备到指定槽位
+    /// 装备到指定槽位（0=左手，1=右手）
     /// </summary>
     public void EquipToSlot(GameObject equipmentPrefab, int slot)
     {
         if (equipmentPrefab == null) return;
 
-        Transform firePoint = slot == 0 ? leftFirePoint : rightFirePoint;
+        Transform firePoint = (slot == 0) ? leftFirePoint : rightFirePoint;
+        if (firePoint == null)
+        {
+            Debug.LogError($"EquipToSlot失败：槽位{slot}的 FirePoint 未设置。");
+            return;
+        }
 
-        // 卸载旧装备
-        if (slot == 0 && leftHandEquipment != null)
-        {
-            leftHandEquipment.OnUnequip();
-            Destroy((leftHandEquipment as MonoBehaviour)?.gameObject);
-        }
-        else if (slot == 1 && rightHandEquipment != null)
-        {
-            rightHandEquipment.OnUnequip();
-            Destroy((rightHandEquipment as MonoBehaviour)?.gameObject);
-        }
+        // 先卸下旧装备
+        ClearSlot(slot);
 
         // 实例化新装备
         GameObject equipmentObj = Instantiate(equipmentPrefab, firePoint.position, firePoint.rotation, firePoint);
         IEquippable equipment = equipmentObj.GetComponent<IEquippable>();
-
         if (equipment == null)
         {
             Debug.LogError($"装备预制体 {equipmentPrefab.name} 没有实现 IEquippable 接口！");
@@ -73,27 +86,48 @@ public class EquipmentManager : MonoBehaviour
             return;
         }
 
-        // 设置装备
-        if (slot == 0)
-        {
-            leftHandEquipment = equipment;
-        }
-        else
-        {
-            rightHandEquipment = equipment;
-        }
+        if (slot == 0) leftHandEquipment = equipment;
+        else rightHandEquipment = equipment;
 
         equipment.OnEquip();
-        Debug.Log($"装备 {equipment.EquipmentName} 到槽位 {slot}");
+        Debug.Log($"[EquipmentManager] 装备 {equipment.EquipmentName} 到槽位 {slot}");
     }
 
     /// <summary>
-    /// 使用指定槽位的装备
+    /// 清空指定槽位（0=左手，1=右手）
+    /// </summary>
+    public void ClearSlot(int slot)
+    {
+        if (slot == 0 && leftHandEquipment != null)
+        {
+            leftHandEquipment.OnUnequip();
+            Destroy((leftHandEquipment as MonoBehaviour)?.gameObject);
+            leftHandEquipment = null;
+        }
+        else if (slot == 1 && rightHandEquipment != null)
+        {
+            rightHandEquipment.OnUnequip();
+            Destroy((rightHandEquipment as MonoBehaviour)?.gameObject);
+            rightHandEquipment = null;
+        }
+
+        // 把子物体都清掉，避免残留
+        Transform firePoint = (slot == 0) ? leftFirePoint : rightFirePoint;
+        if (firePoint != null)
+        {
+            for (int i = firePoint.childCount - 1; i >= 0; i--)
+            {
+                Destroy(firePoint.GetChild(i).gameObject);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 使用指定槽位的装备（供 PlayerController 调用）
     /// </summary>
     public void UseEquipment(int slot, Vector3 direction, Vector3 origin)
     {
-        IEquippable equipment = slot == 0 ? leftHandEquipment : rightHandEquipment;
-
+        var equipment = (slot == 0) ? leftHandEquipment : rightHandEquipment;
         if (equipment != null && equipment.CanUse())
         {
             equipment.Use(direction, origin);

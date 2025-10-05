@@ -97,11 +97,7 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        // 如果游戏暂停，不处理任何输入
-        if (Time.timeScale == 0)
-        {
-            return;
-        }
+        if (Time.timeScale == 0) return;
 
         HandleRotation();
         HandleMovement();
@@ -109,6 +105,7 @@ public class PlayerController : MonoBehaviour
         HandleShooting();
         RegenerateShield();
     }
+
 
     /// <summary>
     /// 处理朝向鼠标

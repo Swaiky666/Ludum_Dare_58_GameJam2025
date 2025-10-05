@@ -10,10 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3748ccecd8a9c0d489bb33a0b1c86898, type: 3}
-  m_Name: test2
+  m_Name: ArcaneExplosion
   m_EditorClassIdentifier: 
-  id: 1
-  itemName: testObj02
-  icon: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  description: this is testObj02
-  prefab: {fileID: 0}
+  id: 9
+  itemName: ArcaneExplosion
+  icon: {fileID: 0}
+  description: "\u201CBoom, but make it magical.\u201D"
+  prefab: {fileID: 8220254170530117568, guid: 27daf0ef5ab7ae040a865acf18f29f82, type: 3}
+  isCollected: 0
+  collectionCount: 0
+  collectionTime: 

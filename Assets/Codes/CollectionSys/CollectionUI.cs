@@ -9,21 +9,31 @@ public class CollectionUI : MonoBehaviour
     [Header("UI组件")]
     [SerializeField] private Transform itemContainer;
     [SerializeField] private GameObject itemPrefab;
-    [SerializeField] private Slider progressSlider;
+    [SerializeField] private UnityEngine.UI.Slider progressSlider;
     [SerializeField] private TextMeshProUGUI progressText;
 
+    [Header("滚动控制")]
+    [SerializeField] private ManualScrollController manualScroller;
+
     [Header("筛选按钮")]
-    [SerializeField] private Button showAllButton;
-    [SerializeField] private Button showCollectedButton;
-    [SerializeField] private Button showUnCollectedButton;
+    [SerializeField] private UnityEngine.UI.Button showAllButton;
+    [SerializeField] private UnityEngine.UI.Button showCollectedButton;
+    [SerializeField] private UnityEngine.UI.Button showUnCollectedButton;
 
     [Header("排序按钮")]
-    [SerializeField] private Button sortByIdButton;
-    [SerializeField] private Button sortByNameButton;
-    [SerializeField] private Button sortByTimeButton;
+    [SerializeField] private UnityEngine.UI.Button sortByIdButton;
+    [SerializeField] private UnityEngine.UI.Button sortByNameButton;
+    [SerializeField] private UnityEngine.UI.Button sortByTimeButton;
 
     [Header("导航按钮")]
-    [SerializeField] private Button backToMenuButton;
+    [SerializeField] private UnityEngine.UI.Button backToMenuButton;
+
+    [Header("功能按钮")]
+    [SerializeField] private UnityEngine.UI.Button clearRecordsButton;
+    [SerializeField] private UnityEngine.UI.Button collectAllButton;
+
+    [Header("装备数据")]
+    [SerializeField] private EquippedWeaponData equippedWeaponData;
 
     private List<CollectibleItemUI> currentItems = new List<CollectibleItemUI>();
     private FilterMode currentFilter = FilterMode.All;
@@ -52,7 +62,11 @@ public class CollectionUI : MonoBehaviour
             CollectionManager.Instance.OnCollectionUpdated += RefreshDisplay;
         }
 
-        // 延迟刷新确保CollectionManager已初始化
+        if (manualScroller == null)
+        {
+            manualScroller = GetComponentInChildren<ManualScrollController>();
+        }
+
         Invoke(nameof(RefreshDisplay), 0.1f);
     }
 
@@ -86,18 +100,26 @@ public class CollectionUI : MonoBehaviour
 
         if (backToMenuButton != null)
             backToMenuButton.onClick.AddListener(OnBackToMenu);
+
+        if (clearRecordsButton != null)
+            clearRecordsButton.onClick.AddListener(OnClearRecords);
+
+        if (collectAllButton != null)
+            collectAllButton.onClick.AddListener(OnCollectAll);
     }
 
     public void SetFilter(FilterMode mode)
     {
         currentFilter = mode;
         RefreshDisplay();
+        ScrollToTop();
     }
 
     public void SetSort(SortMode mode)
     {
         currentSort = mode;
         RefreshDisplay();
+        ScrollToTop();
     }
 
     public void RefreshDisplay()
@@ -110,23 +132,20 @@ public class CollectionUI : MonoBehaviour
             return;
         }
 
-        List<CollectibleRuntimeData> collectibles = CollectionManager.Instance.GetAllCollectibles();
+        List<CollectibleData> collectibles = CollectionManager.Instance.GetAllCollectibles();
 
         Debug.Log($"RefreshDisplay: Found {collectibles.Count} collectibles");
 
-        // 筛选
         collectibles = FilterCollectibles(collectibles);
         Debug.Log($"After filter ({currentFilter}): {collectibles.Count} collectibles");
 
-        // 排序
         collectibles = SortCollectibles(collectibles);
 
-        // 显示
         foreach (var collectible in collectibles)
         {
-            if (collectible == null || collectible.data == null)
+            if (collectible == null)
             {
-                Debug.LogWarning("Found null collectible or data!");
+                Debug.LogWarning("Found null collectible!");
                 continue;
             }
 
@@ -134,6 +153,7 @@ public class CollectionUI : MonoBehaviour
             CollectibleItemUI itemUI = itemObj.GetComponent<CollectibleItemUI>();
             if (itemUI != null)
             {
+                itemUI.equippedWeaponData = equippedWeaponData;
                 itemUI.Setup(collectible);
                 currentItems.Add(itemUI);
             }
@@ -145,9 +165,15 @@ public class CollectionUI : MonoBehaviour
 
         Debug.Log($"Displayed {currentItems.Count} items in UI");
         UpdateProgress();
+
+        if (manualScroller != null)
+        {
+            manualScroller.UpdateContentHeight(currentItems.Count);
+            manualScroller.ScrollToTop();
+        }
     }
 
-    private List<CollectibleRuntimeData> FilterCollectibles(List<CollectibleRuntimeData> collectibles)
+    private List<CollectibleData> FilterCollectibles(List<CollectibleData> collectibles)
     {
         switch (currentFilter)
         {
@@ -161,16 +187,16 @@ public class CollectionUI : MonoBehaviour
         }
     }
 
-    private List<CollectibleRuntimeData> SortCollectibles(List<CollectibleRuntimeData> collectibles)
+    private List<CollectibleData> SortCollectibles(List<CollectibleData> collectibles)
     {
         switch (currentSort)
         {
             case SortMode.ById:
-                return collectibles.OrderBy(c => c.data.id).ToList();
+                return collectibles.OrderBy(c => c.id).ToList();
             case SortMode.ByName:
-                return collectibles.OrderBy(c => c.data.itemName).ToList();
+                return collectibles.OrderBy(c => c.itemName).ToList();
             case SortMode.ByTime:
-                return collectibles.OrderByDescending(c => c.collectionTime).ToList();
+                return collectibles.OrderByDescending(c => c.CollectionDateTime).ToList();
             default:
                 return collectibles;
         }
@@ -212,6 +238,59 @@ public class CollectionUI : MonoBehaviour
         else
         {
             Debug.LogError("GameSceneManager.Instance is null!");
+        }
+    }
+
+    private void OnClearRecords()
+    {
+        if (CollectionManager.Instance != null)
+        {
+            Debug.Log("清除所有收集记录...");
+            CollectionManager.Instance.ClearAllRecords(equippedWeaponData);
+            RefreshDisplay();
+        }
+        else
+        {
+            Debug.LogError("CollectionManager.Instance is null!");
+        }
+    }
+
+    private void OnCollectAll()
+    {
+        if (CollectionManager.Instance != null)
+        {
+            Debug.Log("收集所有物品...");
+            CollectionManager.Instance.CollectAllItems();
+            RefreshDisplay();
+        }
+        else
+        {
+            Debug.LogError("CollectionManager.Instance is null!");
+        }
+    }
+
+    public void ScrollToTop()
+    {
+        if (manualScroller != null)
+        {
+            manualScroller.ScrollToTop();
+        }
+    }
+
+    public void ScrollToBottom()
+    {
+        if (manualScroller != null)
+        {
+            manualScroller.ScrollToBottom();
+        }
+    }
+
+    public void LogScrollInfo()
+    {
+        if (manualScroller != null)
+        {
+            manualScroller.RecalculateHeight();
+            Debug.Log($"Item Count: {currentItems.Count}");
         }
     }
 }

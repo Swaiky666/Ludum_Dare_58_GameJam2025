@@ -1997,10 +1997,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3dfbbbf49a48b47428afb24f7f385330, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  leftHandEquipmentPrefab: {fileID: 8220254170530117568, guid: 03c90cd5636438b469d43fe0853baa3f, type: 3}
-  rightHandEquipmentPrefab: {fileID: 8220254170530117568, guid: 168ef0e3283190f43a9d8411c345ba0e, type: 3}
+  leftHandEquipmentPrefab: {fileID: 0}
+  rightHandEquipmentPrefab: {fileID: 0}
   leftFirePoint: {fileID: 954119347}
   rightFirePoint: {fileID: 1905339896}
+  equippedWeaponData: {fileID: 11400000, guid: c4e1af51cc9a63a438e8079dceb3ff19, type: 2}
 --- !u!1 &1683597026
 GameObject:
   m_ObjectHideFlags: 0

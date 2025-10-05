@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3748ccecd8a9c0d489bb33a0b1c86898, type: 3}
+  m_Name: WrathOfWinter
+  m_EditorClassIdentifier: 
+  id: 5
+  itemName: WrathOfWinter
+  icon: {fileID: 0}
+  description: "\u201CCold remembers.\u201D\n\nA relic forged from endless frost.
+    Each strike unleashes a blizzard\u2019s fury \u2014 freezing steel, silence,
+    and even time itself."
+  prefab: {fileID: 8220254170530117568, guid: 78918014be3f508478538d921163770f, type: 3}
+  isCollected: 0
+  collectionCount: 0
+  collectionTime: 

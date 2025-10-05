@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &855946665087720440
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3108088837146910319}
+  - component: {fileID: 8134706379818121637}
+  m_Layer: 0
+  m_Name: CollectionManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3108088837146910319
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 855946665087720440}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1, z: -10}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8134706379818121637
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 855946665087720440}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f3929ca72f4f3f142951481ff512d92f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  collectibleDataList:
+  - {fileID: 11400000, guid: c3bd3f754cd5655439e668dd767707be, type: 2}
+  - {fileID: 11400000, guid: 8039f8d6e19b1e9499bfd1054d434606, type: 2}
+  - {fileID: 11400000, guid: 645396c2b4d0f9d49a39bdd773f42da5, type: 2}
+  - {fileID: 11400000, guid: 517e97c5b2dcf0641af8ba4b6d5f7b68, type: 2}
+  - {fileID: 11400000, guid: ab2d05af8320f074980d46a65ec1159f, type: 2}
+  - {fileID: 11400000, guid: 2f7b3b71f867c444a9de0ad4aee7c81f, type: 2}
+  - {fileID: 11400000, guid: ca331c2ef23176f46bdc4c052747a2c9, type: 2}
+  - {fileID: 11400000, guid: 28e9d19d9f5cb234cac7035e0658e0c5, type: 2}
+  - {fileID: 11400000, guid: eca864a0a8d485748991a0d35e52d5d7, type: 2}

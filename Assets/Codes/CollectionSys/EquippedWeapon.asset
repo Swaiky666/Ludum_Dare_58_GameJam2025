@@ -9,12 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3748ccecd8a9c0d489bb33a0b1c86898, type: 3}
-  m_Name: test1
+  m_Script: {fileID: 11500000, guid: 93ea005577424e749be7e7ea4092f855, type: 3}
+  m_Name: EquippedWeapon
   m_EditorClassIdentifier: 
-  id: 0
-  itemName: testObj01
-  icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
-  description: this is testObj01
-  prefab: {fileID: 0}
-  inGamePrefab: {fileID: 0}
+  weaponPrefab: {fileID: 0}
+  weaponId: -1
+  weaponName: 

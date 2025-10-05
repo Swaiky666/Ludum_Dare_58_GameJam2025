@@ -16,12 +16,14 @@ public class MainMenuUI : MonoBehaviour
     [Header("设置面板按钮")]
     public Button backButton;
 
+    // ⬇⬇⬇ 新增：把你创建的 EquippedWeaponData 资源挂到这里
+    [Header("Data")]
+    [SerializeField] private EquippedWeaponData equippedWeaponData; // 在Inspector里拖拽赋值
+
     private void Start()
     {
-        // 初始化UI状态
         ShowMainPanel();
 
-        // 绑定按钮事件
         startButton.onClick.AddListener(OnStartGame);
         collectionButton.onClick.AddListener(OnCollection);
         settingsButton.onClick.AddListener(OnSettings);
@@ -29,45 +31,75 @@ public class MainMenuUI : MonoBehaviour
         backButton.onClick.AddListener(OnBackToMain);
     }
 
-    // 显示主菜单面板
     private void ShowMainPanel()
     {
         mainPanel.SetActive(true);
         settingsPanel.SetActive(false);
     }
 
-    // 显示设置面板
     private void ShowSettingsPanel()
     {
         mainPanel.SetActive(false);
         settingsPanel.SetActive(true);
     }
 
-    // 开始游戏
     private void OnStartGame()
     {
-        GameSceneManager.Instance.LoadGameScene();
+        // 1) 原有：可选的“自动收集第一个物品”
+        if (CollectionManager.Instance != null)
+        {
+            CollectionManager.Instance.CheckAndCollectFirstItem(); // 不改你现有逻辑
+        }
+        else
+        {
+            Debug.LogWarning("CollectionManager.Instance is null! 无法检查第一个收集品");
+        }
+
+        // 2) 新增：若当前未装备武器，则用 Collectible 列表的第一个来装备
+        if (equippedWeaponData != null && !equippedWeaponData.IsEquipped())
+        {
+            var cm = CollectionManager.Instance;
+            if (cm != null)
+            {
+                CollectibleData first = cm.GetFirstCollectible(); // 列表第一个
+                if (first != null)
+                {
+                    equippedWeaponData.EquipWeapon(first); // 把 Collectible 内容写入 EquippedWeaponData
+                    //（可选）如果你希望开始游戏时一定“标记为已收集”，可以确保它被计入收集：
+                    if (!first.isCollected)
+                    {
+                        cm.CollectItem(first.id);
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning("Collectible 列表为空，无法默认装备武器。");
+                }
+            }
+        }
+
+        // 3) 进入游戏场景
+        if (GameSceneManager.Instance != null)
+        {
+            GameSceneManager.Instance.LoadGameScene();
+        }
     }
 
-    // 打开收集界面
     private void OnCollection()
     {
         GameSceneManager.Instance.LoadCollectionScene();
     }
 
-    // 打开设置
     private void OnSettings()
     {
         ShowSettingsPanel();
     }
 
-    // 退出游戏
     private void OnQuit()
     {
         GameSceneManager.Instance.QuitGame();
     }
 
-    // 返回主菜单
     private void OnBackToMain()
     {
         ShowMainPanel();

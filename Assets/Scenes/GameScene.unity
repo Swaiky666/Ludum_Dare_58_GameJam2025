@@ -202,7 +202,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 847802a23a05f2e42bd671e122941a73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  roomSize: {x: 50, y: 50}
+  roomSize: {x: 25, y: 25}
   tileSize: 1
   maxDepth: 4
   splitChance: 0.7
@@ -213,7 +213,7 @@ MonoBehaviour:
   pathWidth: 2
   doorDetectionRange: 1
   monsterSpawnChance: 0.1
-  playerSafeRange: 5
+  playerSafeRange: 10
   doorSafeRange: 3
   walkableFloorPrefab: {fileID: 9067344110672823401, guid: 98135e8b252dd454fb62864dd07cf24e, type: 3}
   unwalkableFloorPrefab: {fileID: 2052053460299959166, guid: 09ceaa31c5db0b64fb5ede8b96796544, type: 3}
@@ -1924,7 +1924,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.5, y: 1.5, z: 0.5}
+  m_LocalScale: {x: 0.35, y: 1.5, z: 0.35}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 954119347}

@@ -52,8 +52,8 @@ MonoBehaviour:
   enemyKnockbackForce: 5
   firePoint: {fileID: 0}
   fireSound: {fileID: 0}
-  bulletPrefab: {fileID: 1841414879310842, guid: 6d6dffb689c5c164e9bef8f626ffd74e, type: 3}
-  bulletSpeed: 15
+  bulletPrefab: {fileID: 1841414879310842, guid: a6bcc548116cb4e47a93721f858ac7ae, type: 3}
+  bulletSpeed: 12
   bulletsPerShot: 1
   spreadAngle: 0
   fireRate: 0.7

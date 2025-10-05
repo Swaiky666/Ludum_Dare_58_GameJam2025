@@ -13,13 +13,14 @@ public enum MonsterState
 }
 
 /// <summary>
-/// 怪物AI控制器（添加减速系统）
+/// 怪物AI控制器（添加减速系统和视觉效果）
 /// </summary>
 public class MonsterAI : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private Transform playerTransform;
     [SerializeField] private RoomGenerator roomGenerator;
+    [SerializeField] private SpriteRenderer spriteRenderer;
 
     [Header("Detection Settings")]
     [SerializeField] private float detectionRange = 10f;
@@ -47,6 +48,16 @@ public class MonsterAI : MonoBehaviour
     [SerializeField] private float attackDamage = 20f;
     [SerializeField] private float attackCooldown = 1.5f;
     [SerializeField] private float knockbackForce = 10f;
+    [SerializeField] private float attackScaleMultiplier = 1.3f;
+    [SerializeField] private float attackScaleDuration = 0.2f;
+
+    [Header("Visual Effects")]
+    [SerializeField] private Color slowedColor = new Color(0.5f, 0.7f, 1f, 1f);
+
+    // 公共属性：供其他脚本查询减速状态
+    public bool IsSlowed => isSlowed;
+    public Color SlowedColor => slowedColor;
+    public Color OriginalColor => originalColor;
 
     // 私有变量
     private MonsterState currentState = MonsterState.Patrol;
@@ -69,7 +80,12 @@ public class MonsterAI : MonoBehaviour
     private float originalMoveSpeed;
     private Coroutine slowCoroutine;
 
-    // 静态缓存（所有怪物共享）
+    // 视觉效果变量
+    private Color originalColor;
+    private Vector3 originalScale;
+    private Coroutine attackScaleCoroutine;
+
+    // 静态缓存
     private static readonly Vector2Int[] NeighborDirections = {
         new Vector2Int(0, 1), new Vector2Int(1, 0),
         new Vector2Int(0, -1), new Vector2Int(-1, 0),
@@ -88,17 +104,59 @@ public class MonsterAI : MonoBehaviour
             characterController.height = 2f;
         }
 
-        spawnPosition = transform.position;
-        originalMoveSpeed = moveSpeed; // 保存原始速度
-
-        if (playerTransform == null)
+        if (spriteRenderer == null)
         {
-            playerTransform = GameObject.FindGameObjectWithTag("Player")?.transform;
+            spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+            if (spriteRenderer == null)
+            {
+                Debug.LogWarning($"{gameObject.name}: 没有找到SpriteRenderer组件！");
+            }
         }
 
-        if (playerTransform != null)
+        if (spriteRenderer != null)
         {
-            targetPlayer = playerTransform.GetComponent<PlayerController>();
+            originalColor = spriteRenderer.color;
+            originalScale = spriteRenderer.transform.localScale;
+        }
+
+        spawnPosition = transform.position;
+        originalMoveSpeed = moveSpeed;
+
+        // 修复：直接查找 PlayerController 组件，确保追踪正确的对象
+        if (targetPlayer == null)
+        {
+            targetPlayer = FindObjectOfType<PlayerController>();
+            if (targetPlayer != null)
+            {
+                playerTransform = targetPlayer.transform;
+                Debug.Log($"{gameObject.name}: 找到玩家 {targetPlayer.gameObject.name}");
+            }
+            else
+            {
+                Debug.LogWarning($"{gameObject.name}: 未找到 PlayerController！");
+            }
+        }
+
+        // 备用方案：如果上面没找到，尝试通过Tag查找并向上查找组件
+        if (playerTransform == null)
+        {
+            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+            if (playerObj != null)
+            {
+                // 向上查找 PlayerController（可能在父物体上）
+                targetPlayer = playerObj.GetComponentInParent<PlayerController>();
+                if (targetPlayer == null)
+                {
+                    // 向下查找 PlayerController（可能在子物体上）
+                    targetPlayer = playerObj.GetComponentInChildren<PlayerController>();
+                }
+
+                if (targetPlayer != null)
+                {
+                    playerTransform = targetPlayer.transform;
+                    Debug.Log($"{gameObject.name}: 通过Tag找到玩家 {targetPlayer.gameObject.name}");
+                }
+            }
         }
 
         if (roomGenerator == null)
@@ -106,7 +164,6 @@ public class MonsterAI : MonoBehaviour
             roomGenerator = FindObjectOfType<RoomGenerator>();
         }
 
-        // 错开路径更新时间，避免所有怪物同时更新
         pathUpdateTimer = Random.Range(0f, pathUpdateInterval);
 
         StartPatrol();
@@ -139,13 +196,23 @@ public class MonsterAI : MonoBehaviour
     /// </summary>
     public void ApplySlow(float slowMultiplier, float duration)
     {
-        // 如果已经有减速效果，先停止旧的
         if (slowCoroutine != null)
         {
             StopCoroutine(slowCoroutine);
         }
 
         slowCoroutine = StartCoroutine(SlowCoroutine(slowMultiplier, duration));
+    }
+
+    /// <summary>
+    /// 手动设置颜色（由MonsterHealth在闪烁后调用）
+    /// </summary>
+    public void SetColor(Color color)
+    {
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.color = color;
+        }
     }
 
     IEnumerator SlowCoroutine(float slowMultiplier, float duration)
@@ -155,21 +222,31 @@ public class MonsterAI : MonoBehaviour
         {
             isSlowed = true;
             moveSpeed = originalMoveSpeed * slowMultiplier;
+
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.color = slowedColor;
+            }
+
             Debug.Log($"{gameObject.name} 被减速！速度: {originalMoveSpeed} → {moveSpeed}，持续 {duration} 秒");
         }
         else
         {
-            // 已经减速，更新速度
             moveSpeed = originalMoveSpeed * slowMultiplier;
             Debug.Log($"{gameObject.name} 减速效果刷新！新速度: {moveSpeed}");
         }
 
-        // 等待持续时间
         yield return new WaitForSeconds(duration);
 
-        // 恢复速度
+        // 恢复速度和颜色
         isSlowed = false;
         moveSpeed = originalMoveSpeed;
+
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.color = originalColor;
+        }
+
         Debug.Log($"{gameObject.name} 减速效果结束，速度恢复: {moveSpeed}");
     }
 
@@ -177,7 +254,16 @@ public class MonsterAI : MonoBehaviour
 
     void CheckPlayerDetection()
     {
-        if (playerTransform == null) return;
+        if (playerTransform == null)
+        {
+            // 如果丢失了玩家引用，尝试重新查找
+            targetPlayer = FindObjectOfType<PlayerController>();
+            if (targetPlayer != null)
+            {
+                playerTransform = targetPlayer.transform;
+            }
+            return;
+        }
 
         float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
 
@@ -324,13 +410,64 @@ public class MonsterAI : MonoBehaviour
 
     void AttackPlayer()
     {
-        if (targetPlayer == null) return;
+        if (targetPlayer == null)
+        {
+            Debug.LogWarning($"{gameObject.name}: 无法攻击 - targetPlayer 是 null！尝试重新查找玩家...");
+            // 尝试重新查找玩家
+            targetPlayer = FindObjectOfType<PlayerController>();
+            if (targetPlayer != null)
+            {
+                playerTransform = targetPlayer.transform;
+                Debug.Log($"{gameObject.name}: 重新找到玩家！");
+            }
+            else
+            {
+                return;
+            }
+        }
 
         Vector3 knockbackDirection = (playerTransform.position - transform.position).normalized;
         targetPlayer.TakeDamage(attackDamage, knockbackDirection, knockbackForce);
         attackCooldownTimer = attackCooldown;
 
-        Debug.Log($"{gameObject.name} 攻击了玩家！伤害: {attackDamage}");
+        if (spriteRenderer != null)
+        {
+            if (attackScaleCoroutine != null)
+            {
+                StopCoroutine(attackScaleCoroutine);
+            }
+            attackScaleCoroutine = StartCoroutine(AttackScaleAnimation());
+        }
+
+        Debug.Log($"{gameObject.name} 攻击了玩家 {targetPlayer.gameObject.name}！伤害: {attackDamage}");
+    }
+
+    IEnumerator AttackScaleAnimation()
+    {
+        if (spriteRenderer == null) yield break;
+
+        Vector3 targetScale = originalScale * attackScaleMultiplier;
+        float elapsed = 0f;
+        float halfDuration = attackScaleDuration / 2f;
+
+        while (elapsed < halfDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / halfDuration;
+            spriteRenderer.transform.localScale = Vector3.Lerp(originalScale, targetScale, t);
+            yield return null;
+        }
+
+        elapsed = 0f;
+        while (elapsed < halfDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / halfDuration;
+            spriteRenderer.transform.localScale = Vector3.Lerp(targetScale, originalScale, t);
+            yield return null;
+        }
+
+        spriteRenderer.transform.localScale = originalScale;
     }
 
     void UpdatePathToPlayer()
@@ -426,16 +563,12 @@ public class MonsterAI : MonoBehaviour
 
     #endregion
 
-    #region A*寻路算法（优化版）
+    #region A*寻路算法
 
-    /// <summary>
-    /// A*寻路 - 使用优化的节点选择
-    /// </summary>
     List<Vector2Int> FindPathAStar(Vector2Int start, Vector2Int end)
     {
         if (roomGenerator == null || roomGenerator.FloorGrid == null) return null;
 
-        // 使用 SortedSet 替代 List + OrderBy，自动保持排序
         var openSet = new SortedSet<MonsterPathNode>(new PathNodeComparer());
         var openSetLookup = new Dictionary<Vector2Int, MonsterPathNode>();
         var closedSet = new HashSet<Vector2Int>();
@@ -452,7 +585,6 @@ public class MonsterAI : MonoBehaviour
 
         while (openSet.Count > 0)
         {
-            // 直接获取最小节点（已排序）
             MonsterPathNode current = openSet.Min;
 
             if (current.position == end)
@@ -475,7 +607,6 @@ public class MonsterAI : MonoBehaviour
                 {
                     if (tentativeG < neighborNode.gCost)
                     {
-                        // 需要更新节点，先移除再重新添加
                         openSet.Remove(neighborNode);
                         neighborNode.gCost = tentativeG;
                         neighborNode.parent = current;
@@ -515,9 +646,6 @@ public class MonsterAI : MonoBehaviour
         return path;
     }
 
-    /// <summary>
-    /// 获取邻居节点（优化版 - 使用缓存的方向数组）
-    /// </summary>
     List<Vector2Int> GetNeighborsOptimized(Vector2Int pos)
     {
         List<Vector2Int> neighbors = new List<Vector2Int>(8);
@@ -541,7 +669,6 @@ public class MonsterAI : MonoBehaviour
 
         if (characterController != null)
         {
-            // 使用当前速度（可能被减速影响）
             characterController.Move(direction * moveSpeed * Time.deltaTime);
         }
         else
@@ -612,6 +739,17 @@ public class MonsterAI : MonoBehaviour
         {
             Gizmos.color = new Color(1, 0, 0, 0.3f);
             Gizmos.DrawWireSphere(transform.position, attackRange);
+
+            // 显示到玩家的连线
+            if (playerTransform != null)
+            {
+                Gizmos.color = Color.red;
+                Gizmos.DrawLine(transform.position, playerTransform.position);
+
+                // 在玩家位置显示一个小球
+                Gizmos.color = Color.cyan;
+                Gizmos.DrawWireSphere(playerTransform.position, 0.5f);
+            }
         }
 
         if (currentState == MonsterState.Patrol && !isWaiting)
@@ -638,9 +776,6 @@ public class MonsterAI : MonoBehaviour
     #endregion
 }
 
-/// <summary>
-/// 怪物A*寻路节点
-/// </summary>
 public class MonsterPathNode
 {
     public Vector2Int position;
@@ -650,9 +785,6 @@ public class MonsterPathNode
     public MonsterPathNode parent;
 }
 
-/// <summary>
-/// 路径节点比较器（用于SortedSet自动排序）
-/// </summary>
 public class PathNodeComparer : IComparer<MonsterPathNode>
 {
     public int Compare(MonsterPathNode a, MonsterPathNode b)
@@ -660,7 +792,6 @@ public class PathNodeComparer : IComparer<MonsterPathNode>
         int fCompare = a.fCost.CompareTo(b.fCost);
         if (fCompare != 0) return fCompare;
 
-        // fCost相同时，比较位置（避免被认为是重复）
         int xCompare = a.position.x.CompareTo(b.position.x);
         if (xCompare != 0) return xCompare;
 

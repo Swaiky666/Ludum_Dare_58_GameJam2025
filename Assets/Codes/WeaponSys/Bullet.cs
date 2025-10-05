@@ -72,16 +72,41 @@ public class Bullet : MonoBehaviour
         rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
         projectileMover = GetComponent<ProjectileMover>();
 
-        // 如果是穿透子弹，设置Layer并忽略Monster层的碰撞
+        // 设置子弹Layer并配置忽略碰撞
+        SetupBulletLayer();
+    }
+
+    void Start()
+    {
+        IgnoreOtherBullets();
+
+        if (isHoming)
+        {
+            FindNearestEnemy();
+        }
+    }
+
+    /// <summary>
+    /// 设置子弹Layer并配置忽略Player层的碰撞
+    /// </summary>
+    void SetupBulletLayer()
+    {
+        // 获取Player层
+        int playerLayer = LayerMask.NameToLayer("Player");
+
         if (isPiercing)
         {
-            // 将子弹设置到 "PiercingBullet" Layer（如果没有该Layer则使用默认Layer）
+            // 穿透子弹：设置到 "PiercingBullet" Layer
             int piercingLayer = LayerMask.NameToLayer("PiercingBullet");
             if (piercingLayer == -1)
             {
-                // 如果没有PiercingBullet Layer，创建或使用其他可用Layer
-                // 这里使用游戏对象当前的Layer，但添加Layer忽略规则
-                piercingLayer = gameObject.layer;
+                // 如果没有PiercingBullet Layer，使用默认子弹Layer
+                piercingLayer = LayerMask.NameToLayer("Bullet");
+                if (piercingLayer == -1)
+                {
+                    Debug.LogWarning("未找到 'PiercingBullet' 或 'Bullet' Layer，请在项目设置中创建！");
+                    piercingLayer = gameObject.layer;
+                }
             }
 
             gameObject.layer = piercingLayer;
@@ -92,17 +117,30 @@ public class Bullet : MonoBehaviour
             {
                 Physics.IgnoreLayerCollision(piercingLayer, monsterLayer, true);
             }
+
+            // 忽略 PiercingBullet Layer 与 Player Layer 之间的碰撞
+            if (playerLayer != -1)
+            {
+                Physics.IgnoreLayerCollision(piercingLayer, playerLayer, true);
+            }
         }
-    }
-
-    void Start()
-    {
-        IgnoreOtherBullets();
-        IgnorePlayer();
-
-        if (isHoming)
+        else
         {
-            FindNearestEnemy();
+            // 普通子弹：设置到 "Bullet" Layer
+            int bulletLayer = LayerMask.NameToLayer("Bullet");
+            if (bulletLayer == -1)
+            {
+                Debug.LogWarning("未找到 'Bullet' Layer，请在项目设置中创建！");
+                bulletLayer = gameObject.layer;
+            }
+
+            gameObject.layer = bulletLayer;
+
+            // 忽略 Bullet Layer 与 Player Layer 之间的碰撞
+            if (playerLayer != -1)
+            {
+                Physics.IgnoreLayerCollision(bulletLayer, playerLayer, true);
+            }
         }
     }
 
@@ -151,21 +189,6 @@ public class Bullet : MonoBehaviour
             if (otherCollider != null)
             {
                 Physics.IgnoreCollision(myCollider, otherCollider, true);
-            }
-        }
-    }
-
-    void IgnorePlayer()
-    {
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null)
-        {
-            Collider myCollider = GetComponent<Collider>();
-            Collider playerCollider = player.GetComponent<Collider>();
-
-            if (myCollider != null && playerCollider != null)
-            {
-                Physics.IgnoreCollision(myCollider, playerCollider, true);
             }
         }
     }
@@ -384,6 +407,7 @@ public class Bullet : MonoBehaviour
     {
         if (hasCollided) return false;
 
+        // 确保不会与Player层发生任何交互
         if (collision.gameObject.layer == LayerMask.NameToLayer("Player"))
         {
             return false;
@@ -397,25 +421,20 @@ public class Bullet : MonoBehaviour
         return false;
     }
 
-    // 新增：穿透子弹使用OnTriggerEnter
-    void OnTriggerEnter(Collider other)
-    {
-        // 不再使用Trigger模式，删除此方法
-    }
-
     void OnCollisionEnter(Collision collision)
     {
+        // 双重检查：即使Layer设置了忽略，这里也再次检查
+        if (collision.gameObject.layer == LayerMask.NameToLayer("Player"))
+        {
+            return;
+        }
+
         if (collision.gameObject.GetComponent<Bullet>() != null)
         {
             return;
         }
 
         if (collision == null || collision.contacts.Length == 0)
-        {
-            return;
-        }
-
-        if (collision.gameObject.layer == LayerMask.NameToLayer("Player"))
         {
             return;
         }

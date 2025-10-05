@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 198878133740545050}
   - component: {fileID: 199195020650783656}
   - component: {fileID: 114854506960258672}
-  m_Layer: 3
+  m_Layer: 7
   m_Name: Sparks
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4881,7 +4881,7 @@ GameObject:
   - component: {fileID: 54736192702835324}
   - component: {fileID: 135746135312732826}
   - component: {fileID: -7020986408141107900}
-  m_Layer: 3
+  m_Layer: 7
   m_Name: ArcaneBullet
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9927,3 +9927,15 @@ MonoBehaviour:
   hasSlowEffect: 1
   slowMultiplier: 0.25
   slowDuration: 1
+  isHoming: 0
+  homingTurnSpeed: 180
+  homingRange: 15
+  homingActivationDelay: 0.1
+  usePredictiveAiming: 1
+  maxTrackingAngle: 60
+  giveUpAngle: 90
+  isPiercing: 0
+  piercingDamageRadius: 2
+  piercingDamageInterval: 0.2
+  piercingDamage: 10
+  piercingLifetime: 3

@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 7272868564699248205}
   - component: {fileID: 7273198801579133571}
   - component: {fileID: 7472667545708341159}
-  m_Layer: 3
+  m_Layer: 7
   m_Name: Sparks
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4880,7 +4880,7 @@ GameObject:
   - component: {fileID: 7479811268084651441}
   - component: {fileID: 7470704511879738167}
   - component: {fileID: 6610842076242925055}
-  m_Layer: 3
+  m_Layer: 7
   m_Name: ExplodeBullet01
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9923,3 +9923,18 @@ MonoBehaviour:
   maxBounces: 3
   bounceSpeedMultiplier: 0.8
   bulletPrefab: {fileID: 0}
+  hasSlowEffect: 0
+  slowMultiplier: 0.5
+  slowDuration: 2
+  isHoming: 0
+  homingTurnSpeed: 180
+  homingRange: 15
+  homingActivationDelay: 0.1
+  usePredictiveAiming: 1
+  maxTrackingAngle: 60
+  giveUpAngle: 90
+  isPiercing: 0
+  piercingDamageRadius: 2
+  piercingDamageInterval: 0.2
+  piercingDamage: 10
+  piercingLifetime: 3

@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 54562278206498944}
   - component: {fileID: 135998222679351976}
   - component: {fileID: 6959545125790904344}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Laser
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5057,3 +5057,18 @@ MonoBehaviour:
   maxBounces: 3
   bounceSpeedMultiplier: 0.8
   bulletPrefab: {fileID: 1658112780640456}
+  hasSlowEffect: 0
+  slowMultiplier: 0.5
+  slowDuration: 2
+  isHoming: 0
+  homingTurnSpeed: 180
+  homingRange: 15
+  homingActivationDelay: 0.1
+  usePredictiveAiming: 1
+  maxTrackingAngle: 60
+  giveUpAngle: 90
+  isPiercing: 0
+  piercingDamageRadius: 2
+  piercingDamageInterval: 0.2
+  piercingDamage: 10
+  piercingLifetime: 3

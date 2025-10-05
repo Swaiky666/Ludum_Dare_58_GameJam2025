@@ -1,64 +1,61 @@
 ﻿using UnityEngine;
 
 /// <summary>
-/// 武器基类（增加后坐力）
+/// 武器基类（抽象类）
 /// </summary>
 public abstract class WeaponBase : MonoBehaviour, IEquippable
 {
-    [Header("Base Weapon Stats")]
-    [SerializeField] protected string weaponName = "Weapon";
-    [SerializeField] protected Sprite icon;
-    [SerializeField] protected float cooldown = 0.5f;
+    [Header("Basic Info")]
+    [SerializeField] protected string weaponName = "武器";
+    [SerializeField] protected Sprite weaponIcon;  // 新增：武器图标，在Inspector中设置
+
+    [Header("Weapon Stats")]
     [SerializeField] protected float damage = 10f;
-
-    [Header("Recoil Settings")]
-    [SerializeField] protected float playerRecoilForce = 2f;      // 对玩家的后坐力
-    [SerializeField] protected float enemyKnockbackForce = 5f;    // 对敌人的击退力
-
-    [Header("Fire Point")]
-    [SerializeField] protected Transform firePoint;
+    [SerializeField] protected float cooldown = 0.5f;
+    [SerializeField] protected float enemyKnockbackForce = 2f;
+    [SerializeField] protected float playerRecoilForce = 1f;
 
     [Header("Audio")]
     [SerializeField] protected AudioClip fireSound;
+    [SerializeField] protected float fireSoundVolume = 1f;
+
+    [Header("References")]
+    [SerializeField] protected Transform firePoint;
 
     protected float currentCooldown = 0f;
-    protected AudioSource audioSource;
     protected PlayerController playerController;
 
-    // 接口实现
+    // IEquippable 接口实现
     public string EquipmentName => weaponName;
-    public Sprite Icon => icon;
+    public Sprite Icon => weaponIcon;  // 武器图标
     public float Cooldown => cooldown;
-    public float CurrentCooldown => currentCooldown;
+    public float CurrentCooldown => currentCooldown;  // 当前冷却时间
 
     protected virtual void Awake()
     {
-        audioSource = GetComponent<AudioSource>();
-        if (audioSource == null)
-        {
-            audioSource = gameObject.AddComponent<AudioSource>();
-        }
-
         if (firePoint == null)
         {
             firePoint = transform;
         }
+    }
 
-        // 获取玩家控制器引用
+    protected virtual void Start()
+    {
         playerController = GetComponentInParent<PlayerController>();
+        if (playerController == null)
+        {
+            Debug.LogWarning($"{weaponName}: 未找到PlayerController，部分功能可能无法使用。");
+        }
     }
 
-    public virtual void OnEquip()
+    public bool CanUse()
     {
-        gameObject.SetActive(true);
+        return currentCooldown <= 0f;
     }
 
-    public virtual void OnUnequip()
-    {
-        gameObject.SetActive(false);
-    }
+    public abstract void Use(Vector3 direction, Vector3 origin);
 
-    public virtual void UpdateCooldown(float deltaTime)
+    public void UpdateCooldown(float deltaTime)
     {
         if (currentCooldown > 0)
         {
@@ -66,30 +63,30 @@ public abstract class WeaponBase : MonoBehaviour, IEquippable
         }
     }
 
-    public virtual bool CanUse()
+    public virtual void OnEquip()
     {
-        return currentCooldown <= 0;
+        gameObject.SetActive(true);
+        Debug.Log($"{weaponName} 已装备");
     }
 
-    public abstract void Use(Vector3 direction, Vector3 origin);
-
-    protected virtual void PlayFireSound()
+    public virtual void OnUnequip()
     {
-        if (fireSound != null && audioSource != null)
+        Debug.Log($"{weaponName} 已卸下");
+    }
+
+    protected void PlayFireSound()
+    {
+        if (fireSound != null)
         {
-            audioSource.PlayOneShot(fireSound);
+            AudioSource.PlayClipAtPoint(fireSound, firePoint.position, fireSoundVolume);
         }
     }
 
-    /// <summary>
-    /// 应用后坐力到玩家
-    /// </summary>
-    protected virtual void ApplyRecoilToPlayer(Vector3 shootDirection)
+    protected void ApplyRecoilToPlayer(Vector3 fireDirection)
     {
         if (playerController != null && playerRecoilForce > 0)
         {
-            // 后坐力方向与射击方向相反
-            Vector3 recoilDirection = -shootDirection;
+            Vector3 recoilDirection = -fireDirection;
             playerController.ApplyRecoil(recoilDirection, playerRecoilForce);
         }
     }

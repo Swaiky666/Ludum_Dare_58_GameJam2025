@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 198918039750828824}
   - component: {fileID: 199131223392275278}
   - component: {fileID: 114667449217805528}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Snow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4881,7 +4881,7 @@ GameObject:
   - component: {fileID: 135670637215769790}
   - component: {fileID: 108965834798625854}
   - component: {fileID: -6006328667603436517}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: IceBullet
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9927,3 +9927,15 @@ MonoBehaviour:
   hasSlowEffect: 1
   slowMultiplier: 0.5
   slowDuration: 2
+  isHoming: 0
+  homingTurnSpeed: 180
+  homingRange: 15
+  homingActivationDelay: 0.1
+  usePredictiveAiming: 1
+  maxTrackingAngle: 60
+  giveUpAngle: 90
+  isPiercing: 0
+  piercingDamageRadius: 2
+  piercingDamageInterval: 0.2
+  piercingDamage: 10
+  piercingLifetime: 3

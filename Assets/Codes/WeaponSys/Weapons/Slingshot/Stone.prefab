@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 198978304244960154}
   - component: {fileID: 199672452028155570}
   - component: {fileID: 114764694535380946}
-  m_Layer: 3
+  m_Layer: 7
   m_Name: StoneDebris
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4880,7 +4880,7 @@ GameObject:
   - component: {fileID: 54404659761205394}
   - component: {fileID: 135932979329783436}
   - component: {fileID: -2746515533432174925}
-  m_Layer: 3
+  m_Layer: 7
   m_Name: Stone
   m_TagString: Untagged
   m_Icon: {fileID: 0}

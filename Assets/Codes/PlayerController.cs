@@ -160,14 +160,15 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// 处理移动
+    /// 处理移动 - 使用GetAxisRaw去除惯性
     /// </summary>
     void HandleMovement()
     {
         if (isDashing) return;
 
-        float horizontal = Input.GetAxis("Horizontal");
-        float vertical = Input.GetAxis("Vertical");
+        // 使用GetAxisRaw替代GetAxis，立即响应，无惯性
+        float horizontal = Input.GetAxisRaw("Horizontal");
+        float vertical = Input.GetAxisRaw("Vertical");
 
         Vector3 inputDirection = new Vector3(horizontal, 0, vertical).normalized;
 
@@ -230,8 +231,9 @@ public class PlayerController : MonoBehaviour
 
     void StartDash()
     {
-        float horizontal = Input.GetAxis("Horizontal");
-        float vertical = Input.GetAxis("Vertical");
+        // 冲刺也使用GetAxisRaw，确保响应灵敏
+        float horizontal = Input.GetAxisRaw("Horizontal");
+        float vertical = Input.GetAxisRaw("Vertical");
 
         Vector3 inputDirection = new Vector3(horizontal, 0, vertical).normalized;
 

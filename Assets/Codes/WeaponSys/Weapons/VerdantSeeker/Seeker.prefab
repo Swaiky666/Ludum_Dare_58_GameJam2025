@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 198487867531459058}
   - component: {fileID: 199352014713688920}
   - component: {fileID: 114407893265485702}
-  m_Layer: 3
+  m_Layer: 7
   m_Name: Flares
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4881,7 +4881,7 @@ GameObject:
   - component: {fileID: 54886916964080914}
   - component: {fileID: 135999672022334354}
   - component: {fileID: 7900708769789017902}
-  m_Layer: 3
+  m_Layer: 7
   m_Name: Seeker
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9934,3 +9934,8 @@ MonoBehaviour:
   usePredictiveAiming: 1
   maxTrackingAngle: 90
   giveUpAngle: 120
+  isPiercing: 0
+  piercingDamageRadius: 2
+  piercingDamageInterval: 0.2
+  piercingDamage: 10
+  piercingLifetime: 3

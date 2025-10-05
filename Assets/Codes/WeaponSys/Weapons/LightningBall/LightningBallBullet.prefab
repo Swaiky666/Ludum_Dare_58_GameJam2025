@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4819818843720310}
   - component: {fileID: 198316187487270594}
   - component: {fileID: 199901496000089600}
-  m_Layer: 3
+  m_Layer: 7
   m_Name: BorderLightning
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4854,7 +4854,7 @@ GameObject:
   - component: {fileID: 4472473557064494}
   - component: {fileID: 198207720701571386}
   - component: {fileID: 199629377902509242}
-  m_Layer: 3
+  m_Layer: 7
   m_Name: Darkness
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9760,7 +9760,7 @@ GameObject:
   - component: {fileID: 54917258164921374}
   - component: {fileID: 135262430962562618}
   - component: {fileID: -3259230501880069980}
-  m_Layer: 3
+  m_Layer: 7
   m_Name: LightningBallBullet
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14830,7 +14830,7 @@ GameObject:
   - component: {fileID: 4145045361821176}
   - component: {fileID: 198831507450239270}
   - component: {fileID: 199100726335174730}
-  m_Layer: 3
+  m_Layer: 7
   m_Name: Borders
   m_TagString: Untagged
   m_Icon: {fileID: 0}

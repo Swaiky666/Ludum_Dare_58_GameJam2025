@@ -44,14 +44,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c17ab68334223414b8367dfe834c0e34, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weaponName: Weapon
-  icon: {fileID: 0}
-  cooldown: 0.125
+  weaponName: LaserGun
+  weaponIcon: {fileID: 0}
   damage: 25
-  playerRecoilForce: 0
+  cooldown: 0.125
   enemyKnockbackForce: 0
-  firePoint: {fileID: 0}
+  playerRecoilForce: 0
   fireSound: {fileID: 0}
+  fireSoundVolume: 1
+  firePoint: {fileID: 0}
   bulletPrefab: {fileID: 1658112780640456, guid: e4cb0e17c28fb31499112950148b6782, type: 3}
   bulletSpeed: 80
   bulletsPerShot: 1

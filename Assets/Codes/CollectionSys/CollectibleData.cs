@@ -15,6 +15,7 @@ public class CollectibleData : ScriptableObject
 
     [Header("预制体")]
     public GameObject prefab;           // prefab
+    public GameObject dropPrefab;       // 掉落物预制体（宝箱打开后生成的物品）
 
     [Header("收集状态")]
     public bool isCollected = false;           // 是否收集

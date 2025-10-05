@@ -19,6 +19,7 @@ MonoBehaviour:
     ender. One pull of the trigger and diplomacy goes airborne \u2014 fast, loud,
     and gloriously final."
   prefab: {fileID: 8220254170530117568, guid: 93d077fa6b8851b46a0c049b8834b0ce, type: 3}
-  isCollected: 0
-  collectionCount: 0
-  collectionTime: 
+  dropPrefab: {fileID: 2512001187322032183, guid: aef99fcc361d63f42b60b59b9a763f65, type: 3}
+  isCollected: 1
+  collectionCount: 1
+  collectionTime: 2025/10/05 15:27

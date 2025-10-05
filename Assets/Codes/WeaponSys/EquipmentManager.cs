@@ -19,6 +19,10 @@ public class EquipmentManager : MonoBehaviour
     private IEquippable leftHandEquipment;   // 左手装备实例
     private IEquippable rightHandEquipment;  // 右手装备实例
 
+    // ⭐ 新增：保存原始预制体引用
+    private GameObject leftHandPrefab;   // 左手武器的原始预制体
+    private GameObject rightHandPrefab;  // 右手武器的原始预制体
+
     // 公共只读访问器（其他系统查询当前装备）
     public IEquippable LeftHandEquipment => leftHandEquipment;
     public IEquippable RightHandEquipment => rightHandEquipment;
@@ -48,8 +52,6 @@ public class EquipmentManager : MonoBehaviour
 
         // —— 右手：按你的最新需求，启动时不装备任何东西
         ClearSlot(1);
-        // 如果你之后想允许从 Inspector 启动就给右手一个备用武器，可改成：
-        // if (rightHandEquipmentPrefab != null) EquipToSlot(rightHandEquipmentPrefab, 1);
     }
 
     private void Update()
@@ -86,8 +88,17 @@ public class EquipmentManager : MonoBehaviour
             return;
         }
 
-        if (slot == 0) leftHandEquipment = equipment;
-        else rightHandEquipment = equipment;
+        // ⭐ 保存原始预制体引用
+        if (slot == 0)
+        {
+            leftHandEquipment = equipment;
+            leftHandPrefab = equipmentPrefab;
+        }
+        else
+        {
+            rightHandEquipment = equipment;
+            rightHandPrefab = equipmentPrefab;
+        }
 
         equipment.OnEquip();
         Debug.Log($"[EquipmentManager] 装备 {equipment.EquipmentName} 到槽位 {slot}");
@@ -103,12 +114,14 @@ public class EquipmentManager : MonoBehaviour
             leftHandEquipment.OnUnequip();
             Destroy((leftHandEquipment as MonoBehaviour)?.gameObject);
             leftHandEquipment = null;
+            leftHandPrefab = null; // ⭐ 清空预制体引用
         }
         else if (slot == 1 && rightHandEquipment != null)
         {
             rightHandEquipment.OnUnequip();
             Destroy((rightHandEquipment as MonoBehaviour)?.gameObject);
             rightHandEquipment = null;
+            rightHandPrefab = null; // ⭐ 清空预制体引用
         }
 
         // 把子物体都清掉，避免残留
@@ -140,5 +153,13 @@ public class EquipmentManager : MonoBehaviour
     public IEquippable GetEquipment(int slot)
     {
         return slot == 0 ? leftHandEquipment : rightHandEquipment;
+    }
+
+    /// <summary>
+    /// ⭐ 新增：获取指定槽位的原始预制体
+    /// </summary>
+    public GameObject GetEquipmentPrefab(int slot)
+    {
+        return slot == 0 ? leftHandPrefab : rightHandPrefab;
     }
 }

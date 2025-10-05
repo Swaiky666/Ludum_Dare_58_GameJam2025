@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 54589532502053854}
   - component: {fileID: 135880312642943706}
   - component: {fileID: 2468006751106378084}
-  m_Layer: 3
+  m_Layer: 7
   m_Name: 7.62
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5049,7 +5049,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   lifetime: 5
   isExplosive: 0
-  explosionRadius: 3
+  explosionRadius: 1
   explosionDamage: 15
   explosionKnockback: 8
   damageDecay: 1
@@ -5057,3 +5057,18 @@ MonoBehaviour:
   maxBounces: 3
   bounceSpeedMultiplier: 0.8
   bulletPrefab: {fileID: 0}
+  hasSlowEffect: 0
+  slowMultiplier: 0.5
+  slowDuration: 2
+  isHoming: 0
+  homingTurnSpeed: 180
+  homingRange: 15
+  homingActivationDelay: 0.1
+  usePredictiveAiming: 1
+  maxTrackingAngle: 60
+  giveUpAngle: 90
+  isPiercing: 0
+  piercingDamageRadius: 2
+  piercingDamageInterval: 0.2
+  piercingDamage: 10
+  piercingLifetime: 3

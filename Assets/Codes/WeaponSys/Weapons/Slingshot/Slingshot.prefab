@@ -44,14 +44,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c17ab68334223414b8367dfe834c0e34, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weaponName: Weapon
-  icon: {fileID: 0}
-  cooldown: 0.5
+  weaponName: Slingshot
+  weaponIcon: {fileID: 0}
   damage: 25
-  playerRecoilForce: 3
+  cooldown: 0.5
   enemyKnockbackForce: 2
-  firePoint: {fileID: 0}
+  playerRecoilForce: 3
   fireSound: {fileID: 0}
+  fireSoundVolume: 1
+  firePoint: {fileID: 0}
   bulletPrefab: {fileID: 1979403604311268, guid: bc0b77b5d64c11e48b0a22fadb7489ce, type: 3}
   bulletSpeed: 30
   bulletsPerShot: 1

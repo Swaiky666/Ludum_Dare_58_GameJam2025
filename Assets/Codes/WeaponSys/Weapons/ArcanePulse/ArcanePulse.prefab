@@ -44,14 +44,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c17ab68334223414b8367dfe834c0e34, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weaponName: Weapon
-  icon: {fileID: 0}
-  cooldown: 0.25
+  weaponName: ArcanePulse
+  weaponIcon: {fileID: 0}
   damage: 45
-  playerRecoilForce: 5
+  cooldown: 0.25
   enemyKnockbackForce: 5
-  firePoint: {fileID: 0}
+  playerRecoilForce: 5
   fireSound: {fileID: 0}
+  fireSoundVolume: 1
+  firePoint: {fileID: 0}
   bulletPrefab: {fileID: 1747738237969746, guid: eb5112a0c4d3eac489f517fa0886c058, type: 3}
   bulletSpeed: 70
   bulletsPerShot: 1

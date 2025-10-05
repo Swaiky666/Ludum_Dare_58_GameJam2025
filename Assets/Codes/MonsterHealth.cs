@@ -1,5 +1,6 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
 public class MonsterHealth : MonoBehaviour
 {
@@ -20,6 +21,11 @@ public class MonsterHealth : MonoBehaviour
     [SerializeField] private int deathFlashCount = 4; // 死亡闪烁次数
     [SerializeField] private float deathFlashDuration = 0.2f; // 死亡闪烁总时长
 
+    [Header("Death Particle Effect")]
+    [SerializeField] private ParticleSystem attachedParticleSystem; // 挂在怪物身上的粒子系统
+    [SerializeField] private bool detachParticleOnDeath = true; // 死亡时分离粒子
+    [SerializeField] private float particleDestroyDelay = 3f; // 粒子延迟销毁时间
+
     [Header("Hit Flash Effect")]
     [SerializeField] private bool useHDRFlash = true;
     [SerializeField, ColorUsage(true, true)] private Color flashColor = new Color(3f, 3f, 3f, 1f);
@@ -38,6 +44,7 @@ public class MonsterHealth : MonoBehaviour
     private MonsterAI monsterAI;
     private bool isKnockedBack = false;
     private bool isDying = false;
+    private Vector3 lastKnockbackDirection; // 保存最后的击退方向（用于粒子特效）
 
     private Material originalMaterial;
     private Color originalColor;
@@ -188,6 +195,7 @@ public class MonsterHealth : MonoBehaviour
     void Die(Vector3 lastKnockbackDirection, float lastKnockbackForce)
     {
         isDying = true;
+        this.lastKnockbackDirection = lastKnockbackDirection;
         Debug.Log($"{gameObject.name} 死亡！击退力: {lastKnockbackForce}");
 
         if (flashCoroutine != null)
@@ -195,7 +203,6 @@ public class MonsterHealth : MonoBehaviour
             StopCoroutine(flashCoroutine);
         }
 
-        // 恢复材质
         if (spriteRenderer != null)
         {
             spriteRenderer.material = originalMaterial;
@@ -206,7 +213,6 @@ public class MonsterHealth : MonoBehaviour
             monsterAI.enabled = false;
         }
 
-        // 如果启用死亡闪烁，先闪烁再执行死亡序列
         if (useDeathFlash)
         {
             StartCoroutine(DeathFlashSequence(lastKnockbackDirection, lastKnockbackForce));
@@ -349,6 +355,82 @@ public class MonsterHealth : MonoBehaviour
             yield return null;
         }
 
-        Destroy(gameObject);
+        // 死亡动画完成后，清理怪物（保留粒子系统）
+        CleanupMonster();
+
+        // 延迟销毁整个GameObject
+        Destroy(gameObject, particleDestroyDelay);
+    }
+
+    /// <summary>
+    /// 清理怪物（停止粒子，删除组件和子物体，保留粒子系统）
+    /// </summary>
+    void CleanupMonster()
+    {
+        // 1. 停止粒子发射（但不清除已有粒子）
+        if (attachedParticleSystem != null)
+        {
+            var emission = attachedParticleSystem.emission;
+            emission.enabled = false;
+
+            // 处理所有子粒子系统
+            ParticleSystem[] allParticleSystems = attachedParticleSystem.GetComponentsInChildren<ParticleSystem>(true);
+            foreach (var ps in allParticleSystems)
+            {
+                var childEmission = ps.emission;
+                childEmission.enabled = false;
+            }
+
+            Debug.Log($"{gameObject.name} 停止粒子发射");
+        }
+
+        // 2. 删除碰撞体
+        if (characterController != null)
+        {
+            Destroy(characterController);
+            Debug.Log($"{gameObject.name} 删除CharacterController");
+        }
+
+        // 3. 删除所有子物体，除了粒子系统
+        List<Transform> childrenToDestroy = new List<Transform>();
+        foreach (Transform child in transform)
+        {
+            // 如果子物体不是粒子系统或者不包含粒子系统，加入删除列表
+            bool isParticleObject = false;
+
+            if (attachedParticleSystem != null)
+            {
+                // 检查是否是粒子系统本身或其父物体
+                if (child == attachedParticleSystem.transform ||
+                    child.IsChildOf(attachedParticleSystem.transform) ||
+                    attachedParticleSystem.transform.IsChildOf(child))
+                {
+                    isParticleObject = true;
+                }
+            }
+
+            if (!isParticleObject)
+            {
+                childrenToDestroy.Add(child);
+            }
+        }
+
+        // 删除标记的子物体
+        foreach (Transform child in childrenToDestroy)
+        {
+            Destroy(child.gameObject);
+        }
+
+        Debug.Log($"{gameObject.name} 删除了 {childrenToDestroy.Count} 个子物体，保留粒子系统");
+
+        // 4. 删除其他组件（保留Transform和粒子相关）
+        MonoBehaviour[] scripts = GetComponents<MonoBehaviour>();
+        foreach (var script in scripts)
+        {
+            if (script != null && script != this)
+            {
+                Destroy(script);
+            }
+        }
     }
 }

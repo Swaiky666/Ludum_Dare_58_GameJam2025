@@ -252,6 +252,22 @@ public class MonsterAI : MonoBehaviour
 
     #endregion
 
+    #region 外部调用接口
+
+    /// <summary>
+    /// 强制进入追击状态（被攻击时调用）
+    /// </summary>
+    public void ForceChase()
+    {
+        if (currentState != MonsterState.Chase)
+        {
+            SwitchToChase();
+            Debug.Log($"{gameObject.name}: 被攻击，强制进入追击状态！");
+        }
+    }
+
+    #endregion
+
     void CheckPlayerDetection()
     {
         if (playerTransform == null)

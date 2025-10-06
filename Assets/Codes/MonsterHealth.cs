@@ -79,7 +79,13 @@ public class MonsterHealth : MonoBehaviour
         currentHealth -= damage;
         Debug.Log($"{gameObject.name} 受到 {damage} 伤害，剩余血量: {currentHealth}");
 
-        // 播放受伤闪烁效果
+        // ✨ 受击后强制进入追击
+        if (monsterAI != null)
+        {
+            monsterAI.ForceChase();
+        }
+
+        // 受伤闪烁
         if (spriteRenderer != null && !isDying)
         {
             if (flashCoroutine != null)
@@ -100,52 +106,40 @@ public class MonsterHealth : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 受伤闪烁效果（会考虑减速状态）
-    /// </summary>
     IEnumerator HitFlashEffect()
     {
         if (spriteRenderer == null) yield break;
 
         if (useMaterialFlash && flashMaterial != null)
         {
-            // 方法1：材质切换
             for (int i = 0; i < flashCount; i++)
             {
                 spriteRenderer.material = flashMaterial;
                 yield return new WaitForSeconds(flashDuration / (flashCount * 2f));
 
                 spriteRenderer.material = originalMaterial;
-                // 恢复颜色时检查减速状态
                 spriteRenderer.color = GetCurrentColor();
                 yield return new WaitForSeconds(flashDuration / (flashCount * 2f));
             }
         }
         else if (useHDRFlash)
         {
-            // 方法2：HDR颜色闪烁
             for (int i = 0; i < flashCount; i++)
             {
                 spriteRenderer.color = flashColor;
                 yield return new WaitForSeconds(flashDuration / (flashCount * 2f));
 
-                // 恢复颜色时检查减速状态
                 spriteRenderer.color = GetCurrentColor();
                 yield return new WaitForSeconds(flashDuration / (flashCount * 2f));
             }
         }
 
-        // 最终确保恢复正确状态
         spriteRenderer.material = originalMaterial;
         spriteRenderer.color = GetCurrentColor();
     }
 
-    /// <summary>
-    /// 获取当前应该显示的颜色（考虑减速状态）
-    /// </summary>
     Color GetCurrentColor()
     {
-        // 如果怪物正在减速，返回减速颜色；否则返回原始颜色
         if (monsterAI != null && monsterAI.IsSlowed)
         {
             return monsterAI.SlowedColor;
@@ -223,9 +217,6 @@ public class MonsterHealth : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 死亡闪烁序列（快速闪烁+击退）
-    /// </summary>
     IEnumerator DeathFlashSequence(Vector3 direction, float force)
     {
         if (spriteRenderer == null)
@@ -243,10 +234,8 @@ public class MonsterHealth : MonoBehaviour
 
         if (useMaterialFlash && flashMaterial != null)
         {
-            // 使用材质闪烁 + 击退
             for (int i = 0; i < deathFlashCount; i++)
             {
-                // 亮
                 spriteRenderer.material = flashMaterial;
                 float phaseStart = Time.time;
                 while (Time.time - phaseStart < singleFlashTime)
@@ -256,7 +245,6 @@ public class MonsterHealth : MonoBehaviour
                     yield return null;
                 }
 
-                // 暗
                 spriteRenderer.material = originalMaterial;
                 spriteRenderer.color = startColor;
                 phaseStart = Time.time;
@@ -270,10 +258,8 @@ public class MonsterHealth : MonoBehaviour
         }
         else if (useHDRFlash)
         {
-            // 使用HDR颜色闪烁 + 击退
             for (int i = 0; i < deathFlashCount; i++)
             {
-                // 亮
                 spriteRenderer.color = flashColor;
                 float phaseStart = Time.time;
                 while (Time.time - phaseStart < singleFlashTime)
@@ -283,7 +269,6 @@ public class MonsterHealth : MonoBehaviour
                     yield return null;
                 }
 
-                // 暗
                 spriteRenderer.color = startColor;
                 phaseStart = Time.time;
                 while (Time.time - phaseStart < singleFlashTime)
@@ -295,16 +280,11 @@ public class MonsterHealth : MonoBehaviour
             }
         }
 
-        // 确保恢复材质
         spriteRenderer.material = originalMaterial;
 
-        // 闪烁完成后执行死亡序列（变黑）
         StartCoroutine(DeathSequence(direction, force));
     }
 
-    /// <summary>
-    /// 应用击退移动（辅助方法）
-    /// </summary>
     void ApplyKnockbackMovement(Vector3 direction, float force, float elapsed, float duration)
     {
         float knockbackSpeed = force * (1 - elapsed / duration);
@@ -326,12 +306,10 @@ public class MonsterHealth : MonoBehaviour
         Vector3 knockbackDir = direction.normalized;
         knockbackDir.y = 0;
 
-        // 获取当前颜色（可能是减速的蓝色或原始颜色）
         Color startColor = spriteRenderer != null ? spriteRenderer.color : originalColor;
 
         while (elapsed < deathDelay)
         {
-            // 击退移动
             float knockbackSpeed = force * (1 - elapsed / deathDelay);
             Vector3 knockbackMovement = knockbackDir * knockbackSpeed * Time.deltaTime;
 
@@ -344,7 +322,6 @@ public class MonsterHealth : MonoBehaviour
                 transform.position += knockbackMovement;
             }
 
-            // 颜色渐变到死亡颜色
             if (spriteRenderer != null)
             {
                 float fadeProgress = Mathf.Clamp01(elapsed / deathFadeDuration);
@@ -358,22 +335,26 @@ public class MonsterHealth : MonoBehaviour
         // 死亡动画完成后，清理怪物（保留粒子系统）
         CleanupMonster();
 
-        // 延迟销毁整个GameObject
+        // 延迟销毁整个GameObject（给粒子留时间）
         Destroy(gameObject, particleDestroyDelay);
     }
 
     /// <summary>
-    /// 清理怪物（停止粒子，删除组件和子物体，保留粒子系统）
+    /// 清理怪物：重置Tag/Layer、停粒子、移除控制器与碰撞体、清掉子物体与脚本（保留Transform/粒子）
     /// </summary>
     void CleanupMonster()
     {
-        // 1. 停止粒子发射（但不清除已有粒子）
+        // 0) 重置 tag / layer
+        gameObject.tag = "Untagged";
+        gameObject.layer = 0; // Default
+        Debug.Log($"{gameObject.name} 已重置 Tag=Untagged 与 Layer=Default");
+
+        // 1) 停止粒子发射（不清现有粒子）
         if (attachedParticleSystem != null)
         {
             var emission = attachedParticleSystem.emission;
             emission.enabled = false;
 
-            // 处理所有子粒子系统
             ParticleSystem[] allParticleSystems = attachedParticleSystem.GetComponentsInChildren<ParticleSystem>(true);
             foreach (var ps in allParticleSystems)
             {
@@ -381,26 +362,53 @@ public class MonsterHealth : MonoBehaviour
                 childEmission.enabled = false;
             }
 
-            Debug.Log($"{gameObject.name} 停止粒子发射");
+            // 如需脱离主体，可在这里分离
+            if (detachParticleOnDeath)
+            {
+                attachedParticleSystem.transform.SetParent(null, true);
+            }
+
+            Debug.Log($"{gameObject.name} 停止粒子发射（并按需分离）");
         }
 
-        // 2. 删除碰撞体
+        // 2) 删除控制器与碰撞体
+        // 2.1 CharacterController
         if (characterController != null)
         {
             Destroy(characterController);
-            Debug.Log($"{gameObject.name} 删除CharacterController");
+            characterController = null;
+            Debug.Log($"{gameObject.name} 删除 CharacterController");
+        }
+        else
+        {
+            // 防守式再查一次
+            var cc = GetComponent<CharacterController>();
+            if (cc != null)
+            {
+                Destroy(cc);
+                Debug.Log($"{gameObject.name} 删除 CharacterController(延迟查找)");
+            }
         }
 
-        // 3. 删除所有子物体，除了粒子系统
+        // 2.2 CapsuleCollider（可能有多个，全部移除）
+        var capsuleColliders = GetComponents<CapsuleCollider>();
+        if (capsuleColliders != null && capsuleColliders.Length > 0)
+        {
+            foreach (var cap in capsuleColliders)
+            {
+                if (cap != null) Destroy(cap);
+            }
+            Debug.Log($"{gameObject.name} 删除 {capsuleColliders.Length} 个 CapsuleCollider");
+        }
+
+        // 3) 删除除粒子外的所有子物体
         List<Transform> childrenToDestroy = new List<Transform>();
         foreach (Transform child in transform)
         {
-            // 如果子物体不是粒子系统或者不包含粒子系统，加入删除列表
             bool isParticleObject = false;
 
             if (attachedParticleSystem != null)
             {
-                // 检查是否是粒子系统本身或其父物体
                 if (child == attachedParticleSystem.transform ||
                     child.IsChildOf(attachedParticleSystem.transform) ||
                     attachedParticleSystem.transform.IsChildOf(child))
@@ -414,16 +422,13 @@ public class MonsterHealth : MonoBehaviour
                 childrenToDestroy.Add(child);
             }
         }
-
-        // 删除标记的子物体
         foreach (Transform child in childrenToDestroy)
         {
             Destroy(child.gameObject);
         }
+        Debug.Log($"{gameObject.name} 删除了 {childrenToDestroy.Count} 个子物体（保留粒子）");
 
-        Debug.Log($"{gameObject.name} 删除了 {childrenToDestroy.Count} 个子物体，保留粒子系统");
-
-        // 4. 删除其他组件（保留Transform和粒子相关）
+        // 4) 删除其他脚本（保留本脚本以完成销毁流程）
         MonoBehaviour[] scripts = GetComponents<MonoBehaviour>();
         foreach (var script in scripts)
         {

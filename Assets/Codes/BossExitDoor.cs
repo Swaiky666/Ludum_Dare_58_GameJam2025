@@ -19,6 +19,15 @@ public class BossExitDoor : MonoBehaviour
     private Transform playerTransform;
     private bool hasTriggered = false;
 
+    /// <summary>
+    /// 公共方法：设置 RoomMapSystem 引用
+    /// </summary>
+    public void SetRoomMapSystem(RoomMapSystem system)
+    {
+        roomMapSystem = system;
+        Debug.Log("<color=green>BossExitDoor: RoomMapSystem 引用已设置</color>");
+    }
+
     void Start()
     {
         // 查找玩家

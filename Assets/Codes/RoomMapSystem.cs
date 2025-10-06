@@ -34,7 +34,7 @@ public class Room
 }
 
 /// <summary>
-/// 房间地图管理系统（添加轮次系统）
+/// 房间地图管理系统（添加轮次系统和武器收集保存）
 /// </summary>
 public class RoomMapSystem : MonoBehaviour
 {
@@ -45,6 +45,9 @@ public class RoomMapSystem : MonoBehaviour
     [Header("Round Settings")]
     [SerializeField] private int maxRounds = 3;             // 总轮数
     private int currentRound = 1;                           // 当前轮数（从1开始）
+
+    [Header("Weapon Data")]
+    [SerializeField] private EquippedWeaponData equippedWeaponData;  // 装备武器数据
 
     [Header("Display Settings")]
     [SerializeField] private float mapScale = 1f;           // 整个地图的缩放大小
@@ -177,8 +180,12 @@ public class RoomMapSystem : MonoBehaviour
         RoomGenerator roomGenerator = FindObjectOfType<RoomGenerator>();
         if (roomGenerator != null)
         {
-            // RoomGenerator 会自动检测到新地图并生成起始房间
-            Debug.Log("<color=green>已通知 RoomGenerator 重新生成房间</color>");
+            roomGenerator.ResetAndRegenerateRoom();
+            Debug.Log("<color=green>✓ 已通知 RoomGenerator 重新生成房间</color>");
+        }
+        else
+        {
+            Debug.LogError("<color=red>✗ 未找到 RoomGenerator！无法生成新房间</color>");
         }
     }
 
@@ -187,22 +194,25 @@ public class RoomMapSystem : MonoBehaviour
     /// </summary>
     void ReturnToMainMenu()
     {
-        // 重置所有强化
+        // 1. 保存当前装备的武器到收集系统
+        SaveEquippedWeaponToCollection();
+
+        // 2. 重置所有强化
         if (EnhancementManager.Instance != null)
         {
             EnhancementManager.Instance.ResetAllEnhancements();
         }
 
-        // 重置难度
+        // 3. 重置难度
         if (DifficultyManager.Instance != null)
         {
             DifficultyManager.Instance.ResetDifficulty();
         }
 
-        // 重置轮次
+        // 4. 重置轮次
         currentRound = 1;
 
-        // 返回主菜单
+        // 5. 返回主菜单
         if (GameSceneManager.Instance != null)
         {
             GameSceneManager.Instance.LoadMainMenu();
@@ -211,6 +221,83 @@ public class RoomMapSystem : MonoBehaviour
         {
             Debug.LogError("GameSceneManager.Instance 为空！无法返回主菜单");
         }
+    }
+
+    /// <summary>
+    /// 保存当前装备的武器到收集系统，然后清空装备数据
+    /// </summary>
+    void SaveEquippedWeaponToCollection()
+    {
+        // 查找 EquipmentManager
+        EquipmentManager equipmentManager = FindObjectOfType<EquipmentManager>();
+        if (equipmentManager == null)
+        {
+            Debug.LogError("未找到 EquipmentManager！无法保存武器收集状态");
+            return;
+        }
+
+        int savedCount = 0;
+
+        // 保存左手装备（槽位0）
+        IEquippable leftEquipment = equipmentManager.GetEquipment(0);
+        GameObject leftPrefab = equipmentManager.GetEquipmentPrefab(0);
+        if (leftEquipment != null && leftPrefab != null)
+        {
+            SaveWeaponFromPrefab(leftPrefab, "左手");
+            savedCount++;
+        }
+
+        // 保存右手装备（槽位1）
+        IEquippable rightEquipment = equipmentManager.GetEquipment(1);
+        GameObject rightPrefab = equipmentManager.GetEquipmentPrefab(1);
+        if (rightEquipment != null && rightPrefab != null)
+        {
+            SaveWeaponFromPrefab(rightPrefab, "右手");
+            savedCount++;
+        }
+
+        if (savedCount == 0)
+        {
+            Debug.Log("未装备任何武器，无需保存收集状态");
+        }
+        else
+        {
+            Debug.Log($"<color=cyan>共保存了 {savedCount} 个武器到收集系统</color>");
+        }
+
+        // 清空装备数据（如果有的话）
+        if (equippedWeaponData != null)
+        {
+            equippedWeaponData.UnequipWeapon();
+            Debug.Log("<color=cyan>EquippedWeaponData 已清空</color>");
+        }
+    }
+
+    /// <summary>
+    /// 根据武器预制体保存收集状态
+    /// </summary>
+    void SaveWeaponFromPrefab(GameObject weaponPrefab, string slotName)
+    {
+        if (weaponPrefab == null || CollectionManager.Instance == null)
+            return;
+
+        // 遍历所有收集品，找到匹配的预制体
+        List<CollectibleData> allCollectibles = CollectionManager.Instance.GetAllCollectibles();
+
+        foreach (CollectibleData collectible in allCollectibles)
+        {
+            if (collectible != null && collectible.prefab == weaponPrefab)
+            {
+                Debug.Log($"<color=yellow>准备保存{slotName}武器到收集系统: {collectible.itemName} (ID: {collectible.id})</color>");
+
+                CollectionManager.Instance.CollectItem(collectible.id);
+
+                Debug.Log($"<color=green>✓ {slotName}武器 {collectible.itemName} 已记录到收集系统</color>");
+                return;
+            }
+        }
+
+        Debug.LogWarning($"<color=orange>未找到{slotName}武器预制体对应的收集品数据：{weaponPrefab.name}</color>");
     }
 
     /// <summary>

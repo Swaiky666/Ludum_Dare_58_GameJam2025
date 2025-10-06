@@ -150,6 +150,37 @@ public class RoomGenerator : MonoBehaviour
     }
 
     /// <summary>
+    /// ⭐ 公共方法：重置并重新生成房间（用于新一轮）
+    /// </summary>
+    public void ResetAndRegenerateRoom()
+    {
+        Debug.Log("<color=yellow>RoomGenerator: 重置状态并重新生成房间</color>");
+
+        // 重置初始化状态
+        isInitialized = false;
+        currentRoomId = -1;
+        hasCheckedPlayer = false;
+
+        // 清空当前房间
+        ClearCurrentRoom();
+
+        // 强制触发生成
+        if (roomMapSystem != null)
+        {
+            var connections = roomMapSystem.GetCurrentRoomConnections();
+            if (connections != null && connections.Count > 0)
+            {
+                isInitialized = true;
+                GenerateRoom();
+            }
+            else
+            {
+                Debug.LogWarning("新一轮地图尚未准备好连接信息！");
+            }
+        }
+    }
+
+    /// <summary>
     /// ⭐ 监控Boss血量
     /// </summary>
     void MonitorBossHealth()
@@ -214,17 +245,15 @@ public class RoomGenerator : MonoBehaviour
         GameObject door = Instantiate(bossExitDoorPrefab, position, Quaternion.identity, currentRoomContainer.transform);
         door.name = "BossExitDoor";
 
-        // 设置传送门的RoomMapSystem引用
+        // ⭐ 使用公共方法设置 RoomMapSystem 引用
         BossExitDoor doorScript = door.GetComponent<BossExitDoor>();
         if (doorScript != null && roomMapSystem != null)
         {
-            // 使用反射设置私有字段（如果需要）
-            var field = typeof(BossExitDoor).GetField("roomMapSystem",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            if (field != null)
-            {
-                field.SetValue(doorScript, roomMapSystem);
-            }
+            doorScript.SetRoomMapSystem(roomMapSystem);
+        }
+        else
+        {
+            Debug.LogError("无法设置BossExitDoor的RoomMapSystem引用！");
         }
 
         Debug.Log($"<color=cyan>Boss传送门已生成在: {position}</color>");

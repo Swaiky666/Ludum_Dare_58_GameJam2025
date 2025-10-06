@@ -124,6 +124,13 @@ public class EquipmentManager : MonoBehaviour
             rightHandPrefab = equipmentPrefab;
         }
 
+        // ⭐ 设置武器槽位索引（用于强化系统）
+        WeaponBase weapon = equipmentObj.GetComponent<WeaponBase>();
+        if (weapon != null)
+        {
+            weapon.SetSlotIndex(slot);
+        }
+
         equipment.OnEquip();
         Debug.Log($"[EquipmentManager] 装备 {equipment.EquipmentName} 到槽位 {slot}");
     }

@@ -24,6 +24,7 @@ public abstract class WeaponBase : MonoBehaviour, IEquippable
 
     protected float currentCooldown = 0f;
     protected PlayerController playerController;
+    protected int slotIndex = -1;  // 槽位索引（0=左手，1=右手）
 
     // IEquippable 接口实现
     public string EquipmentName => weaponName;
@@ -37,6 +38,15 @@ public abstract class WeaponBase : MonoBehaviour, IEquippable
         {
             firePoint = transform;
         }
+    }
+
+    /// <summary>
+    /// 设置槽位索引
+    /// </summary>
+    public void SetSlotIndex(int index)
+    {
+        slotIndex = index;
+        Debug.Log($"<color=cyan>{weaponName} 设置槽位索引: {slotIndex}</color>");
     }
 
     protected virtual void Start()

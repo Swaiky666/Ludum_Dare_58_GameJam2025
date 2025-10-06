@@ -54,15 +54,42 @@ public class Gun : WeaponBase
     {
         if (!CanUse()) return;
 
+        // 获取强化数据
+        EnhancementData enhancement = null;
+        if (EnhancementManager.Instance != null && slotIndex >= 0)
+        {
+            enhancement = EnhancementManager.Instance.GetEnhancement(slotIndex);
+        }
+
+        // 应用强化：计算实际发射参数
+        float enhancedDamage = damage;
+        int enhancedBulletsPerShot = bulletsPerShot;
+        float enhancedSpreadAngle = spreadAngle;
+
+        if (enhancement != null)
+        {
+            // 伤害强化
+            enhancedDamage *= enhancement.damageMultiplier;
+
+            // 子弹数量强化
+            enhancedBulletsPerShot = Mathf.RoundToInt(bulletsPerShot * enhancement.bulletsPerShotMultiplier);
+
+            // 如果子弹数量不是1，修改散射角度为8度
+            if (enhancedBulletsPerShot != 1 && spreadAngle == 0f)
+            {
+                enhancedSpreadAngle = 8f;
+            }
+        }
+
         // 发射子弹
-        for (int i = 0; i < bulletsPerShot; i++)
+        for (int i = 0; i < enhancedBulletsPerShot; i++)
         {
             Vector3 shootDirection = direction;
 
             // 添加散射
-            if (spreadAngle > 0)
+            if (enhancedSpreadAngle > 0)
             {
-                float angle = Random.Range(-spreadAngle, spreadAngle);
+                float angle = Random.Range(-enhancedSpreadAngle, enhancedSpreadAngle);
                 shootDirection = Quaternion.Euler(0, angle, 0) * direction;
             }
 
@@ -72,8 +99,14 @@ public class Gun : WeaponBase
             Bullet bulletScript = bullet.GetComponent<Bullet>();
             if (bulletScript != null)
             {
-                // 传递伤害和击退力
-                bulletScript.Initialize(shootDirection, bulletSpeed, damage, enemyKnockbackForce);
+                // 初始化子弹基础属性
+                bulletScript.Initialize(shootDirection, bulletSpeed, enhancedDamage, enemyKnockbackForce);
+
+                // 应用强化效果到子弹
+                if (enhancement != null)
+                {
+                    ApplyEnhancementToBullet(bulletScript, enhancement, enhancedDamage);
+                }
             }
         }
 
@@ -95,9 +128,132 @@ public class Gun : WeaponBase
         // 音效
         PlayFireSound();
 
-        // 重置冷却
-        currentCooldown = cooldown;
+        // 重置冷却（应用攻速强化）
+        float enhancedCooldown = cooldown;
+        if (enhancement != null)
+        {
+            enhancedCooldown = cooldown / enhancement.fireRateMultiplier;
+        }
+        currentCooldown = enhancedCooldown;
 
-        Debug.Log($"{weaponName} 开火！射速: {fireRate} 发/秒");
+        Debug.Log($"{weaponName} 开火！伤害:{enhancedDamage:F1}, 子弹数:{enhancedBulletsPerShot}, 冷却:{enhancedCooldown:F2}s");
+    }
+
+    /// <summary>
+    /// 应用强化效果到子弹
+    /// </summary>
+    void ApplyEnhancementToBullet(Bullet bullet, EnhancementData enhancement, float enhancedDamage)
+    {
+        var bulletType = bullet.GetType();
+
+        // 1. 爆炸伤害强化
+        var isExplosiveField = bulletType.GetField("isExplosive",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var explosionDamageField = bulletType.GetField("explosionDamage",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+        bool wasExplosive = (bool)isExplosiveField.GetValue(bullet);
+
+        if (enhancement.enableExplosion && !wasExplosive)
+        {
+            isExplosiveField.SetValue(bullet, true);
+            Debug.Log($"<color=orange>[强化] 启用爆炸效果</color>");
+        }
+
+        if ((bool)isExplosiveField.GetValue(bullet) && explosionDamageField != null)
+        {
+            float originalExplosionDamage = (float)explosionDamageField.GetValue(bullet);
+            explosionDamageField.SetValue(bullet, originalExplosionDamage * enhancement.damageMultiplier);
+        }
+
+        // 2. 穿透伤害强化
+        var isPiercingField = bulletType.GetField("isPiercing",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var piercingDamageField = bulletType.GetField("piercingDamage",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+        bool wasPiercing = (bool)isPiercingField.GetValue(bullet);
+
+        if (enhancement.enablePiercing && !wasPiercing)
+        {
+            isPiercingField.SetValue(bullet, true);
+            Debug.Log($"<color=orange>[强化] 启用穿透效果</color>");
+        }
+
+        if ((bool)isPiercingField.GetValue(bullet) && piercingDamageField != null)
+        {
+            float originalPiercingDamage = (float)piercingDamageField.GetValue(bullet);
+            piercingDamageField.SetValue(bullet, originalPiercingDamage * enhancement.damageMultiplier);
+        }
+
+        // 3. 弹射次数强化
+        var isBouncyField = bulletType.GetField("isBouncy",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var maxBouncesField = bulletType.GetField("maxBounces",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+        bool wasBouncy = (bool)isBouncyField.GetValue(bullet);
+
+        if (enhancement.bonusBounces > 0)
+        {
+            if (!wasBouncy)
+            {
+                isBouncyField.SetValue(bullet, true);
+                Debug.Log($"<color=orange>[强化] 启用弹射效果</color>");
+            }
+
+            int originalBounces = (int)maxBouncesField.GetValue(bullet);
+            maxBouncesField.SetValue(bullet, originalBounces + enhancement.bonusBounces);
+        }
+
+        // 4. 减速效果强化
+        var hasSlowEffectField = bulletType.GetField("hasSlowEffect",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var slowMultiplierField = bulletType.GetField("slowMultiplier",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+        bool hadSlowEffect = (bool)hasSlowEffectField.GetValue(bullet);
+
+        if (enhancement.slowMultiplierBonus > 0)
+        {
+            if (!hadSlowEffect)
+            {
+                hasSlowEffectField.SetValue(bullet, true);
+                Debug.Log($"<color=orange>[强化] 启用减速效果</color>");
+            }
+
+            float originalSlowMultiplier = (float)slowMultiplierField.GetValue(bullet);
+            // 减速权重增强：例如原来0.5，+20%后变成0.4（减速更强）
+            float enhancedSlowMultiplier = originalSlowMultiplier * (1f - enhancement.slowMultiplierBonus);
+            slowMultiplierField.SetValue(bullet, Mathf.Clamp(enhancedSlowMultiplier, 0.1f, 1f));
+        }
+
+        // 5. 追踪效果强化
+        if (enhancement.enableHoming)
+        {
+            var isHomingField = bulletType.GetField("isHoming",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+            bool wasHoming = (bool)isHomingField.GetValue(bullet);
+
+            if (!wasHoming)
+            {
+                isHomingField.SetValue(bullet, true);
+                Debug.Log($"<color=orange>[强化] 启用追踪效果</color>");
+            }
+        }
+
+        // 6. 爆炸范围强化
+        if (enhancement.explosionRadiusMultiplier > 1f)
+        {
+            var explosionRadiusField = bulletType.GetField("explosionRadius",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+            if (explosionRadiusField != null)
+            {
+                float originalRadius = (float)explosionRadiusField.GetValue(bullet);
+                explosionRadiusField.SetValue(bullet, originalRadius * enhancement.explosionRadiusMultiplier);
+            }
+        }
     }
 }

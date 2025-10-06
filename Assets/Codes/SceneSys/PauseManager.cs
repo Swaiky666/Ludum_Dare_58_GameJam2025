@@ -34,6 +34,12 @@ public class PauseManager : MonoBehaviour
 
     private void Update()
     {
+        // ⭐ 修改：如果正在选择强化，禁用ESC暂停
+        if (EnhancementSelectionUI.Instance != null && EnhancementSelectionUI.Instance.IsSelecting())
+        {
+            return; // 强化选择期间不处理ESC
+        }
+
         // 按ESC键切换暂停状态
         if (Input.GetKeyDown(KeyCode.Escape))
         {
@@ -93,6 +99,12 @@ public class PauseManager : MonoBehaviour
     {
         Time.timeScale = 1f; // 恢复时间流速
         isPaused = false;
+
+        // ⭐ 新增：返回主菜单时重置所有强化
+        if (EnhancementManager.Instance != null)
+        {
+            EnhancementManager.Instance.ResetAllEnhancements();
+        }
 
         if (GameSceneManager.Instance != null)
         {

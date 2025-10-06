@@ -132,15 +132,14 @@ public class RoomGenerator : MonoBehaviour
     }
 
     /// <summary>
-    /// 生成房间 - 添加难度系统
+    /// 生成房间 - 添加难度系统和强化选择
     /// </summary>
     void GenerateRoom()
     {
         // ✨ 增加难度（每次进入新房间时）
         if (DifficultyManager.Instance != null)
         {
-            // 修改判断条件：>= 0 而不是 > 0
-            if (currentRoomId >= 0)  // ✅ 修复：改为 >= 0
+            if (currentRoomId >= 0)
             {
                 DifficultyManager.Instance.IncreaseDifficulty();
                 Debug.Log($"<color=cyan>通过门进入新房间，难度提升！{DifficultyManager.Instance.GetDifficultyInfo()}</color>");
@@ -193,8 +192,31 @@ public class RoomGenerator : MonoBehaviour
         Debug.Log($"房间生成完成 - Walkable: {CountFloorType(FloorType.Walkable)}, " +
                   $"Unwalkable: {CountFloorType(FloorType.Unwalkable)}, " +
                   $"Transparent: {CountFloorType(FloorType.UnwalkableTransparent)}");
+
+        // ⭐ 新增：触发强化选择UI
+        if (EnhancementSelectionUI.Instance != null)
+        {
+            // 延迟0.5秒后显示强化选择面板，确保玩家传送完成
+            StartCoroutine(ShowEnhancementSelectionDelayed());
+        }
+        else
+        {
+            Debug.LogWarning("EnhancementSelectionUI 不存在！");
+        }
     }
 
+    /// <summary>
+    /// 延迟显示强化选择面板
+    /// </summary>
+    System.Collections.IEnumerator ShowEnhancementSelectionDelayed()
+    {
+        yield return new WaitForSecondsRealtime(0.3f); // 使用Realtime因为可能会暂停
+
+        if (EnhancementSelectionUI.Instance != null)
+        {
+            EnhancementSelectionUI.Instance.ShowSelectionPanel();
+        }
+    }
     void TeleportPlayer()
     {
         if (playerTransform == null)

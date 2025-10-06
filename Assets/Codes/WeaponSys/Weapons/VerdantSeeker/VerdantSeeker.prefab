@@ -45,19 +45,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   weaponName: VerdantSeeker
-  weaponIcon: {fileID: 0}
+  weaponIcon: {fileID: 21300000, guid: 8864fc3515d9b774e9e8287578e4443e, type: 3}
   damage: 35
-  cooldown: 0.25
+  cooldown: 0.5
   enemyKnockbackForce: 5
   playerRecoilForce: 5
   fireSound: {fileID: 0}
   fireSoundVolume: 1
   firePoint: {fileID: 0}
-  bulletPrefab: {fileID: 1985767573034186, guid: 7e5debf0606b3254faa6bca9a70b6713, type: 3}
+  bulletPrefab: {fileID: 1985767573034186, guid: 13aa6a017d8db0f4295d318ca598833c, type: 3}
   bulletSpeed: 50
   bulletsPerShot: 1
   spreadAngle: 0
-  fireRate: 4
+  fireRate: 2
   muzzleFlash: {fileID: 0}
   shakeDuration: 0.1
   shakeMagnitude: 0.05

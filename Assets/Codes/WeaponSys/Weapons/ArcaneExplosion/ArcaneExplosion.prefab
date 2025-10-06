@@ -47,7 +47,7 @@ MonoBehaviour:
   weaponName: ArcaneExplosion
   weaponIcon: {fileID: 0}
   damage: 120
-  cooldown: 1.4285715
+  cooldown: 2.2222223
   enemyKnockbackForce: 5
   playerRecoilForce: 12
   fireSound: {fileID: 0}
@@ -57,7 +57,7 @@ MonoBehaviour:
   bulletSpeed: 12
   bulletsPerShot: 1
   spreadAngle: 0
-  fireRate: 0.7
+  fireRate: 0.45
   muzzleFlash: {fileID: 0}
   shakeDuration: 0.15
   shakeMagnitude: 0.15

@@ -30,16 +30,20 @@ public class WeaponDetailPanel : MonoBehaviour, IDropHandler
     // 武器清除事件（传递槽位索引）
     public event System.Action<int> OnWeaponDiscard;
 
+    private int currentSlotIndex = -1; // 当前显示的槽位索引
+
     /// <summary>
-    /// 显示武器详细信息
+    /// 显示武器详细信息（需要传入槽位索引以获取强化数据）
     /// </summary>
-    public void ShowWeaponDetails(IEquippable weapon)
+    public void ShowWeaponDetails(IEquippable weapon, int slotIndex)
     {
         if (weapon == null)
         {
             Debug.LogWarning("WeaponDetailPanel: Weapon is null!");
             return;
         }
+
+        currentSlotIndex = slotIndex;
 
         // 隐藏提示文本
         if (hintText != null)
@@ -71,12 +75,12 @@ public class WeaponDetailPanel : MonoBehaviour, IDropHandler
         Gun gun = (weapon as MonoBehaviour)?.GetComponent<Gun>();
         if (gun != null)
         {
-            ShowGunDetails(gun);
+            ShowGunDetails(gun, slotIndex);
         }
         else
         {
             // 如果不是Gun，显示通用武器信息
-            ShowGenericWeaponDetails(weapon);
+            ShowGenericWeaponDetails(weapon, slotIndex);
         }
     }
 
@@ -85,6 +89,8 @@ public class WeaponDetailPanel : MonoBehaviour, IDropHandler
     /// </summary>
     public void ClearInfo()
     {
+        currentSlotIndex = -1;
+
         // 显示提示文本
         if (hintText != null)
         {
@@ -130,10 +136,17 @@ public class WeaponDetailPanel : MonoBehaviour, IDropHandler
     }
 
     /// <summary>
-    /// 显示枪械详细信息
+    /// 显示枪械详细信息（带强化数据）
     /// </summary>
-    void ShowGunDetails(Gun gun)
+    void ShowGunDetails(Gun gun, int slotIndex)
     {
+        // 获取强化数据
+        EnhancementData enhancement = null;
+        if (EnhancementManager.Instance != null && slotIndex >= 0)
+        {
+            enhancement = EnhancementManager.Instance.GetEnhancement(slotIndex);
+        }
+
         // 使用反射获取Gun的私有字段
         var gunType = gun.GetType();
         var weaponBaseType = gunType.BaseType; // WeaponBase
@@ -148,35 +161,97 @@ public class WeaponDetailPanel : MonoBehaviour, IDropHandler
         var bulletsPerShotField = gunType.GetField("bulletsPerShot", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         var fireRateField = gunType.GetField("fireRate", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 
-        // 显示基础属性
-        if (damageText != null && damageField != null)
+        // 获取基础数值
+        float baseDamage = damageField != null ? (float)damageField.GetValue(gun) : 0f;
+        float baseFireRate = fireRateField != null ? (float)fireRateField.GetValue(gun) : 0f;
+        int baseBulletsPerShot = bulletsPerShotField != null ? (int)bulletsPerShotField.GetValue(gun) : 0;
+        float baseBulletSpeed = bulletSpeedField != null ? (float)bulletSpeedField.GetValue(gun) : 0f;
+        float baseCooldown = cooldownField != null ? (float)cooldownField.GetValue(gun) : 0f;
+
+        // 计算强化后的数值
+        float enhancedDamage = baseDamage;
+        float enhancedFireRate = baseFireRate;
+        int enhancedBulletsPerShot = baseBulletsPerShot;
+        float enhancedBulletSpeed = baseBulletSpeed;
+        float enhancedCooldown = baseCooldown;
+
+        if (enhancement != null)
         {
-            float damage = (float)damageField.GetValue(gun);
-            damageText.text = $"Damage: {damage:F1}";
+            enhancedDamage = baseDamage * enhancement.damageMultiplier;
+            enhancedFireRate = baseFireRate * enhancement.fireRateMultiplier;
+            enhancedBulletsPerShot = Mathf.RoundToInt(baseBulletsPerShot * enhancement.bulletsPerShotMultiplier);
+            enhancedBulletSpeed = baseBulletSpeed * enhancement.bulletSpeedMultiplier;
+            enhancedCooldown = baseCooldown / enhancement.fireRateMultiplier;
         }
 
-        if (fireRateText != null && fireRateField != null)
+        // 显示伤害
+        if (damageText != null)
         {
-            float fireRate = (float)fireRateField.GetValue(gun);
-            fireRateText.text = $"Fire Rate: {fireRate:F2} /s";
+            if (enhancement != null && enhancement.damageMultiplier != 1f)
+            {
+                float damageBonus = (enhancement.damageMultiplier - 1f) * 100f;
+                damageText.text = $"Damage: {enhancedDamage:F1} (+{damageBonus:F0}%)";
+            }
+            else
+            {
+                damageText.text = $"Damage: {baseDamage:F1}";
+            }
         }
 
-        if (bulletsPerShotText != null && bulletsPerShotField != null)
+        // 显示射速
+        if (fireRateText != null)
         {
-            int bulletsPerShot = (int)bulletsPerShotField.GetValue(gun);
-            bulletsPerShotText.text = $"Bullets Per Shot: {bulletsPerShot}";
+            if (enhancement != null && enhancement.fireRateMultiplier != 1f)
+            {
+                float fireRateBonus = (enhancement.fireRateMultiplier - 1f) * 100f;
+                fireRateText.text = $"Fire Rate: {enhancedFireRate:F2} /s (+{fireRateBonus:F0}%)";
+            }
+            else
+            {
+                fireRateText.text = $"Fire Rate: {baseFireRate:F2} /s";
+            }
         }
 
-        if (bulletSpeedText != null && bulletSpeedField != null)
+        // 显示每次子弹数
+        if (bulletsPerShotText != null)
         {
-            float bulletSpeed = (float)bulletSpeedField.GetValue(gun);
-            bulletSpeedText.text = $"Bullet Speed: {bulletSpeed:F1}";
+            if (enhancement != null && enhancement.bulletsPerShotMultiplier != 1f)
+            {
+                bulletsPerShotText.text = $"Bullets Per Shot: {enhancedBulletsPerShot} (x{enhancement.bulletsPerShotMultiplier:F1})";
+            }
+            else
+            {
+                bulletsPerShotText.text = $"Bullets Per Shot: {baseBulletsPerShot}";
+            }
         }
 
-        if (cooldownText != null && cooldownField != null)
+        // 显示子弹速度
+        if (bulletSpeedText != null)
         {
-            float cooldown = (float)cooldownField.GetValue(gun);
-            cooldownText.text = $"Cooldown: {cooldown:F2}s";
+            if (enhancement != null && enhancement.bulletSpeedMultiplier != 1f)
+            {
+                float speedBonus = (enhancement.bulletSpeedMultiplier - 1f) * 100f;
+                string sign = speedBonus >= 0 ? "+" : "";
+                bulletSpeedText.text = $"Bullet Speed: {enhancedBulletSpeed:F1} ({sign}{speedBonus:F0}%)";
+            }
+            else
+            {
+                bulletSpeedText.text = $"Bullet Speed: {baseBulletSpeed:F1}";
+            }
+        }
+
+        // 显示冷却时间
+        if (cooldownText != null)
+        {
+            if (enhancement != null && enhancement.fireRateMultiplier != 1f)
+            {
+                float cooldownReduction = (1f - 1f / enhancement.fireRateMultiplier) * 100f;
+                cooldownText.text = $"Cooldown: {enhancedCooldown:F2}s (-{cooldownReduction:F0}%)";
+            }
+            else
+            {
+                cooldownText.text = $"Cooldown: {baseCooldown:F2}s";
+            }
         }
 
         // 获取子弹预制体，分析特殊属性
@@ -188,65 +263,129 @@ public class WeaponDetailPanel : MonoBehaviour, IDropHandler
                 Bullet bullet = bulletPrefab.GetComponent<Bullet>();
                 if (bullet != null)
                 {
-                    ShowBulletSpecialStats(bullet);
+                    ShowBulletSpecialStats(bullet, enhancement, baseDamage);
                 }
             }
         }
     }
 
     /// <summary>
-    /// 显示子弹特殊属性
+    /// 显示子弹特殊属性（带强化数据）
     /// </summary>
-    void ShowBulletSpecialStats(Bullet bullet)
+    void ShowBulletSpecialStats(Bullet bullet, EnhancementData enhancement, float baseDamage)
     {
         var bulletType = bullet.GetType();
 
         // 检查爆炸属性
         var isExplosiveField = bulletType.GetField("isExplosive", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        if (isExplosiveField != null && (bool)isExplosiveField.GetValue(bullet))
+        bool isExplosive = isExplosiveField != null && (bool)isExplosiveField.GetValue(bullet);
+
+        // 强化可能启用爆炸
+        if (enhancement != null && enhancement.enableExplosion)
+        {
+            isExplosive = true;
+        }
+
+        if (isExplosive)
         {
             var explosionDamageField = bulletType.GetField("explosionDamage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 
             if (explosionDamageText != null && explosionDamageField != null)
             {
-                float explosionDamage = (float)explosionDamageField.GetValue(bullet);
-                explosionDamageText.text = $"Explosion Damage: {explosionDamage:F1}";
+                float baseExplosionDamage = (float)explosionDamageField.GetValue(bullet);
+
+                if (enhancement != null && enhancement.damageMultiplier != 1f)
+                {
+                    float enhancedExplosionDamage = baseExplosionDamage * enhancement.damageMultiplier;
+                    float explosionBonus = (enhancement.damageMultiplier - 1f) * 100f;
+                    explosionDamageText.text = $"Explosion Damage: {enhancedExplosionDamage:F1} (+{explosionBonus:F0}%)";
+                }
+                else
+                {
+                    explosionDamageText.text = $"Explosion Damage: {baseExplosionDamage:F1}";
+                }
             }
         }
 
         // 检查反弹属性
         var isBouncyField = bulletType.GetField("isBouncy", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        if (isBouncyField != null && (bool)isBouncyField.GetValue(bullet))
+        bool isBouncy = isBouncyField != null && (bool)isBouncyField.GetValue(bullet);
+
+        // 强化可能启用弹射
+        if (enhancement != null && enhancement.bonusBounces > 0)
+        {
+            isBouncy = true;
+        }
+
+        if (isBouncy)
         {
             var maxBouncesField = bulletType.GetField("maxBounces", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             if (maxBouncesText != null && maxBouncesField != null)
             {
-                int maxBounces = (int)maxBouncesField.GetValue(bullet);
-                maxBouncesText.text = $"Maximum Bounces: {maxBounces}";
+                int baseMaxBounces = (int)maxBouncesField.GetValue(bullet);
+
+                if (enhancement != null && enhancement.bonusBounces > 0)
+                {
+                    int enhancedMaxBounces = baseMaxBounces + enhancement.bonusBounces;
+                    maxBouncesText.text = $"Maximum Bounces: {enhancedMaxBounces} (+{enhancement.bonusBounces})";
+                }
+                else
+                {
+                    maxBouncesText.text = $"Maximum Bounces: {baseMaxBounces}";
+                }
             }
         }
 
-        // 检查穿透属性
+        // 检查穿透属性（只显示，不能强化）
         var isPiercingField = bulletType.GetField("isPiercing", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         if (isPiercingField != null && (bool)isPiercingField.GetValue(bullet))
         {
             var piercingDamageField = bulletType.GetField("piercingDamage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             if (piercingDamageText != null && piercingDamageField != null)
             {
-                float piercingDamage = (float)piercingDamageField.GetValue(bullet);
-                piercingDamageText.text = $"Piercing Damage: {piercingDamage:F1}";
+                float basePiercingDamage = (float)piercingDamageField.GetValue(bullet);
+
+                if (enhancement != null && enhancement.damageMultiplier != 1f)
+                {
+                    float enhancedPiercingDamage = basePiercingDamage * enhancement.damageMultiplier;
+                    float piercingBonus = (enhancement.damageMultiplier - 1f) * 100f;
+                    piercingDamageText.text = $"Piercing Damage: {enhancedPiercingDamage:F1} (+{piercingBonus:F0}%)";
+                }
+                else
+                {
+                    piercingDamageText.text = $"Piercing Damage: {basePiercingDamage:F1}";
+                }
             }
         }
 
         // 检查减速属性
         var hasSlowEffectField = bulletType.GetField("hasSlowEffect", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        if (hasSlowEffectField != null && (bool)hasSlowEffectField.GetValue(bullet))
+        bool hasSlowEffect = hasSlowEffectField != null && (bool)hasSlowEffectField.GetValue(bullet);
+
+        // 强化可能启用减速
+        if (enhancement != null && enhancement.slowMultiplierBonus > 0)
+        {
+            hasSlowEffect = true;
+        }
+
+        if (hasSlowEffect)
         {
             var slowMultiplierField = bulletType.GetField("slowMultiplier", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             if (slowMultiplierText != null && slowMultiplierField != null)
             {
-                float slowMultiplier = (float)slowMultiplierField.GetValue(bullet);
-                slowMultiplierText.text = $"Slow Multiplier: {(slowMultiplier * 100):F0}%";
+                float baseSlowMultiplier = (float)slowMultiplierField.GetValue(bullet);
+
+                if (enhancement != null && enhancement.slowMultiplierBonus > 0)
+                {
+                    float enhancedSlowMultiplier = baseSlowMultiplier * (1f - enhancement.slowMultiplierBonus);
+                    enhancedSlowMultiplier = Mathf.Clamp(enhancedSlowMultiplier, 0.1f, 1f);
+                    float slowBonus = enhancement.slowMultiplierBonus * 100f;
+                    slowMultiplierText.text = $"Slow Multiplier: {(enhancedSlowMultiplier * 100):F0}% (+{slowBonus:F0}% stronger)";
+                }
+                else
+                {
+                    slowMultiplierText.text = $"Slow Multiplier: {(baseSlowMultiplier * 100):F0}%";
+                }
             }
         }
     }
@@ -254,7 +393,7 @@ public class WeaponDetailPanel : MonoBehaviour, IDropHandler
     /// <summary>
     /// 显示通用武器信息（非枪械）
     /// </summary>
-    void ShowGenericWeaponDetails(IEquippable weapon)
+    void ShowGenericWeaponDetails(IEquippable weapon, int slotIndex)
     {
         // 显示基本信息
         if (damageText != null)

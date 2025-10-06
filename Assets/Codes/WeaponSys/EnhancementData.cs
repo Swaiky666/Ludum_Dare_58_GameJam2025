@@ -8,14 +8,13 @@ public class EnhancementData
 {
     [Header("武器强化")]
     public float damageMultiplier = 1f;           // 伤害倍率（默认1.0，1.8表示+80%）
-    public int bonusBounces = 0;                  // 额外弹射次数
+    public int bonusBounces = 0;                  // 额外弹射次数（加算）
     public float fireRateMultiplier = 1f;         // 攻速倍率（默认1.0，1.5表示+50%）
     public float bulletsPerShotMultiplier = 1f;   // 每次子弹数量倍率（默认1.0，3.0表示x3）
     public float slowMultiplierBonus = 0f;        // 减速权重加成（0.2表示减速效果+20%）
+    public float bulletSpeedMultiplier = 1f;      // 子弹速度倍率（默认1.0，1.3表示+30%）
     public bool enableHoming = false;             // 启用追踪
     public bool enableExplosion = false;          // 启用爆炸
-    public bool enablePiercing = false;           // 启用穿透
-    public float explosionRadiusMultiplier = 1f;  // 爆炸范围倍率
 
     [Header("玩家属性强化")]
     public float healthMultiplier = 1f;           // 生命值倍率
@@ -36,10 +35,9 @@ public class EnhancementData
         fireRateMultiplier = 1f;
         bulletsPerShotMultiplier = 1f;
         slowMultiplierBonus = 0f;
+        bulletSpeedMultiplier = 1f;
         enableHoming = false;
         enableExplosion = false;
-        enablePiercing = false;
-        explosionRadiusMultiplier = 1f;
 
         // 玩家属性强化
         healthMultiplier = 1f;

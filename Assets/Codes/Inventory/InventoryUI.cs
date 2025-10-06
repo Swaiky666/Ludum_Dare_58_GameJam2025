@@ -260,7 +260,7 @@ public class InventoryUI : MonoBehaviour
     }
 
     /// <summary>
-    /// 武器槽位被点击
+    /// 武器槽位被点击（需要传入槽位索引）
     /// </summary>
     void OnWeaponSlotClicked(int slotIndex)
     {
@@ -270,8 +270,8 @@ public class InventoryUI : MonoBehaviour
 
         if (equipment != null)
         {
-            // 显示详细信息
-            detailPanel.ShowWeaponDetails(equipment);
+            // ⭐ 显示详细信息，传入槽位索引以获取强化数据
+            detailPanel.ShowWeaponDetails(equipment, slotIndex);
 
             Debug.Log($"<color=cyan>点击了槽位 {slotIndex}：{equipment.EquipmentName}</color>");
         }

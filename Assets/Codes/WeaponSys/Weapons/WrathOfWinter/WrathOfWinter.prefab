@@ -45,9 +45,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   weaponName: WrathOfWinter
-  weaponIcon: {fileID: 21300000, guid: 7b38d5244ad7edb42bd65481db98d5fd, type: 3}
+  weaponIcon: {fileID: 21300000, guid: 11514f80c5f205c4fa055e81c0501554, type: 3}
   damage: 45
-  cooldown: 0.5
+  cooldown: 1
   enemyKnockbackForce: 0
   playerRecoilForce: 0
   fireSound: {fileID: 0}
@@ -57,7 +57,7 @@ MonoBehaviour:
   bulletSpeed: 60
   bulletsPerShot: 1
   spreadAngle: 0
-  fireRate: 2
+  fireRate: 1
   muzzleFlash: {fileID: 0}
   shakeDuration: 0.15
   shakeMagnitude: 0.12

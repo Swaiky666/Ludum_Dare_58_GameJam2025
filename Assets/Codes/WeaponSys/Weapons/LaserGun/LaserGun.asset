@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 4
   itemName: LaserGun
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: f2fc029c4cc902a44b7f11ff626eaa6c, type: 3}
   description: "\u201CLight hurts faster.\u201D\n\nA sleek energy weapon that fires
     beams hotter than logic. Clean, silent, and brutally efficient \u2014 it leaves
     nothing but smoke and regret."

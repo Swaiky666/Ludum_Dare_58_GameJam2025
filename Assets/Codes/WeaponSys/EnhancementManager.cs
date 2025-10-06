@@ -170,6 +170,10 @@ public class EnhancementManager : MonoBehaviour
                 enhancement.slowMultiplierBonus += value;
                 Debug.Log($"<color=yellow>槽位{slot} 减速效果加成: {enhancement.slowMultiplierBonus}</color>");
                 break;
+            case "BulletSpeed":
+                enhancement.bulletSpeedMultiplier *= value;
+                Debug.Log($"<color=yellow>槽位{slot} 子弹速度倍率提升至: {enhancement.bulletSpeedMultiplier}</color>");
+                break;
             case "Homing":
                 enhancement.enableHoming = true;
                 Debug.Log($"<color=yellow>槽位{slot} 启用追踪</color>");
@@ -177,10 +181,6 @@ public class EnhancementManager : MonoBehaviour
             case "Explosion":
                 enhancement.enableExplosion = true;
                 Debug.Log($"<color=yellow>槽位{slot} 启用爆炸</color>");
-                break;
-            case "Piercing":
-                enhancement.enablePiercing = true;
-                Debug.Log($"<color=yellow>槽位{slot} 启用穿透</color>");
                 break;
         }
     }

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 3
   itemName: RocketLauncher
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 01c6206c25d3a884f842f7709a4d2249, type: 3}
   description: "\u201CSubtlety not included.\u201D\n\nA shoulder-mounted argument
     ender. One pull of the trigger and diplomacy goes airborne \u2014 fast, loud,
     and gloriously final."

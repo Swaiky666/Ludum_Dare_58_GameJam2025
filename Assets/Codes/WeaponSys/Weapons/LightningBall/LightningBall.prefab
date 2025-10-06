@@ -47,17 +47,17 @@ MonoBehaviour:
   weaponName: LightningBall
   weaponIcon: {fileID: 0}
   damage: 5
-  cooldown: 1.25
+  cooldown: 2.5
   enemyKnockbackForce: 2
   playerRecoilForce: 5
   fireSound: {fileID: 0}
   fireSoundVolume: 1
   firePoint: {fileID: 0}
-  bulletPrefab: {fileID: 1595252117517162, guid: e7776336bc56a9b4caa1c90ea92ff765, type: 3}
+  bulletPrefab: {fileID: 1595252117517162, guid: 78387f4b5d078f24a8dcdb1c03276064, type: 3}
   bulletSpeed: 3
   bulletsPerShot: 1
   spreadAngle: 0
-  fireRate: 0.8
+  fireRate: 0.4
   muzzleFlash: {fileID: 0}
   shakeDuration: 0.1
   shakeMagnitude: 0.05

@@ -12,7 +12,7 @@ public class Gun : WeaponBase
     [SerializeField] private float spreadAngle = 0f;        // 散射角度
 
     [Header("Fire Rate")]
-    [SerializeField] private float fireRate = 2f;           // 射速：每秒射击次数（新增）
+    [SerializeField] private float fireRate = 2f;           // 射速：每秒射击次数
 
     [Header("Visual Effects")]
     [SerializeField] private ParticleSystem muzzleFlash;
@@ -65,6 +65,7 @@ public class Gun : WeaponBase
         float enhancedDamage = damage;
         int enhancedBulletsPerShot = bulletsPerShot;
         float enhancedSpreadAngle = spreadAngle;
+        float enhancedBulletSpeed = bulletSpeed;
 
         if (enhancement != null)
         {
@@ -73,6 +74,9 @@ public class Gun : WeaponBase
 
             // 子弹数量强化
             enhancedBulletsPerShot = Mathf.RoundToInt(bulletsPerShot * enhancement.bulletsPerShotMultiplier);
+
+            // 子弹速度强化
+            enhancedBulletSpeed *= enhancement.bulletSpeedMultiplier;
 
             // 如果子弹数量不是1，修改散射角度为8度
             if (enhancedBulletsPerShot != 1 && spreadAngle == 0f)
@@ -99,8 +103,8 @@ public class Gun : WeaponBase
             Bullet bulletScript = bullet.GetComponent<Bullet>();
             if (bulletScript != null)
             {
-                // 初始化子弹基础属性
-                bulletScript.Initialize(shootDirection, bulletSpeed, enhancedDamage, enemyKnockbackForce);
+                // 初始化子弹基础属性（使用强化后的速度）
+                bulletScript.Initialize(shootDirection, enhancedBulletSpeed, enhancedDamage, enemyKnockbackForce);
 
                 // 应用强化效果到子弹
                 if (enhancement != null)
@@ -136,7 +140,7 @@ public class Gun : WeaponBase
         }
         currentCooldown = enhancedCooldown;
 
-        Debug.Log($"{weaponName} 开火！伤害:{enhancedDamage:F1}, 子弹数:{enhancedBulletsPerShot}, 冷却:{enhancedCooldown:F2}s");
+        Debug.Log($"{weaponName} 开火！伤害:{enhancedDamage:F1}, 子弹数:{enhancedBulletsPerShot}, 速度:{enhancedBulletSpeed:F1}, 冷却:{enhancedCooldown:F2}s");
     }
 
     /// <summary>
@@ -146,7 +150,7 @@ public class Gun : WeaponBase
     {
         var bulletType = bullet.GetType();
 
-        // 1. 爆炸伤害强化
+        // 1. 爆炸伤害强化（不增加范围）
         var isExplosiveField = bulletType.GetField("isExplosive",
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         var explosionDamageField = bulletType.GetField("explosionDamage",
@@ -166,27 +170,7 @@ public class Gun : WeaponBase
             explosionDamageField.SetValue(bullet, originalExplosionDamage * enhancement.damageMultiplier);
         }
 
-        // 2. 穿透伤害强化
-        var isPiercingField = bulletType.GetField("isPiercing",
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        var piercingDamageField = bulletType.GetField("piercingDamage",
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-        bool wasPiercing = (bool)isPiercingField.GetValue(bullet);
-
-        if (enhancement.enablePiercing && !wasPiercing)
-        {
-            isPiercingField.SetValue(bullet, true);
-            Debug.Log($"<color=orange>[强化] 启用穿透效果</color>");
-        }
-
-        if ((bool)isPiercingField.GetValue(bullet) && piercingDamageField != null)
-        {
-            float originalPiercingDamage = (float)piercingDamageField.GetValue(bullet);
-            piercingDamageField.SetValue(bullet, originalPiercingDamage * enhancement.damageMultiplier);
-        }
-
-        // 3. 弹射次数强化
+        // 2. 弹射次数强化（改为加算）
         var isBouncyField = bulletType.GetField("isBouncy",
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         var maxBouncesField = bulletType.GetField("maxBounces",
@@ -206,7 +190,7 @@ public class Gun : WeaponBase
             maxBouncesField.SetValue(bullet, originalBounces + enhancement.bonusBounces);
         }
 
-        // 4. 减速效果强化
+        // 3. 减速效果强化
         var hasSlowEffectField = bulletType.GetField("hasSlowEffect",
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         var slowMultiplierField = bulletType.GetField("slowMultiplier",
@@ -228,7 +212,7 @@ public class Gun : WeaponBase
             slowMultiplierField.SetValue(bullet, Mathf.Clamp(enhancedSlowMultiplier, 0.1f, 1f));
         }
 
-        // 5. 追踪效果强化
+        // 4. 追踪效果强化
         if (enhancement.enableHoming)
         {
             var isHomingField = bulletType.GetField("isHoming",
@@ -240,19 +224,6 @@ public class Gun : WeaponBase
             {
                 isHomingField.SetValue(bullet, true);
                 Debug.Log($"<color=orange>[强化] 启用追踪效果</color>");
-            }
-        }
-
-        // 6. 爆炸范围强化
-        if (enhancement.explosionRadiusMultiplier > 1f)
-        {
-            var explosionRadiusField = bulletType.GetField("explosionRadius",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-            if (explosionRadiusField != null)
-            {
-                float originalRadius = (float)explosionRadiusField.GetValue(bullet);
-                explosionRadiusField.SetValue(bullet, originalRadius * enhancement.explosionRadiusMultiplier);
             }
         }
     }

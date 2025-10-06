@@ -759,6 +759,7 @@ MonoBehaviour:
   monsterPrefabs:
   - {fileID: 226442075022878172, guid: 8ed3b229403ec7647882e6ffe7ed57c3, type: 3}
   - {fileID: 226442075022878172, guid: 4cb87fada4061cb4789a73ff4e1f04df, type: 3}
+  - {fileID: 226442075022878172, guid: 8e97c1826cedc524a9a77060da51251b, type: 3}
   bossRoomPrefabs: []
   roomMapSystem: {fileID: 627761977}
   playerTransform: {fileID: 6476052857356830022}
@@ -1408,7 +1409,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &334374640
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1559,7 +1560,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &353817892
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1739,7 +1740,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &407676493
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3156,7 +3157,7 @@ RectTransform:
   m_Father: {fileID: 1250574463}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -3381,11 +3382,13 @@ MonoBehaviour:
   - {fileID: 672946217}
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   highlightColor: {r: 1, g: 0.8, b: 0, a: 1}
-  damageBonus: 0.8
-  fireRateBonus: 0.5
-  bulletsPerShotMultiplier: 3
-  bonusBounces: 2
+  damageBonus: 0.7
+  fireRateBonus: 0.4
+  bulletsPerShotMultiplier: 1
+  bonusBounces: 1
   slowEffectBonus: 0.2
+  bulletSpeedUpMultiplier: 1.3
+  bulletSpeedDownMultiplier: 0.7
 --- !u!4 &678417961
 Transform:
   m_ObjectHideFlags: 0
@@ -4277,7 +4280,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &864553727
 RectTransform:
   m_ObjectHideFlags: 0
@@ -4618,7 +4621,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 45
+  field of view: 30
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
@@ -5125,7 +5128,7 @@ RectTransform:
   m_Father: {fileID: 1120355787}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -5367,7 +5370,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1299120338
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5601,8 +5604,8 @@ Transform:
   m_GameObject: {fileID: 1377891595}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 2, y: -3.38, z: 0.008}
-  m_LocalScale: {x: 1.3889002, y: 1.3889, z: 1.3888998}
+  m_LocalPosition: {x: 1.5714287, y: -2.4371436, z: 0.007999965}
+  m_LocalScale: {x: 1.3889004, y: 1.3888999, z: 1.3888996}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 6104018389471682544}
@@ -6349,7 +6352,7 @@ RectTransform:
   m_Father: {fileID: 1710865073}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -6474,8 +6477,8 @@ Transform:
   m_GameObject: {fileID: 1678452720}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -2, y: -3.38, z: 0.008}
-  m_LocalScale: {x: 1.3889002, y: 1.3889, z: 1.3888998}
+  m_LocalPosition: {x: -1.5714287, y: -2.4371438, z: 0.007999965}
+  m_LocalScale: {x: 1.3889004, y: 1.3888999, z: 1.3888996}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 8421428792413070917}
@@ -7227,7 +7230,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1850847360
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7554,7 +7557,7 @@ RectTransform:
   m_Father: {fileID: 597565771}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -7631,10 +7634,9 @@ MonoBehaviour:
     fireRateMultiplier: 1
     bulletsPerShotMultiplier: 1
     slowMultiplierBonus: 0
+    bulletSpeedMultiplier: 1
     enableHoming: 0
     enableExplosion: 0
-    enablePiercing: 0
-    explosionRadiusMultiplier: 1
     healthMultiplier: 1
     shieldMultiplier: 1
     moveSpeedMultiplier: 1
@@ -7647,10 +7649,9 @@ MonoBehaviour:
     fireRateMultiplier: 1
     bulletsPerShotMultiplier: 1
     slowMultiplierBonus: 0
+    bulletSpeedMultiplier: 1
     enableHoming: 0
     enableExplosion: 0
-    enablePiercing: 0
-    explosionRadiusMultiplier: 1
     healthMultiplier: 1
     shieldMultiplier: 1
     moveSpeedMultiplier: 1
@@ -7690,7 +7691,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &2041965936
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9026,7 +9027,7 @@ Transform:
   m_GameObject: {fileID: 6239449549238317004}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: -1, y: 0.63699996, z: 1.1300002}
+  m_LocalPosition: {x: -0.85, y: 0.63699996, z: 0.8}
   m_LocalScale: {x: 0.35, y: 0.35, z: 0.35}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -9366,8 +9367,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79b10083c0c38d145a620f8e8b6e3d72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 5
-  dashDistance: 3
+  moveSpeed: 3
+  dashDistance: 1.5
   dashDuration: 0.2
   dashCooldown: 3
   maxHealth: 100
@@ -9656,7 +9657,7 @@ Transform:
   m_GameObject: {fileID: 2461311082599598211}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 1, y: 0.63699996, z: 1.1300002}
+  m_LocalPosition: {x: 0.85, y: 0.63699996, z: 0.8000001}
   m_LocalScale: {x: 0.35, y: 0.35, z: 0.35}
   m_ConstrainProportionsScale: 0
   m_Children:

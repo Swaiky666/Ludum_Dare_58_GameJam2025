@@ -45,9 +45,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   weaponName: LaserGun
-  weaponIcon: {fileID: 0}
+  weaponIcon: {fileID: 21300000, guid: f2fc029c4cc902a44b7f11ff626eaa6c, type: 3}
   damage: 25
-  cooldown: 0.125
+  cooldown: 0.18181819
   enemyKnockbackForce: 0
   playerRecoilForce: 0
   fireSound: {fileID: 0}
@@ -57,7 +57,7 @@ MonoBehaviour:
   bulletSpeed: 80
   bulletsPerShot: 1
   spreadAngle: 0
-  fireRate: 8
+  fireRate: 5.5
   muzzleFlash: {fileID: 0}
   shakeDuration: 0
   shakeMagnitude: 0

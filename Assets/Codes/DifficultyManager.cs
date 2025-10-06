@@ -15,6 +15,7 @@ public class DifficultyManager : MonoBehaviour
     [SerializeField] private int currentDifficulty = 0;
     [SerializeField] private float healthScalePerLevel = 0.15f;  // 每级增加15%血量
     [SerializeField] private float damageScalePerLevel = 0.1f;   // 每级增加10%伤害
+    [SerializeField] private float spawnRateIncreasePerLevel = 0.03f;  // 每级增加3%生成率
 
     [Header("Color Settings (20 Levels)")]
     [SerializeField] private int maxDifficulty = 20;  // 最大难度（20关）
@@ -131,12 +132,26 @@ public class DifficultyManager : MonoBehaviour
     }
 
     /// <summary>
+    /// 获取缩放后的怪物生成率
+    /// </summary>
+    public float GetScaledMonsterSpawnChance(float baseSpawnChance)
+    {
+        float increase = currentDifficulty * spawnRateIncreasePerLevel;
+        float result = baseSpawnChance + increase;
+
+        // 设置上限，避免生成率过高（最高1.0，即100%）
+        return Mathf.Clamp(result, baseSpawnChance, 1f);
+    }
+
+    /// <summary>
     /// 获取难度倍数信息（用于调试）
     /// </summary>
     public string GetDifficultyInfo()
     {
         float healthMultiplier = 1f + (currentDifficulty * healthScalePerLevel);
         float damageMultiplier = 1f + (currentDifficulty * damageScalePerLevel);
-        return $"Difficulty {currentDifficulty} - Health: x{healthMultiplier:F2}, Damage: x{damageMultiplier:F2}";
+        float spawnChanceIncrease = currentDifficulty * spawnRateIncreasePerLevel;
+
+        return $"Difficulty {currentDifficulty} - Health: x{healthMultiplier:F2}, Damage: x{damageMultiplier:F2}, Spawn Rate: +{spawnChanceIncrease:F2}";
     }
 }

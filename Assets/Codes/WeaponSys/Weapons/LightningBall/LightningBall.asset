@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 8
   itemName: LightningBall
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 0f8a094476f905a4abc02282feec3d8e, type: 3}
   description: "\u201CCatch it\u2014if you like pain.\u201D\n\nA crackling sphere
     of bottled storm. It arcs between targets with gleeful malice, leaving ozone,
     smoke, and very bad hair behind."
@@ -22,4 +22,4 @@ MonoBehaviour:
   dropPrefab: {fileID: 2512001187322032183, guid: aef99fcc361d63f42b60b59b9a763f65, type: 3}
   isCollected: 1
   collectionCount: 1
-  collectionTime: 2025/10/05 15:27
+  collectionTime: 2025/10/06 07:00

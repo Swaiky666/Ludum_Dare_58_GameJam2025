@@ -740,7 +740,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   roomSize: {x: 25, y: 25}
   tileSize: 1
-  maxDepth: 4
+  maxDepth: 6
   splitChance: 0.7
   minRegionSize: 3
   obstacleDensity: 0.5
@@ -760,7 +760,8 @@ MonoBehaviour:
   - {fileID: 226442075022878172, guid: 8ed3b229403ec7647882e6ffe7ed57c3, type: 3}
   - {fileID: 226442075022878172, guid: 4cb87fada4061cb4789a73ff4e1f04df, type: 3}
   - {fileID: 226442075022878172, guid: 8e97c1826cedc524a9a77060da51251b, type: 3}
-  bossRoomPrefabs: []
+  bossRoomPrefabs:
+  - {fileID: 2364593720301106117, guid: 3633fee2bdd16f246b62cef3267922e0, type: 3}
   roomMapSystem: {fileID: 627761977}
   playerTransform: {fileID: 6476052857356830022}
 --- !u!4 &85173679
@@ -3027,7 +3028,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 408e05b97cb7a5844b29eee6c307c9c5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxRoomHalf: 3
+  maxRoomHalf: 1
   treasureChance: 0.3
   mapScale: 0.4
   roomSize: 40
@@ -9299,7 +9300,7 @@ CharacterController:
   m_Enabled: 1
   serializedVersion: 3
   m_Height: 1
-  m_Radius: 0.5
+  m_Radius: 0.001
   m_SlopeLimit: 45
   m_StepOffset: 0.3
   m_SkinWidth: 0.08
@@ -9381,6 +9382,12 @@ MonoBehaviour:
   mainCamera: {fileID: 0}
   damageShakeDuration: 0.1
   damageShakeMagnitude: 0.1
+  blockingLayers:
+    serializedVersion: 2
+    m_Bits: 1024
+  checkTriggers: 0
+  capsuleHeightOffset: 0
+  skinWidth: 0.02
 --- !u!222 &7394125538298390062
 CanvasRenderer:
   m_ObjectHideFlags: 0

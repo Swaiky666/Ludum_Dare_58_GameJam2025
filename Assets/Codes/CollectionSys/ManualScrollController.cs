@@ -3,12 +3,19 @@
 /// <summary>
 /// 手动滚动控制器 - 通过手动输入参数计算滚动范围
 /// 挂载到 Panel 上
+/// 支持额外对象跟随滚动
 /// </summary>
 public class ManualScrollController : MonoBehaviour
 {
     [Header("引用")]
     [SerializeField] private RectTransform content;
     [SerializeField] private RectTransform panel;
+
+    [Header("跟随对象")]
+    [SerializeField] private RectTransform followObject;              // 跟随滚动的额外对象
+    [SerializeField] private bool enableFollow = true;                // 是否启用跟随
+    [SerializeField] private Vector2 followOffset = Vector2.zero;     // 跟随偏移量
+    [SerializeField] private float followSpeedMultiplier = 1f;        // 跟随速度倍数（1为完全同步）
 
     [Header("布局参数")]
     [SerializeField] private float itemHeight = 150f;        // 每个物品的高度
@@ -22,12 +29,19 @@ public class ManualScrollController : MonoBehaviour
     private int itemCount = 0;          // 当前物品数量
     private float calculatedHeight = 0; // 计算出的 Content 高度
     private float maxScrollY = 0;       // 最大滚动距离
+    private Vector2 followObjectInitialPosition;  // 跟随对象的初始位置
 
     private void Awake()
     {
         if (panel == null)
         {
             panel = GetComponent<RectTransform>();
+        }
+
+        // 记录跟随对象的初始位置
+        if (followObject != null)
+        {
+            followObjectInitialPosition = followObject.anchoredPosition;
         }
     }
 
@@ -102,6 +116,9 @@ public class ManualScrollController : MonoBehaviour
         pos.y = Mathf.Clamp(pos.y, 0, maxScrollY);
 
         content.anchoredPosition = pos;
+
+        // 更新跟随对象位置
+        UpdateFollowObjectPosition();
     }
 
     /// <summary>
@@ -114,6 +131,9 @@ public class ManualScrollController : MonoBehaviour
         Vector2 pos = content.anchoredPosition;
         pos.y = 0;
         content.anchoredPosition = pos;
+
+        // 更新跟随对象位置
+        UpdateFollowObjectPosition();
     }
 
     /// <summary>
@@ -126,6 +146,9 @@ public class ManualScrollController : MonoBehaviour
         Vector2 pos = content.anchoredPosition;
         pos.y = maxScrollY;
         content.anchoredPosition = pos;
+
+        // 更新跟随对象位置
+        UpdateFollowObjectPosition();
     }
 
     /// <summary>
@@ -138,6 +161,83 @@ public class ManualScrollController : MonoBehaviour
         Vector2 pos = content.anchoredPosition;
         pos.y = Mathf.Lerp(0, maxScrollY, Mathf.Clamp01(normalizedPosition));
         content.anchoredPosition = pos;
+
+        // 更新跟随对象位置
+        UpdateFollowObjectPosition();
+    }
+
+    /// <summary>
+    /// 更新跟随对象的位置
+    /// </summary>
+    private void UpdateFollowObjectPosition()
+    {
+        if (followObject == null || !enableFollow) return;
+
+        // 计算跟随对象应该移动的距离
+        float contentScrollY = content.anchoredPosition.y;
+        float followScrollY = contentScrollY * followSpeedMultiplier;
+
+        // 应用初始位置 + 滚动偏移 + 自定义偏移
+        Vector2 newPos = followObjectInitialPosition;
+        newPos.y += followScrollY + followOffset.y;
+        newPos.x += followOffset.x;
+
+        followObject.anchoredPosition = newPos;
+    }
+
+    /// <summary>
+    /// 设置跟随对象
+    /// </summary>
+    public void SetFollowObject(RectTransform obj)
+    {
+        followObject = obj;
+        if (followObject != null)
+        {
+            followObjectInitialPosition = followObject.anchoredPosition;
+            UpdateFollowObjectPosition();
+        }
+    }
+
+    /// <summary>
+    /// 启用/禁用跟随功能
+    /// </summary>
+    public void SetFollowEnabled(bool enabled)
+    {
+        enableFollow = enabled;
+        if (enabled)
+        {
+            UpdateFollowObjectPosition();
+        }
+    }
+
+    /// <summary>
+    /// 设置跟随速度倍数
+    /// </summary>
+    public void SetFollowSpeedMultiplier(float multiplier)
+    {
+        followSpeedMultiplier = multiplier;
+        UpdateFollowObjectPosition();
+    }
+
+    /// <summary>
+    /// 设置跟随偏移量
+    /// </summary>
+    public void SetFollowOffset(Vector2 offset)
+    {
+        followOffset = offset;
+        UpdateFollowObjectPosition();
+    }
+
+    /// <summary>
+    /// 重置跟随对象到初始位置
+    /// </summary>
+    public void ResetFollowObjectPosition()
+    {
+        if (followObject != null)
+        {
+            followObjectInitialPosition = followObject.anchoredPosition;
+            UpdateFollowObjectPosition();
+        }
     }
 
     /// <summary>
@@ -192,6 +292,16 @@ public class ManualScrollController : MonoBehaviour
             Vector3 bottomLeft = panelCorners[0];
             Vector3 scrollEnd = bottomLeft + Vector3.down * (maxScrollY * panel.lossyScale.y);
             Gizmos.DrawLine(bottomLeft, scrollEnd);
+        }
+
+        // 绘制跟随对象位置（红色圆圈）
+        if (followObject != null && enableFollow)
+        {
+            Gizmos.color = Color.red;
+            Vector3[] followCorners = new Vector3[4];
+            followObject.GetWorldCorners(followCorners);
+            Vector3 center = (followCorners[0] + followCorners[2]) / 2f;
+            Gizmos.DrawWireSphere(center, 10f);
         }
     }
 }

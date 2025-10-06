@@ -754,14 +754,17 @@ MonoBehaviour:
   walkableFloorPrefab: {fileID: 9067344110672823401, guid: 98135e8b252dd454fb62864dd07cf24e, type: 3}
   unwalkableFloorPrefab: {fileID: 2052053460299959166, guid: 09ceaa31c5db0b64fb5ede8b96796544, type: 3}
   transparentFloorPrefab: {fileID: 7365813651155538567, guid: d958a21b08d9d074ea11ef1469860b10, type: 3}
-  exitDoorPrefab: {fileID: 5200299255755562888, guid: a288f48319f953944b4ee5c7a955db89, type: 3}
+  exitDoorPrefab: {fileID: 5200299255755562888, guid: 52546c73193d7aa4a94bd849281c5dfd, type: 3}
   treasureChestPrefab: {fileID: 2154003258674922101, guid: 317953d9af28dbc4ba64bd0eed3795ae, type: 3}
   monsterPrefabs:
   - {fileID: 226442075022878172, guid: 8ed3b229403ec7647882e6ffe7ed57c3, type: 3}
   - {fileID: 226442075022878172, guid: 4cb87fada4061cb4789a73ff4e1f04df, type: 3}
   - {fileID: 226442075022878172, guid: 8e97c1826cedc524a9a77060da51251b, type: 3}
-  bossRoomPrefabs:
+  bossRoomPrefabs: []
+  bossPrefabs:
   - {fileID: 2364593720301106117, guid: 3633fee2bdd16f246b62cef3267922e0, type: 3}
+  bossSpawnDistance: 10
+  bossExitDoorPrefab: {fileID: 5200299255755562888, guid: a288f48319f953944b4ee5c7a955db89, type: 3}
   roomMapSystem: {fileID: 627761977}
   playerTransform: {fileID: 6476052857356830022}
 --- !u!4 &85173679
@@ -3030,6 +3033,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxRoomHalf: 1
   treasureChance: 0.3
+  maxRounds: 3
   mapScale: 0.4
   roomSize: 40
   columnSpacing: 100
@@ -8794,6 +8798,63 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3704188875239568760}
   m_CullTransparentMesh: 1
+--- !u!1001 &4166829595745154848
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 3694812017602374347, guid: 11e1d4f20d4b0c345bc9f1a7cd3eaccd, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 11.068775
+      objectReference: {fileID: 0}
+    - target: {fileID: 3694812017602374347, guid: 11e1d4f20d4b0c345bc9f1a7cd3eaccd, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3694812017602374347, guid: 11e1d4f20d4b0c345bc9f1a7cd3eaccd, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 10.88958
+      objectReference: {fileID: 0}
+    - target: {fileID: 3694812017602374347, guid: 11e1d4f20d4b0c345bc9f1a7cd3eaccd, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3694812017602374347, guid: 11e1d4f20d4b0c345bc9f1a7cd3eaccd, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3694812017602374347, guid: 11e1d4f20d4b0c345bc9f1a7cd3eaccd, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3694812017602374347, guid: 11e1d4f20d4b0c345bc9f1a7cd3eaccd, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3694812017602374347, guid: 11e1d4f20d4b0c345bc9f1a7cd3eaccd, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3694812017602374347, guid: 11e1d4f20d4b0c345bc9f1a7cd3eaccd, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3694812017602374347, guid: 11e1d4f20d4b0c345bc9f1a7cd3eaccd, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4108769917801282626, guid: 11e1d4f20d4b0c345bc9f1a7cd3eaccd, type: 3}
+      propertyPath: m_Name
+      value: AudioManager
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 11e1d4f20d4b0c345bc9f1a7cd3eaccd, type: 3}
 --- !u!222 &4252264752402195148
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -9735,3 +9796,4 @@ SceneRoots:
   - {fileID: 678417961}
   - {fileID: 1683597031}
   - {fileID: 1157974350}
+  - {fileID: 4166829595745154848}

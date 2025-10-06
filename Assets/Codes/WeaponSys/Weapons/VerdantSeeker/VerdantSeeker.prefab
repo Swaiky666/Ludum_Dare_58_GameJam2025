@@ -50,7 +50,7 @@ MonoBehaviour:
   cooldown: 0.5
   enemyKnockbackForce: 5
   playerRecoilForce: 5
-  fireSound: {fileID: 0}
+  fireSound: {fileID: 8300000, guid: 8bd16d5a209bb9547a7d501b0ce8d4cb, type: 3}
   fireSoundVolume: 1
   firePoint: {fileID: 0}
   bulletPrefab: {fileID: 1985767573034186, guid: 13aa6a017d8db0f4295d318ca598833c, type: 3}

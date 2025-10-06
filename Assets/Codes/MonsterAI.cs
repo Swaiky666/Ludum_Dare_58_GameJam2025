@@ -3,18 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-/// <summary>
-/// 怪物状态枚举
-/// </summary>
 public enum MonsterState
 {
-    Patrol,   // 巡逻
-    Chase     // 追击
+    Patrol,
+    Chase
 }
 
-/// <summary>
-/// 怪物AI控制器（添加减速系统和视觉效果）
-/// </summary>
 public class MonsterAI : MonoBehaviour
 {
     [Header("References")]
@@ -45,7 +39,8 @@ public class MonsterAI : MonoBehaviour
 
     [Header("Attack Settings")]
     [SerializeField] private float attackRange = 2f;
-    [SerializeField] private float attackDamage = 20f;
+    [SerializeField] private float baseAttackDamage = 20f;  // 基础攻击伤害
+    private float attackDamage;  // 实际伤害（会被难度缩放）
     [SerializeField] private float attackCooldown = 1.5f;
     [SerializeField] private float knockbackForce = 10f;
     [SerializeField] private float attackScaleMultiplier = 1.3f;
@@ -54,12 +49,10 @@ public class MonsterAI : MonoBehaviour
     [Header("Visual Effects")]
     [SerializeField] private Color slowedColor = new Color(0.5f, 0.7f, 1f, 1f);
 
-    // 公共属性：供其他脚本查询减速状态
     public bool IsSlowed => isSlowed;
     public Color SlowedColor => slowedColor;
     public Color OriginalColor => originalColor;
 
-    // 私有变量
     private MonsterState currentState = MonsterState.Patrol;
     private Vector3 patrolTarget;
     private float patrolTimer;
@@ -75,17 +68,14 @@ public class MonsterAI : MonoBehaviour
     private float attackCooldownTimer;
     private PlayerController targetPlayer;
 
-    // 减速系统变量
     private bool isSlowed = false;
     private float originalMoveSpeed;
     private Coroutine slowCoroutine;
 
-    // 视觉效果变量
     private Color originalColor;
     private Vector3 originalScale;
     private Coroutine attackScaleCoroutine;
 
-    // 静态缓存
     private static readonly Vector2Int[] NeighborDirections = {
         new Vector2Int(0, 1), new Vector2Int(1, 0),
         new Vector2Int(0, -1), new Vector2Int(-1, 0),
@@ -95,6 +85,18 @@ public class MonsterAI : MonoBehaviour
 
     void Start()
     {
+        // 根据难度缩放攻击伤害
+        if (DifficultyManager.Instance != null)
+        {
+            attackDamage = DifficultyManager.Instance.GetScaledDamage(baseAttackDamage);
+            Debug.Log($"{gameObject.name} - Base Damage: {baseAttackDamage}, Scaled Damage: {attackDamage} (Difficulty: {DifficultyManager.Instance.CurrentDifficulty})");
+        }
+        else
+        {
+            attackDamage = baseAttackDamage;
+            Debug.LogWarning($"{gameObject.name} - DifficultyManager not found, using base damage: {baseAttackDamage}");
+        }
+
         characterController = GetComponent<CharacterController>();
         if (characterController == null)
         {
@@ -122,7 +124,6 @@ public class MonsterAI : MonoBehaviour
         spawnPosition = transform.position;
         originalMoveSpeed = moveSpeed;
 
-        // 修复：直接查找 PlayerController 组件，确保追踪正确的对象
         if (targetPlayer == null)
         {
             targetPlayer = FindObjectOfType<PlayerController>();
@@ -137,17 +138,14 @@ public class MonsterAI : MonoBehaviour
             }
         }
 
-        // 备用方案：如果上面没找到，尝试通过Tag查找并向上查找组件
         if (playerTransform == null)
         {
             GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
             if (playerObj != null)
             {
-                // 向上查找 PlayerController（可能在父物体上）
                 targetPlayer = playerObj.GetComponentInParent<PlayerController>();
                 if (targetPlayer == null)
                 {
-                    // 向下查找 PlayerController（可能在子物体上）
                     targetPlayer = playerObj.GetComponentInChildren<PlayerController>();
                 }
 
@@ -191,9 +189,6 @@ public class MonsterAI : MonoBehaviour
 
     #region 减速系统
 
-    /// <summary>
-    /// 应用减速效果（由子弹调用）
-    /// </summary>
     public void ApplySlow(float slowMultiplier, float duration)
     {
         if (slowCoroutine != null)
@@ -204,9 +199,6 @@ public class MonsterAI : MonoBehaviour
         slowCoroutine = StartCoroutine(SlowCoroutine(slowMultiplier, duration));
     }
 
-    /// <summary>
-    /// 手动设置颜色（由MonsterHealth在闪烁后调用）
-    /// </summary>
     public void SetColor(Color color)
     {
         if (spriteRenderer != null)
@@ -217,7 +209,6 @@ public class MonsterAI : MonoBehaviour
 
     IEnumerator SlowCoroutine(float slowMultiplier, float duration)
     {
-        // 应用减速
         if (!isSlowed)
         {
             isSlowed = true;
@@ -238,7 +229,6 @@ public class MonsterAI : MonoBehaviour
 
         yield return new WaitForSeconds(duration);
 
-        // 恢复速度和颜色
         isSlowed = false;
         moveSpeed = originalMoveSpeed;
 
@@ -254,9 +244,6 @@ public class MonsterAI : MonoBehaviour
 
     #region 外部调用接口
 
-    /// <summary>
-    /// 强制进入追击状态（被攻击时调用）
-    /// </summary>
     public void ForceChase()
     {
         if (currentState != MonsterState.Chase)
@@ -272,7 +259,6 @@ public class MonsterAI : MonoBehaviour
     {
         if (playerTransform == null)
         {
-            // 如果丢失了玩家引用，尝试重新查找
             targetPlayer = FindObjectOfType<PlayerController>();
             if (targetPlayer != null)
             {
@@ -429,7 +415,6 @@ public class MonsterAI : MonoBehaviour
         if (targetPlayer == null)
         {
             Debug.LogWarning($"{gameObject.name}: 无法攻击 - targetPlayer 是 null！尝试重新查找玩家...");
-            // 尝试重新查找玩家
             targetPlayer = FindObjectOfType<PlayerController>();
             if (targetPlayer != null)
             {
@@ -741,7 +726,6 @@ public class MonsterAI : MonoBehaviour
     {
         if (!Application.isPlaying) return;
 
-        // 减速状态用蓝色圈显示
         if (isSlowed)
         {
             Gizmos.color = Color.blue;
@@ -756,13 +740,11 @@ public class MonsterAI : MonoBehaviour
             Gizmos.color = new Color(1, 0, 0, 0.3f);
             Gizmos.DrawWireSphere(transform.position, attackRange);
 
-            // 显示到玩家的连线
             if (playerTransform != null)
             {
                 Gizmos.color = Color.red;
                 Gizmos.DrawLine(transform.position, playerTransform.position);
 
-                // 在玩家位置显示一个小球
                 Gizmos.color = Color.cyan;
                 Gizmos.DrawWireSphere(playerTransform.position, 0.5f);
             }

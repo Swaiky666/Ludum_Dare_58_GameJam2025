@@ -5,7 +5,8 @@ using UnityEngine;
 public class MonsterHealth : MonoBehaviour
 {
     [Header("Health Settings")]
-    [SerializeField] private float maxHealth = 100f;
+    [SerializeField] private float baseMaxHealth = 100f;  // 基础最大血量
+    private float maxHealth;  // 实际最大血量（会被难度缩放）
 
     [Header("Knockback Settings")]
     [SerializeField] private float knockbackDuration = 0.2f;
@@ -13,18 +14,18 @@ public class MonsterHealth : MonoBehaviour
     [Header("Death Settings")]
     [SerializeField] private float deathDelay = 0.5f;
     [SerializeField] private float deathKnockbackMultiplier = 0.15f;
-    [SerializeField] private Color deathColor = new Color(0.2f, 0.2f, 0.2f, 1f); // 死亡颜色（深灰/黑色）
-    [SerializeField] private float deathFadeDuration = 0.3f; // 渐变到死亡颜色的时间
+    [SerializeField] private Color deathColor = new Color(0.2f, 0.2f, 0.2f, 1f);
+    [SerializeField] private float deathFadeDuration = 0.3f;
 
     [Header("Death Flash Effect")]
-    [SerializeField] private bool useDeathFlash = true; // 是否启用死亡闪烁
-    [SerializeField] private int deathFlashCount = 4; // 死亡闪烁次数
-    [SerializeField] private float deathFlashDuration = 0.2f; // 死亡闪烁总时长
+    [SerializeField] private bool useDeathFlash = true;
+    [SerializeField] private int deathFlashCount = 4;
+    [SerializeField] private float deathFlashDuration = 0.2f;
 
     [Header("Death Particle Effect")]
-    [SerializeField] private ParticleSystem attachedParticleSystem; // 挂在怪物身上的粒子系统
-    [SerializeField] private bool detachParticleOnDeath = true; // 死亡时分离粒子
-    [SerializeField] private float particleDestroyDelay = 3f; // 粒子延迟销毁时间
+    [SerializeField] private ParticleSystem attachedParticleSystem;
+    [SerializeField] private bool detachParticleOnDeath = true;
+    [SerializeField] private float particleDestroyDelay = 3f;
 
     [Header("Hit Flash Effect")]
     [SerializeField] private bool useHDRFlash = true;
@@ -44,7 +45,7 @@ public class MonsterHealth : MonoBehaviour
     private MonsterAI monsterAI;
     private bool isKnockedBack = false;
     private bool isDying = false;
-    private Vector3 lastKnockbackDirection; // 保存最后的击退方向（用于粒子特效）
+    private Vector3 lastKnockbackDirection;
 
     private Material originalMaterial;
     private Color originalColor;
@@ -52,6 +53,18 @@ public class MonsterHealth : MonoBehaviour
 
     void Start()
     {
+        // 根据难度缩放血量
+        if (DifficultyManager.Instance != null)
+        {
+            maxHealth = DifficultyManager.Instance.GetScaledHealth(baseMaxHealth);
+            Debug.Log($"{gameObject.name} - Base Health: {baseMaxHealth}, Scaled Health: {maxHealth} (Difficulty: {DifficultyManager.Instance.CurrentDifficulty})");
+        }
+        else
+        {
+            maxHealth = baseMaxHealth;
+            Debug.LogWarning($"{gameObject.name} - DifficultyManager not found, using base health: {baseMaxHealth}");
+        }
+
         currentHealth = maxHealth;
         characterController = GetComponent<CharacterController>();
         monsterAI = GetComponent<MonsterAI>();
@@ -77,15 +90,13 @@ public class MonsterHealth : MonoBehaviour
         if (isDying) return;
 
         currentHealth -= damage;
-        Debug.Log($"{gameObject.name} 受到 {damage} 伤害，剩余血量: {currentHealth}");
+        Debug.Log($"{gameObject.name} 受到 {damage} 伤害，剩余血量: {currentHealth}/{maxHealth}");
 
-        // ✨ 受击后强制进入追击
         if (monsterAI != null)
         {
             monsterAI.ForceChase();
         }
 
-        // 受伤闪烁
         if (spriteRenderer != null && !isDying)
         {
             if (flashCoroutine != null)
@@ -332,24 +343,16 @@ public class MonsterHealth : MonoBehaviour
             yield return null;
         }
 
-        // 死亡动画完成后，清理怪物（保留粒子系统）
         CleanupMonster();
-
-        // 延迟销毁整个GameObject（给粒子留时间）
         Destroy(gameObject, particleDestroyDelay);
     }
 
-    /// <summary>
-    /// 清理怪物：重置Tag/Layer、停粒子、移除控制器与碰撞体、清掉子物体与脚本（保留Transform/粒子）
-    /// </summary>
     void CleanupMonster()
     {
-        // 0) 重置 tag / layer
         gameObject.tag = "Untagged";
-        gameObject.layer = 0; // Default
+        gameObject.layer = 0;
         Debug.Log($"{gameObject.name} 已重置 Tag=Untagged 与 Layer=Default");
 
-        // 1) 停止粒子发射（不清现有粒子）
         if (attachedParticleSystem != null)
         {
             var emission = attachedParticleSystem.emission;
@@ -362,7 +365,6 @@ public class MonsterHealth : MonoBehaviour
                 childEmission.enabled = false;
             }
 
-            // 如需脱离主体，可在这里分离
             if (detachParticleOnDeath)
             {
                 attachedParticleSystem.transform.SetParent(null, true);
@@ -371,8 +373,6 @@ public class MonsterHealth : MonoBehaviour
             Debug.Log($"{gameObject.name} 停止粒子发射（并按需分离）");
         }
 
-        // 2) 删除控制器与碰撞体
-        // 2.1 CharacterController
         if (characterController != null)
         {
             Destroy(characterController);
@@ -381,7 +381,6 @@ public class MonsterHealth : MonoBehaviour
         }
         else
         {
-            // 防守式再查一次
             var cc = GetComponent<CharacterController>();
             if (cc != null)
             {
@@ -390,7 +389,6 @@ public class MonsterHealth : MonoBehaviour
             }
         }
 
-        // 2.2 CapsuleCollider（可能有多个，全部移除）
         var capsuleColliders = GetComponents<CapsuleCollider>();
         if (capsuleColliders != null && capsuleColliders.Length > 0)
         {
@@ -401,7 +399,6 @@ public class MonsterHealth : MonoBehaviour
             Debug.Log($"{gameObject.name} 删除 {capsuleColliders.Length} 个 CapsuleCollider");
         }
 
-        // 3) 删除除粒子外的所有子物体
         List<Transform> childrenToDestroy = new List<Transform>();
         foreach (Transform child in transform)
         {
@@ -428,7 +425,6 @@ public class MonsterHealth : MonoBehaviour
         }
         Debug.Log($"{gameObject.name} 删除了 {childrenToDestroy.Count} 个子物体（保留粒子）");
 
-        // 4) 删除其他脚本（保留本脚本以完成销毁流程）
         MonoBehaviour[] scripts = GetComponents<MonoBehaviour>();
         foreach (var script in scripts)
         {

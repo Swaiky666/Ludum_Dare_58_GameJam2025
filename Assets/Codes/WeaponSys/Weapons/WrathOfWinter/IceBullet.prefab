@@ -9923,12 +9923,12 @@ MonoBehaviour:
   isBouncy: 0
   maxBounces: 3
   bounceSpeedMultiplier: 0.8
-  bulletPrefab: {fileID: 0}
+  bulletPrefab: {fileID: 1978937533168522}
   hasSlowEffect: 1
   slowMultiplier: 0.5
   slowDuration: 2
   isHoming: 0
-  homingTurnSpeed: 180
+  homingTurnSpeed: 500
   homingRange: 15
   homingActivationDelay: 0.1
   usePredictiveAiming: 1

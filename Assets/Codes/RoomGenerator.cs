@@ -2,19 +2,13 @@
 using UnityEngine;
 using System.Linq;
 
-/// <summary>
-/// 地板类型枚举
-/// </summary>
 public enum FloorType
 {
-    Walkable,              // 可通行地板
-    Unwalkable,            // 不可通行且不可穿透
-    UnwalkableTransparent  // 不可通行但可穿透
+    Walkable,
+    Unwalkable,
+    UnwalkableTransparent
 }
 
-/// <summary>
-/// 地板数据
-/// </summary>
 public class Floor
 {
     public FloorType type;
@@ -23,9 +17,6 @@ public class Floor
     public GameObject floorObject;
 }
 
-/// <summary>
-/// 出口门数据
-/// </summary>
 public class ExitDoor
 {
     public Vector3 position;
@@ -34,15 +25,12 @@ public class ExitDoor
     public BoxCollider triggerCollider;
 }
 
-/// <summary>
-/// 四叉树节点
-/// </summary>
 public class QuadTreeNode
 {
-    public Rect bounds;                    // 节点边界
-    public QuadTreeNode[] children;        // 四个子节点
-    public bool isLeaf;                    // 是否为叶子节点
-    public bool isWalkable;                // 如果是叶子节点，是否可通行
+    public Rect bounds;
+    public QuadTreeNode[] children;
+    public bool isLeaf;
+    public bool isWalkable;
 
     public QuadTreeNode(Rect bounds)
     {
@@ -53,21 +41,15 @@ public class QuadTreeNode
     }
 }
 
-/// <summary>
-/// A*寻路节点
-/// </summary>
 public class PathNode
 {
     public Vector2Int position;
-    public float gCost;  // 从起点到当前节点的代价
-    public float hCost;  // 从当前节点到终点的估计代价
+    public float gCost;
+    public float hCost;
     public float fCost => gCost + hCost;
     public PathNode parent;
 }
 
-/// <summary>
-/// 房间地图生成器（基于四叉树）
-/// </summary>
 public class RoomGenerator : MonoBehaviour
 {
     [Header("Room Settings")]
@@ -75,40 +57,39 @@ public class RoomGenerator : MonoBehaviour
     [SerializeField] private float tileSize = 1f;
 
     [Header("Quadtree Settings")]
-    [SerializeField, Range(1, 6)] private int maxDepth = 4;           // 四叉树最大深度
-    [SerializeField, Range(0, 1)] private float splitChance = 0.7f;   // 分割概率
-    [SerializeField, Range(2, 10)] private int minRegionSize = 3;     // 最小区域大小
+    [SerializeField, Range(1, 6)] private int maxDepth = 4;
+    [SerializeField, Range(0, 1)] private float splitChance = 0.7f;
+    [SerializeField, Range(2, 10)] private int minRegionSize = 3;
 
     [Header("Density Settings")]
-    [SerializeField, Range(0, 1)] private float obstacleDensity = 0.4f;           // 障碍物密度
-    [SerializeField, Range(0, 1)] private float transparentDensity = 0.3f;        // 可穿透障碍物占障碍物的比例
-    [SerializeField, Range(0, 0.3f)] private float scatterObstacleDensity = 0.05f; // 散落障碍物密度（在可通行区域）
+    [SerializeField, Range(0, 1)] private float obstacleDensity = 0.4f;
+    [SerializeField, Range(0, 1)] private float transparentDensity = 0.3f;
+    [SerializeField, Range(0, 0.3f)] private float scatterObstacleDensity = 0.05f;
 
     [Header("Path Settings")]
-    [SerializeField, Range(1, 5)] private int pathWidth = 2;          // 路径宽度
+    [SerializeField, Range(1, 5)] private int pathWidth = 2;
 
     [Header("Detection Settings")]
-    [SerializeField, Range(0.5f, 3f)] private float doorDetectionRange = 1.0f;  // 门的检测范围（倍数于tileSize）
+    [SerializeField, Range(0.5f, 3f)] private float doorDetectionRange = 1.0f;
 
     [Header("Monster Settings")]
     [SerializeField, Range(0, 1)] private float monsterSpawnChance = 0.05f;
-    [SerializeField, Range(1, 10)] private int playerSafeRange = 5;            // 玩家起点安全范围（格子数）
-    [SerializeField, Range(1, 5)] private int doorSafeRange = 3;              // 门周围安全范围（格子数）
+    [SerializeField, Range(1, 10)] private int playerSafeRange = 5;
+    [SerializeField, Range(1, 5)] private int doorSafeRange = 3;
 
     [Header("Prefabs")]
     [SerializeField] private GameObject walkableFloorPrefab;
     [SerializeField] private GameObject unwalkableFloorPrefab;
     [SerializeField] private GameObject transparentFloorPrefab;
     [SerializeField] private GameObject exitDoorPrefab;
-    [SerializeField] private GameObject treasureChestPrefab;              // 宝箱预制体
+    [SerializeField] private GameObject treasureChestPrefab;
     [SerializeField] private List<GameObject> monsterPrefabs = new List<GameObject>();
-    [SerializeField] private List<GameObject> bossRoomPrefabs = new List<GameObject>(); // Boss房间预制体列表
+    [SerializeField] private List<GameObject> bossRoomPrefabs = new List<GameObject>();
 
     [Header("References")]
     [SerializeField] private RoomMapSystem roomMapSystem;
     [SerializeField] private Transform playerTransform;
 
-    // 私有数据
     private Floor[,] floorGrid;
     private Vector3 playerSpawnPosition;
     private List<ExitDoor> exitDoors = new List<ExitDoor>();
@@ -118,7 +99,6 @@ public class RoomGenerator : MonoBehaviour
     private bool isInitialized = false;
     private QuadTreeNode rootNode;
 
-    // 公共访问器（用于小地图）
     public Floor[,] FloorGrid => floorGrid;
     public Vector2Int RoomSize => roomSize;
     public float TileSize => tileSize;
@@ -135,7 +115,6 @@ public class RoomGenerator : MonoBehaviour
 
     void Update()
     {
-        // 等待RoomMapSystem初始化
         if (!isInitialized && roomMapSystem != null)
         {
             var connections = roomMapSystem.GetCurrentRoomConnections();
@@ -146,7 +125,6 @@ public class RoomGenerator : MonoBehaviour
             }
         }
 
-        // 检测玩家进入门
         if (isInitialized && !hasCheckedPlayer && playerTransform != null && exitDoors.Count > 0)
         {
             CheckPlayerAtDoor();
@@ -154,10 +132,25 @@ public class RoomGenerator : MonoBehaviour
     }
 
     /// <summary>
-    /// 生成房间
+    /// 生成房间 - 添加难度系统
     /// </summary>
     void GenerateRoom()
     {
+        // ✨ 增加难度（每次进入新房间时）
+        if (DifficultyManager.Instance != null)
+        {
+            // 修改判断条件：>= 0 而不是 > 0
+            if (currentRoomId >= 0)  // ✅ 修复：改为 >= 0
+            {
+                DifficultyManager.Instance.IncreaseDifficulty();
+                Debug.Log($"<color=cyan>通过门进入新房间，难度提升！{DifficultyManager.Instance.GetDifficultyInfo()}</color>");
+            }
+            else
+            {
+                Debug.Log($"<color=cyan>起始房间（第1个房间），当前难度: 0</color>");
+            }
+        }
+
         ClearCurrentRoom();
         currentRoomContainer = new GameObject($"Room_{currentRoomId}");
         currentRoomId++;
@@ -167,7 +160,6 @@ public class RoomGenerator : MonoBehaviour
 
         Debug.Log($"=== 生成新房间 - 类型: {currentRoom.type}, 连接数: {connectedRooms.Count} ===");
 
-        // 检查是否是Boss房间
         if (currentRoom.type == RoomType.Boss)
         {
             GenerateBossRoom();
@@ -182,34 +174,19 @@ public class RoomGenerator : MonoBehaviour
             return;
         }
 
-        // 1. 生成起点和门（传入连接的房间列表以保证顺序对应）
         GenerateSpawnAndExitPositions(connectedRooms);
-
-        // 2. 使用四叉树生成地板
         GenerateFloorWithQuadTree();
-
-        // 3. 确保路径可达
         EnsurePathsReachable();
-
-        // 4. 在最外圈生成边界墙
         GenerateBoundaryWalls();
-
-        // 5. 确保玩家起点和门的位置可通行
         EnsureSpawnAndDoorsWalkable();
-
-        // 6. 实例化地板
         InstantiateFloors();
-
-        // 7. 生成怪物
         GenerateMonsters();
 
-        // 8. 如果是宝箱房，生成宝箱
         if (currentRoom.type == RoomType.Treasure)
         {
             GenerateTreasureChest();
         }
 
-        // 9. 传送玩家
         TeleportPlayer();
 
         hasCheckedPlayer = false;
@@ -218,9 +195,6 @@ public class RoomGenerator : MonoBehaviour
                   $"Transparent: {CountFloorType(FloorType.UnwalkableTransparent)}");
     }
 
-    /// <summary>
-    /// 传送玩家到起点
-    /// </summary>
     void TeleportPlayer()
     {
         if (playerTransform == null)
@@ -235,7 +209,6 @@ public class RoomGenerator : MonoBehaviour
         Debug.Log($"<color=yellow>传送前位置: {playerTransform.position}</color>");
         Debug.Log($"<color=yellow>目标位置: {newPosition}</color>");
 
-        // 检查是否有CharacterController
         CharacterController characterController = playerTransform.GetComponent<CharacterController>();
         if (characterController != null)
         {
@@ -244,26 +217,20 @@ public class RoomGenerator : MonoBehaviour
             playerTransform.position = newPosition;
             characterController.enabled = true;
         }
-        // 检查是否有Rigidbody
         else if (playerTransform.TryGetComponent<Rigidbody>(out Rigidbody rb))
         {
             Debug.Log("<color=green>检测到Rigidbody，使用MovePosition传送</color>");
             rb.MovePosition(newPosition);
         }
-        // 直接修改Transform
         else
         {
             Debug.Log("<color=green>直接修改Transform位置</color>");
             playerTransform.position = newPosition;
         }
 
-        // 使用Coroutine延迟验证位置
         StartCoroutine(VerifyPlayerPosition(newPosition));
     }
 
-    /// <summary>
-    /// 验证玩家是否成功传送
-    /// </summary>
     System.Collections.IEnumerator VerifyPlayerPosition(Vector3 targetPosition)
     {
         yield return new WaitForEndOfFrame();
@@ -286,7 +253,6 @@ public class RoomGenerator : MonoBehaviour
                     Debug.LogWarning($"  - {component.GetType().Name}");
                 }
 
-                // 尝试强制传送
                 Debug.LogWarning("<color=orange>尝试强制传送...</color>");
                 CharacterController cc = playerTransform.GetComponent<CharacterController>();
                 if (cc != null)
@@ -302,9 +268,6 @@ public class RoomGenerator : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 生成Boss房间（从prefab列表随机选择）
-    /// </summary>
     void GenerateBossRoom()
     {
         Debug.Log("=== 生成Boss房间 ===");
@@ -312,25 +275,19 @@ public class RoomGenerator : MonoBehaviour
         if (bossRoomPrefabs.Count == 0)
         {
             Debug.LogError("Boss房间Prefab列表为空！");
-            // 如果没有prefab，生成一个简单的空房间
             playerSpawnPosition = new Vector3(roomSize.x * tileSize / 2f, 0, roomSize.y * tileSize / 2f);
             TeleportPlayer();
             return;
         }
 
-        // 随机选择一个Boss房间prefab
         GameObject selectedPrefab = bossRoomPrefabs[Random.Range(0, bossRoomPrefabs.Count)];
-
-        // 实例化Boss房间
         GameObject bossRoom = Instantiate(selectedPrefab, Vector3.zero, Quaternion.identity, currentRoomContainer.transform);
         bossRoom.name = "BossRoom";
 
         Debug.Log($"已生成Boss房间: {selectedPrefab.name}");
 
-        // 在Boss房间中心生成玩家
         playerSpawnPosition = new Vector3(roomSize.x * tileSize * 0.2f, 0, roomSize.y * tileSize / 2f);
 
-        // 尝试在Boss房间预制体中找到标记为"PlayerSpawn"的物体
         Transform spawnPoint = bossRoom.transform.Find("PlayerSpawn");
         if (spawnPoint != null)
         {
@@ -342,26 +299,20 @@ public class RoomGenerator : MonoBehaviour
         hasCheckedPlayer = false;
     }
 
-    /// <summary>
-    /// 生成起点和门（根据房间顺序对应）
-    /// </summary>
     void GenerateSpawnAndExitPositions(List<Room> connectedRooms)
     {
         exitDoors.Clear();
 
-        // 起点：X轴左边（小），Z随机，避开边界
         float leftX = tileSize * 3;
         float[] spawnZOptions = new float[3];
-        spawnZOptions[0] = roomSize.y * tileSize * 0.25f;  // 下方
-        spawnZOptions[1] = roomSize.y * tileSize * 0.5f;   // 中间
-        spawnZOptions[2] = roomSize.y * tileSize * 0.75f;  // 上方
+        spawnZOptions[0] = roomSize.y * tileSize * 0.25f;
+        spawnZOptions[1] = roomSize.y * tileSize * 0.5f;
+        spawnZOptions[2] = roomSize.y * tileSize * 0.75f;
         float spawnZ = spawnZOptions[Random.Range(0, 3)];
         playerSpawnPosition = new Vector3(leftX, 0, spawnZ);
 
         Debug.Log($"玩家起点: X={leftX}, Z={spawnZ}");
 
-        // 根据房间的row排序（从大到小，对应从上到下）
-        // row小的房间在地图上方，应该对应Z坐标大（场景上方）
         List<Room> sortedRooms = connectedRooms.OrderByDescending(r => r.row).ToList();
 
         Debug.Log($"<color=cyan>连接的房间顺序（按row降序排序，地图上→下）:</color>");
@@ -370,44 +321,36 @@ public class RoomGenerator : MonoBehaviour
             Debug.Log($"  房间{room.id} - 列{room.column}, 行{room.row}, 类型{room.type}");
         }
 
-        // 门：X轴右边（大），根据房间数量和顺序分配Z位置
         float rightX = (roomSize.x - 3) * tileSize;
 
-        // 根据房间数量计算门的Z位置（从上到下）
         float[] doorZPositions;
         if (sortedRooms.Count == 1)
         {
-            // 只有1个房间，门在中间
             doorZPositions = new float[] { roomSize.y * tileSize * 0.5f };
         }
         else if (sortedRooms.Count == 2)
         {
-            // 2个房间，上下分布
             doorZPositions = new float[] {
-                roomSize.y * tileSize * 0.3f,   // 下方（Z小）
-                roomSize.y * tileSize * 0.7f    // 上方（Z大）
+                roomSize.y * tileSize * 0.3f,
+                roomSize.y * tileSize * 0.7f
             };
         }
         else
         {
-            // 3个或更多房间，从下到上均匀分布
             doorZPositions = new float[sortedRooms.Count];
             for (int i = 0; i < sortedRooms.Count; i++)
             {
-                // i=0时在下方（Z小），i增加时往上（Z大）
                 float ratio = sortedRooms.Count == 1 ? 0.5f : (float)i / (sortedRooms.Count - 1);
                 doorZPositions[i] = roomSize.y * tileSize * (0.2f + ratio * 0.6f);
             }
         }
 
-        // 按顺序生成门，门的索引对应到房间在列表中的原始索引
         for (int i = 0; i < sortedRooms.Count; i++)
         {
             Room targetRoom = sortedRooms[i];
             float doorZ = doorZPositions[i];
             Vector3 doorPos = new Vector3(rightX, 0, doorZ);
 
-            // 找到这个房间在原始connectedRooms列表中的索引
             int originalIndex = connectedRooms.IndexOf(targetRoom);
 
             Debug.Log($"<color=green>门 {i}: 位置(X={rightX}, Z={doorZ}) -> 房间{targetRoom.id}(列{targetRoom.column},行{targetRoom.row}) [原始索引:{originalIndex}]</color>");
@@ -415,7 +358,7 @@ public class RoomGenerator : MonoBehaviour
             ExitDoor door = new ExitDoor
             {
                 position = doorPos,
-                connectedRoomIndex = originalIndex  // 使用原始索引
+                connectedRoomIndex = originalIndex
             };
 
             if (exitDoorPrefab != null)
@@ -435,12 +378,8 @@ public class RoomGenerator : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 使用四叉树生成地板
-    /// </summary>
     void GenerateFloorWithQuadTree()
     {
-        // 初始化网格
         floorGrid = new Floor[roomSize.x, roomSize.y];
         for (int x = 0; x < roomSize.x; x++)
         {
@@ -455,35 +394,26 @@ public class RoomGenerator : MonoBehaviour
             }
         }
 
-        // 创建四叉树
         rootNode = new QuadTreeNode(new Rect(0, 0, roomSize.x, roomSize.y));
         BuildQuadTree(rootNode, 0);
 
-        // 根据四叉树设置地板类型
         ApplyQuadTreeToGrid(rootNode);
 
-        // 根据密度调整障碍物类型
         AdjustFloorByDensity();
     }
 
-    /// <summary>
-    /// 递归构建四叉树
-    /// </summary>
     void BuildQuadTree(QuadTreeNode node, int depth)
     {
-        // 停止条件
         if (depth >= maxDepth ||
             node.bounds.width < minRegionSize ||
             node.bounds.height < minRegionSize ||
             Random.value > splitChance)
         {
             node.isLeaf = true;
-            // 根据障碍物密度决定是否可通行
             node.isWalkable = Random.value > obstacleDensity;
             return;
         }
 
-        // 分割成四个子节点
         node.isLeaf = false;
         node.children = new QuadTreeNode[4];
 
@@ -495,21 +425,16 @@ public class RoomGenerator : MonoBehaviour
         node.children[2] = new QuadTreeNode(new Rect(node.bounds.x, node.bounds.y + halfH, halfW, halfH));
         node.children[3] = new QuadTreeNode(new Rect(node.bounds.x + halfW, node.bounds.y + halfH, halfW, halfH));
 
-        // 递归构建子节点
         foreach (var child in node.children)
         {
             BuildQuadTree(child, depth + 1);
         }
     }
 
-    /// <summary>
-    /// 将四叉树应用到网格
-    /// </summary>
     void ApplyQuadTreeToGrid(QuadTreeNode node)
     {
         if (node.isLeaf)
         {
-            // 填充这个区域
             int startX = Mathf.FloorToInt(node.bounds.x);
             int startY = Mathf.FloorToInt(node.bounds.y);
             int endX = Mathf.CeilToInt(node.bounds.x + node.bounds.width);
@@ -532,7 +457,6 @@ public class RoomGenerator : MonoBehaviour
         }
         else
         {
-            // 递归处理子节点
             foreach (var child in node.children)
             {
                 ApplyQuadTreeToGrid(child);
@@ -540,12 +464,8 @@ public class RoomGenerator : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 根据密度调整障碍物类型
-    /// </summary>
     void AdjustFloorByDensity()
     {
-        // 收集所有障碍物格子
         List<Vector2Int> obstacleTiles = new List<Vector2Int>();
         for (int x = 0; x < roomSize.x; x++)
         {
@@ -558,10 +478,8 @@ public class RoomGenerator : MonoBehaviour
             }
         }
 
-        // 随机打乱
         obstacleTiles = obstacleTiles.OrderBy(x => Random.value).ToList();
 
-        // 根据透明密度设置可穿透障碍物
         int transparentCount = Mathf.RoundToInt(obstacleTiles.Count * transparentDensity);
 
         for (int i = 0; i < transparentCount && i < obstacleTiles.Count; i++)
@@ -573,9 +491,6 @@ public class RoomGenerator : MonoBehaviour
         Debug.Log($"障碍物总数: {obstacleTiles.Count}, 其中可穿透: {transparentCount}");
     }
 
-    /// <summary>
-    /// 确保路径可达（使用A*寻路）
-    /// </summary>
     void EnsurePathsReachable()
     {
         Vector2Int spawnGrid = WorldToGrid(playerSpawnPosition);
@@ -584,7 +499,6 @@ public class RoomGenerator : MonoBehaviour
         {
             Vector2Int doorGrid = WorldToGrid(door.position);
 
-            // 使用A*寻找路径
             List<Vector2Int> path = FindPath(spawnGrid, doorGrid);
 
             if (path == null || path.Count == 0)
@@ -593,26 +507,20 @@ public class RoomGenerator : MonoBehaviour
                 path = CreateForcedPath(spawnGrid, doorGrid);
             }
 
-            // 将路径设为可通行，并加宽
             foreach (var tile in path)
             {
                 WidenPath(tile, pathWidth);
             }
         }
 
-        // 在可通行区域添加散落的障碍物
         AddScatteredObstacles();
     }
 
-    /// <summary>
-    /// 在可通行区域添加散落的障碍物
-    /// </summary>
     void AddScatteredObstacles()
     {
         List<Vector2Int> walkableTiles = new List<Vector2Int>();
         Vector2Int spawnGrid = WorldToGrid(playerSpawnPosition);
 
-        // 收集所有可通行且不在关键路径附近的格子
         for (int x = 0; x < roomSize.x; x++)
         {
             for (int y = 0; y < roomSize.y; y++)
@@ -621,10 +529,8 @@ public class RoomGenerator : MonoBehaviour
 
                 Vector2Int pos = new Vector2Int(x, y);
 
-                // 不在起点附近
                 if (Vector2Int.Distance(pos, spawnGrid) < 3) continue;
 
-                // 不在门附近
                 bool nearDoor = false;
                 foreach (var door in exitDoors)
                 {
@@ -641,7 +547,6 @@ public class RoomGenerator : MonoBehaviour
             }
         }
 
-        // 随机在这些格子上放置障碍物
         int scatterCount = Mathf.RoundToInt(walkableTiles.Count * scatterObstacleDensity);
         walkableTiles = walkableTiles.OrderBy(x => Random.value).ToList();
 
@@ -649,7 +554,6 @@ public class RoomGenerator : MonoBehaviour
         {
             Vector2Int pos = walkableTiles[i];
 
-            // 50%概率是不可通行，50%是可穿透
             if (Random.value < 0.5f)
             {
                 floorGrid[pos.x, pos.y].type = FloorType.Unwalkable;
@@ -663,9 +567,6 @@ public class RoomGenerator : MonoBehaviour
         Debug.Log($"添加了 {scatterCount} 个散落障碍物");
     }
 
-    /// <summary>
-    /// A*寻路算法
-    /// </summary>
     List<Vector2Int> FindPath(Vector2Int start, Vector2Int end)
     {
         List<PathNode> openList = new List<PathNode>();
@@ -681,7 +582,6 @@ public class RoomGenerator : MonoBehaviour
 
         while (openList.Count > 0)
         {
-            // 找到fCost最小的节点
             PathNode current = openList.OrderBy(n => n.fCost).First();
 
             if (current.position == end)
@@ -692,7 +592,6 @@ public class RoomGenerator : MonoBehaviour
             openList.Remove(current);
             closedSet.Add(current.position);
 
-            // 检查邻居
             foreach (Vector2Int neighbor in GetNeighbors(current.position))
             {
                 if (closedSet.Contains(neighbor)) continue;
@@ -721,12 +620,9 @@ public class RoomGenerator : MonoBehaviour
             }
         }
 
-        return null; // 没找到路径
+        return null;
     }
 
-    /// <summary>
-    /// 重建路径
-    /// </summary>
     List<Vector2Int> ReconstructPath(PathNode endNode)
     {
         List<Vector2Int> path = new List<Vector2Int>();
@@ -742,9 +638,6 @@ public class RoomGenerator : MonoBehaviour
         return path;
     }
 
-    /// <summary>
-    /// 强制创建路径
-    /// </summary>
     List<Vector2Int> CreateForcedPath(Vector2Int start, Vector2Int end)
     {
         List<Vector2Int> path = new List<Vector2Int>();
@@ -768,9 +661,6 @@ public class RoomGenerator : MonoBehaviour
         return path;
     }
 
-    /// <summary>
-    /// 加宽路径
-    /// </summary>
     void WidenPath(Vector2Int center, int width)
     {
         int radius = width / 2;
@@ -787,9 +677,6 @@ public class RoomGenerator : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 获取邻居
-    /// </summary>
     List<Vector2Int> GetNeighbors(Vector2Int pos)
     {
         List<Vector2Int> neighbors = new List<Vector2Int>();
@@ -806,19 +693,14 @@ public class RoomGenerator : MonoBehaviour
         return neighbors;
     }
 
-    /// <summary>
-    /// 在房间最外圈生成边界墙
-    /// </summary>
     void GenerateBoundaryWalls()
     {
-        // 上下边界
         for (int x = 0; x < roomSize.x; x++)
         {
             floorGrid[x, 0].type = FloorType.Unwalkable;
             floorGrid[x, roomSize.y - 1].type = FloorType.Unwalkable;
         }
 
-        // 左右边界
         for (int y = 0; y < roomSize.y; y++)
         {
             floorGrid[0, y].type = FloorType.Unwalkable;
@@ -828,28 +710,20 @@ public class RoomGenerator : MonoBehaviour
         Debug.Log("已生成边界墙");
     }
 
-    /// <summary>
-    /// 确保玩家起点和门的位置周围可通行
-    /// </summary>
     void EnsureSpawnAndDoorsWalkable()
     {
-        // 确保玩家起点周围可通行
         Vector2Int spawnGrid = WorldToGrid(playerSpawnPosition);
-        EnsureAreaWalkable(spawnGrid, 2); // 起点周围2格范围
+        EnsureAreaWalkable(spawnGrid, 2);
 
-        // 确保每个门周围可通行
         foreach (var door in exitDoors)
         {
             Vector2Int doorGrid = WorldToGrid(door.position);
-            EnsureAreaWalkable(doorGrid, 2); // 门周围2格范围
+            EnsureAreaWalkable(doorGrid, 2);
         }
 
         Debug.Log("已确保起点和门周围可通行");
     }
 
-    /// <summary>
-    /// 确保指定位置周围一定区域是可通行的
-    /// </summary>
     void EnsureAreaWalkable(Vector2Int center, int radius)
     {
         for (int dx = -radius; dx <= radius; dx++)
@@ -858,7 +732,6 @@ public class RoomGenerator : MonoBehaviour
             {
                 Vector2Int pos = center + new Vector2Int(dx, dy);
 
-                // 不要修改边界墙
                 if (pos.x == 0 || pos.x == roomSize.x - 1 ||
                     pos.y == 0 || pos.y == roomSize.y - 1)
                 {
@@ -897,9 +770,6 @@ public class RoomGenerator : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 生成宝箱（仅在宝箱房）- 优化版本使用Flood Fill
-    /// </summary>
     void GenerateTreasureChest()
     {
         if (treasureChestPrefab == null)
@@ -910,18 +780,14 @@ public class RoomGenerator : MonoBehaviour
 
         Vector2Int spawnGrid = WorldToGrid(playerSpawnPosition);
 
-        // 使用Flood Fill一次性标记所有可达区域
         HashSet<Vector2Int> reachableTiles = FloodFillReachable(spawnGrid);
 
         List<Vector2Int> validPositions = new List<Vector2Int>();
 
-        // 从可达区域中筛选有效位置
         foreach (Vector2Int pos in reachableTiles)
         {
-            // 不在玩家起点附近
             if (Vector2Int.Distance(pos, spawnGrid) < playerSafeRange) continue;
 
-            // 不在门附近
             bool tooCloseToExit = false;
             foreach (var door in exitDoors)
             {
@@ -953,9 +819,6 @@ public class RoomGenerator : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Flood Fill算法：从起点标记所有可达的格子
-    /// </summary>
     HashSet<Vector2Int> FloodFillReachable(Vector2Int start)
     {
         HashSet<Vector2Int> reachable = new HashSet<Vector2Int>();
@@ -982,9 +845,6 @@ public class RoomGenerator : MonoBehaviour
         return reachable;
     }
 
-    /// <summary>
-    /// 生成怪物
-    /// </summary>
     void GenerateMonsters()
     {
         if (monsterPrefabs.Count == 0) return;
@@ -1000,13 +860,11 @@ public class RoomGenerator : MonoBehaviour
 
                 Vector2Int currentGrid = new Vector2Int(x, y);
 
-                // 检查是否在玩家起点安全范围内
                 if (Vector2Int.Distance(currentGrid, spawnGrid) < playerSafeRange)
                 {
                     continue;
                 }
 
-                // 检查是否在门的安全范围内
                 bool tooCloseToExit = false;
                 foreach (var door in exitDoors)
                 {
@@ -1019,7 +877,6 @@ public class RoomGenerator : MonoBehaviour
                 }
                 if (tooCloseToExit) continue;
 
-                // 随机生成怪物
                 if (Random.value < monsterSpawnChance)
                 {
                     Vector3 worldPos = floorGrid[x, y].worldPosition;
@@ -1033,9 +890,6 @@ public class RoomGenerator : MonoBehaviour
         Debug.Log($"生成了 {monstersSpawned} 个怪物（玩家安全范围: {playerSafeRange}格, 门安全范围: {doorSafeRange}格）");
     }
 
-    /// <summary>
-    /// 检测玩家进门
-    /// </summary>
     void CheckPlayerAtDoor()
     {
         if (playerTransform == null) return;

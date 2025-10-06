@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: WrathOfWinter
   m_EditorClassIdentifier: 
   id: 5
-  itemName: WrathOfWinter
+  itemName: "Winter\u2019s Reminiscence"
   icon: {fileID: 21300000, guid: 11514f80c5f205c4fa055e81c0501554, type: 3}
-  description: "\u201CCold remembers.\u201D\n\nA relic forged from endless frost.
-    Each strike unleashes a blizzard\u2019s fury \u2014 freezing steel, silence,
-    and even time itself."
+  description: "Winter\u2019s Reminiscence\n\nFormed from frozen tears beneath a
+    forgotten shrine, this gem preserves the chill of a lost season.\nEach shot drifts
+    like falling snow\u2014beautiful, silent, and mercilessly still."
   prefab: {fileID: 8220254170530117568, guid: 78918014be3f508478538d921163770f, type: 3}
   dropPrefab: {fileID: 2512001187322032183, guid: aef99fcc361d63f42b60b59b9a763f65, type: 3}
   isCollected: 1

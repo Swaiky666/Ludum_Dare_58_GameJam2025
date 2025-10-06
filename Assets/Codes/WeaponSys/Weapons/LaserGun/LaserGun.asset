@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: LaserGun
   m_EditorClassIdentifier: 
   id: 4
-  itemName: LaserGun
+  itemName: Prismstrike Gem
   icon: {fileID: 21300000, guid: f2fc029c4cc902a44b7f11ff626eaa6c, type: 3}
-  description: "\u201CLight hurts faster.\u201D\n\nA sleek energy weapon that fires
-    beams hotter than logic. Clean, silent, and brutally efficient \u2014 it leaves
-    nothing but smoke and regret."
+  description: "Prismstrike Gem\n\nForged from condensed light within an ancient
+    prism engine, the Prismstrike Gem hums with restless energy.\nIts beams ricochet
+    with dazzling precision\u2014each rebound chasing the next heartbeat of light."
   prefab: {fileID: 8220254170530117568, guid: 168ef0e3283190f43a9d8411c345ba0e, type: 3}
   dropPrefab: {fileID: 2512001187322032183, guid: aef99fcc361d63f42b60b59b9a763f65, type: 3}
   isCollected: 1

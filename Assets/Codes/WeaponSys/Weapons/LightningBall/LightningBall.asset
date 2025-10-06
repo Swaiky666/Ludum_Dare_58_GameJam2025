@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: LightningBall
   m_EditorClassIdentifier: 
   id: 8
-  itemName: LightningBall
-  icon: {fileID: 21300000, guid: 0f8a094476f905a4abc02282feec3d8e, type: 3}
-  description: "\u201CCatch it\u2014if you like pain.\u201D\n\nA crackling sphere
-    of bottled storm. It arcs between targets with gleeful malice, leaving ozone,
-    smoke, and very bad hair behind."
+  itemName: "Void Rebounder\u200B"
+  icon: {fileID: 21300000, guid: 0be40bd68b50e1f4a81799f452b69405, type: 3}
+  description: "Void Rebounder\u200B\n\nCrafted from a rare \u200B\u200Bvoid-amethyst\u200B\u200B
+    that naturally resonates with energy. Its lasers ricochet between targets, growing
+    stronger with each bounce."
   prefab: {fileID: 8220254170530117568, guid: 481b5afd6cede41499d72433db2aa6fe, type: 3}
   dropPrefab: {fileID: 2512001187322032183, guid: aef99fcc361d63f42b60b59b9a763f65, type: 3}
   isCollected: 1

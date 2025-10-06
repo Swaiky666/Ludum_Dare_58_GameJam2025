@@ -45,7 +45,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   weaponName: ArcanePulse
-  weaponIcon: {fileID: 21300000, guid: 0be40bd68b50e1f4a81799f452b69405, type: 3}
+  weaponIcon: {fileID: 21300000, guid: 0f8a094476f905a4abc02282feec3d8e, type: 3}
   damage: 45
   cooldown: 0.5
   enemyKnockbackForce: 5

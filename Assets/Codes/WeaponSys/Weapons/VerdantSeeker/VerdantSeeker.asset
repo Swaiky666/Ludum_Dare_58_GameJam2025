@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: VerdantSeeker
   m_EditorClassIdentifier: 
   id: 7
-  itemName: VerdantSeeker
+  itemName: "Verdant Tracker\u200B"
   icon: {fileID: 21300000, guid: 8864fc3515d9b774e9e8287578e4443e, type: 3}
-  description: "\u201CThe forest never misses.\u201D\n\nA living weapon born of root
-    and wrath. Its emerald projectiles chase heat and heartbeat alike, leaving trails
-    of blooming vines where blood once flowed."
+  description: "Verdant Tracker\u200B\n\norged from a rare green crystal that naturally
+    seeks life energy. When fired, its projectiles hunt targets on their own.\r\nOnly
+    those worthy can wield its power.\r\n"
   prefab: {fileID: 8220254170530117568, guid: 5132f94568c15d44ba4ebc7f671191e6, type: 3}
   dropPrefab: {fileID: 2512001187322032183, guid: aef99fcc361d63f42b60b59b9a763f65, type: 3}
   isCollected: 1

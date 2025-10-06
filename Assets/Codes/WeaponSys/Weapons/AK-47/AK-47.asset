@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: AK-47
   m_EditorClassIdentifier: 
   id: 2
-  itemName: AK-47
+  itemName: Blazing Gem
   icon: {fileID: 21300000, guid: f924c21024db2fa44afa39fe2a3a0950, type: 3}
-  description: "\u201CReliability never dies.\u201D\n\nThe classic roar of rebellion.
-    Built to jam never, built to last forever \u2014 it sprays lead and legends in
-    equal measure."
+  description: "Flameheart Gem\n\nBorn from a fallen star\u2019s ember, this gem
+    burns with a living pulse.\nIt quickens its wielder\u2019s strikes \u2014 and
+    their heart alike."
   prefab: {fileID: 8220254170530117568, guid: ba7f86040befeb543899299789922091, type: 3}
   dropPrefab: {fileID: 2512001187322032183, guid: aef99fcc361d63f42b60b59b9a763f65, type: 3}
   isCollected: 1

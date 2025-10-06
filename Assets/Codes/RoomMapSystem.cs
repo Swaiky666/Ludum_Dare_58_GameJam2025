@@ -34,13 +34,17 @@ public class Room
 }
 
 /// <summary>
-/// 房间地图管理系统
+/// 房间地图管理系统（添加轮次系统）
 /// </summary>
 public class RoomMapSystem : MonoBehaviour
 {
     [Header("Generation Settings")]
     [SerializeField] private int maxRoomHalf = 4;           // 扩展阶段的列数
     [SerializeField] private float treasureChance = 0.3f;   // 宝箱房间概率
+
+    [Header("Round Settings")]
+    [SerializeField] private int maxRounds = 3;             // 总轮数
+    private int currentRound = 1;                           // 当前轮数（从1开始）
 
     [Header("Display Settings")]
     [SerializeField] private float mapScale = 1f;           // 整个地图的缩放大小
@@ -56,6 +60,10 @@ public class RoomMapSystem : MonoBehaviour
     private int roomIdCounter = 0;          // 房间ID计数器
     private Material lineMaterial;          // GL绘制用的材质
     private Vector2 lastScreenSize;         // 记录上一次的屏幕大小
+
+    // 公共访问器
+    public int CurrentRound => currentRound;
+    public int MaxRounds => maxRounds;
 
     void Start()
     {
@@ -126,7 +134,83 @@ public class RoomMapSystem : MonoBehaviour
         // 验证并修复所有房间的连接
         ValidateAndFixConnections();
 
-        Debug.Log($"地图生成完成！共{currentColumnCount + 1}列，总房间数：{roomIdCounter}");
+        Debug.Log($"<color=cyan>第 {currentRound}/{maxRounds} 轮 - 地图生成完成！共{currentColumnCount + 1}列，总房间数：{roomIdCounter}</color>");
+    }
+
+    /// <summary>
+    /// 进入下一轮（玩家击败Boss后调用）
+    /// </summary>
+    public void AdvanceToNextRound()
+    {
+        currentRound++;
+
+        Debug.Log($"<color=yellow>========== 进入第 {currentRound} 轮 ==========</color>");
+
+        if (currentRound > maxRounds)
+        {
+            // 完成所有轮次，返回主菜单
+            Debug.Log($"<color=green>恭喜！完成全部 {maxRounds} 轮挑战！返回主菜单...</color>");
+            ReturnToMainMenu();
+            return;
+        }
+
+        // 重新生成地图
+        RegenerateMap();
+    }
+
+    /// <summary>
+    /// 重新生成地图（保留玩家装备和强化）
+    /// </summary>
+    void RegenerateMap()
+    {
+        Debug.Log($"<color=cyan>重新生成第 {currentRound} 轮地图...</color>");
+
+        // 清空旧地图数据
+        roomColumns?.Clear();
+        currentRoom = null;
+        bossRoom = null;
+
+        // 生成新地图
+        GenerateMap();
+
+        // 通知 RoomGenerator 重新生成房间
+        RoomGenerator roomGenerator = FindObjectOfType<RoomGenerator>();
+        if (roomGenerator != null)
+        {
+            // RoomGenerator 会自动检测到新地图并生成起始房间
+            Debug.Log("<color=green>已通知 RoomGenerator 重新生成房间</color>");
+        }
+    }
+
+    /// <summary>
+    /// 返回主菜单
+    /// </summary>
+    void ReturnToMainMenu()
+    {
+        // 重置所有强化
+        if (EnhancementManager.Instance != null)
+        {
+            EnhancementManager.Instance.ResetAllEnhancements();
+        }
+
+        // 重置难度
+        if (DifficultyManager.Instance != null)
+        {
+            DifficultyManager.Instance.ResetDifficulty();
+        }
+
+        // 重置轮次
+        currentRound = 1;
+
+        // 返回主菜单
+        if (GameSceneManager.Instance != null)
+        {
+            GameSceneManager.Instance.LoadMainMenu();
+        }
+        else
+        {
+            Debug.LogError("GameSceneManager.Instance 为空！无法返回主菜单");
+        }
     }
 
     /// <summary>

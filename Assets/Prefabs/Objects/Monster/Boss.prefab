@@ -116,7 +116,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0d550be478073c847b52b73c06cc22d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  baseMaxHealth: 10000
+  baseMaxHealth: 1111
   knockbackDuration: 0
   deathDelay: 0.3
   deathKnockbackMultiplier: 0.1
@@ -213,8 +213,8 @@ MonoBehaviour:
   chargeKnockback: 12
   chargeActivateRange: 10
   obstaclePrefab: {fileID: 2052053460299959166, guid: 09ceaa31c5db0b64fb5ede8b96796544, type: 3}
-  obstacleCount: 5
-  obstacleSpawnRadius: 12
+  obstacleCount: 3
+  obstacleSpawnRadius: 15
 --- !u!114 &4652423879063470649
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -230,13 +230,13 @@ MonoBehaviour:
   bossHealth: {fileID: 3577626988570511525}
   barWidth: 700
   barHeight: 12
-  bottomOffset: 50
+  topOffset: 50
   backgroundColor: {r: 0.2, g: 0.2, b: 0.2, a: 0.8}
   highHealthColor: {r: 1, g: 0, b: 0, a: 1}
   midHealthColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   lowHealthColor: {r: 1, g: 0.5, b: 0, a: 1}
   flashColor: {r: 1, g: 1, b: 1, a: 1}
-  lowHealthThreshold: 0.3
+  lowHealthThreshold: 0.5
   midHealthThreshold: 0.6
   flashDuration: 0.15
 --- !u!1 &5527016358525229508

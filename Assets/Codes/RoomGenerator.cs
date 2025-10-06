@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
@@ -86,6 +87,11 @@ public class RoomGenerator : MonoBehaviour
     [SerializeField] private List<GameObject> monsterPrefabs = new List<GameObject>();
     [SerializeField] private List<GameObject> bossRoomPrefabs = new List<GameObject>();
 
+    [Header("Boss Settings")]
+    [SerializeField] private List<GameObject> bossPrefabs = new List<GameObject>();  // ⭐ Boss预制体列表
+    [SerializeField] private float bossSpawnDistance = 10f;                          // Boss生成距离
+    [SerializeField] private GameObject bossExitDoorPrefab;                          // Boss击败后生成的传送门
+
     [Header("References")]
     [SerializeField] private RoomMapSystem roomMapSystem;
     [SerializeField] private Transform playerTransform;
@@ -98,6 +104,12 @@ public class RoomGenerator : MonoBehaviour
     private bool hasCheckedPlayer = false;
     private bool isInitialized = false;
     private QuadTreeNode rootNode;
+
+    // ⭐ Boss相关
+    private GameObject currentBoss;           // 当前Boss实例
+    private MonsterHealth currentBossHealth;  // Boss血量组件
+    private bool isBossRoom = false;          // 是否是Boss房间
+    private bool hasBossBeenDefeated = false; // Boss是否已被击败
 
     public Floor[,] FloorGrid => floorGrid;
     public Vector2Int RoomSize => roomSize;
@@ -129,6 +141,93 @@ public class RoomGenerator : MonoBehaviour
         {
             CheckPlayerAtDoor();
         }
+
+        // ⭐ 监控Boss血量
+        if (isBossRoom && currentBoss != null && !hasBossBeenDefeated)
+        {
+            MonitorBossHealth();
+        }
+    }
+
+    /// <summary>
+    /// ⭐ 监控Boss血量
+    /// </summary>
+    void MonitorBossHealth()
+    {
+        if (currentBossHealth == null)
+        {
+            currentBossHealth = currentBoss.GetComponent<MonsterHealth>();
+            if (currentBossHealth == null)
+            {
+                Debug.LogWarning("Boss没有MonsterHealth组件！");
+                return;
+            }
+        }
+
+        // ⭐ 修正：检查Boss的CurrentHealth是否<=0
+        if (currentBossHealth.CurrentHealth <= 0)
+        {
+            Debug.Log("<color=yellow>检测到Boss血量<=0，准备生成传送门...</color>");
+            OnBossDefeated();
+        }
+    }
+
+    /// <summary>
+    /// ⭐ Boss被击败时调用
+    /// </summary>
+    void OnBossDefeated()
+    {
+        if (hasBossBeenDefeated) return;
+        hasBossBeenDefeated = true;
+
+        Debug.Log("<color=yellow>========== Boss被击败！==========</color>");
+
+        // 获取Boss位置（如果Boss已被销毁，使用房间中心）
+        Vector3 doorPosition;
+        if (currentBoss != null)
+        {
+            doorPosition = currentBoss.transform.position;
+        }
+        else
+        {
+            doorPosition = new Vector3(roomSize.x * tileSize / 2f, 0, roomSize.y * tileSize / 2f);
+        }
+
+        // 生成传送门
+        SpawnBossExitDoor(doorPosition);
+    }
+
+    /// <summary>
+    /// ⭐ 生成Boss传送门
+    /// </summary>
+    void SpawnBossExitDoor(Vector3 position)
+    {
+        if (bossExitDoorPrefab == null)
+        {
+            Debug.LogError("Boss传送门预制体未设置！请在Inspector中设置 bossExitDoorPrefab");
+            return;
+        }
+
+        // 确保位置在地面上
+        position.y = 0;
+
+        GameObject door = Instantiate(bossExitDoorPrefab, position, Quaternion.identity, currentRoomContainer.transform);
+        door.name = "BossExitDoor";
+
+        // 设置传送门的RoomMapSystem引用
+        BossExitDoor doorScript = door.GetComponent<BossExitDoor>();
+        if (doorScript != null && roomMapSystem != null)
+        {
+            // 使用反射设置私有字段（如果需要）
+            var field = typeof(BossExitDoor).GetField("roomMapSystem",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (field != null)
+            {
+                field.SetValue(doorScript, roomMapSystem);
+            }
+        }
+
+        Debug.Log($"<color=cyan>Boss传送门已生成在: {position}</color>");
     }
 
     /// <summary>
@@ -217,6 +316,7 @@ public class RoomGenerator : MonoBehaviour
             EnhancementSelectionUI.Instance.ShowSelectionPanel();
         }
     }
+
     void TeleportPlayer()
     {
         if (playerTransform == null)
@@ -292,25 +392,28 @@ public class RoomGenerator : MonoBehaviour
 
     void GenerateBossRoom()
     {
-        Debug.Log("=== 生成Boss房间 ===");
+        Debug.Log($"<color=red>=== 生成Boss房间（第 {roomMapSystem.CurrentRound}/{roomMapSystem.MaxRounds} 轮）===</color>");
 
-        if (bossRoomPrefabs.Count == 0)
+        // ⭐ 标记为Boss房间
+        isBossRoom = true;
+        hasBossBeenDefeated = false;
+        currentBoss = null;
+        currentBossHealth = null;
+
+        // 1. 生成Boss房间场景（可选）
+        if (bossRoomPrefabs.Count > 0)
         {
-            Debug.LogError("Boss房间Prefab列表为空！");
-            playerSpawnPosition = new Vector3(roomSize.x * tileSize / 2f, 0, roomSize.y * tileSize / 2f);
-            TeleportPlayer();
-            return;
+            GameObject selectedPrefab = bossRoomPrefabs[Random.Range(0, bossRoomPrefabs.Count)];
+            GameObject bossRoom = Instantiate(selectedPrefab, Vector3.zero, Quaternion.identity, currentRoomContainer.transform);
+            bossRoom.name = "BossRoom";
+            Debug.Log($"已生成Boss房间: {selectedPrefab.name}");
         }
 
-        GameObject selectedPrefab = bossRoomPrefabs[Random.Range(0, bossRoomPrefabs.Count)];
-        GameObject bossRoom = Instantiate(selectedPrefab, Vector3.zero, Quaternion.identity, currentRoomContainer.transform);
-        bossRoom.name = "BossRoom";
-
-        Debug.Log($"已生成Boss房间: {selectedPrefab.name}");
-
+        // 2. 设置玩家出生点
         playerSpawnPosition = new Vector3(roomSize.x * tileSize * 0.2f, 0, roomSize.y * tileSize / 2f);
 
-        Transform spawnPoint = bossRoom.transform.Find("PlayerSpawn");
+        // 检查是否有自定义出生点
+        Transform spawnPoint = GameObject.Find("PlayerSpawn")?.transform;
         if (spawnPoint != null)
         {
             playerSpawnPosition = spawnPoint.position;
@@ -318,7 +421,67 @@ public class RoomGenerator : MonoBehaviour
         }
 
         TeleportPlayer();
+
+        // 3. ⭐ 延迟生成Boss（等玩家传送完成）
+        StartCoroutine(SpawnBossAfterDelay());
+
         hasCheckedPlayer = false;
+    }
+
+    /// <summary>
+    /// ⭐ 延迟生成Boss
+    /// </summary>
+    System.Collections.IEnumerator SpawnBossAfterDelay()
+    {
+        yield return new WaitForSeconds(1f); // 等待1秒确保玩家传送完成
+
+        if (bossPrefabs.Count == 0)
+        {
+            Debug.LogError("<color=red>Boss预制体列表为空！请在RoomGenerator的Inspector中添加Boss预制体</color>");
+            yield break;
+        }
+
+        // 随机选择一个Boss
+        GameObject selectedBossPrefab = bossPrefabs[Random.Range(0, bossPrefabs.Count)];
+
+        // 计算Boss生成位置（在玩家周围一定距离）
+        Vector3 bossSpawnPosition = CalculateBossSpawnPosition();
+
+        // 生成Boss
+        currentBoss = Instantiate(selectedBossPrefab, bossSpawnPosition, Quaternion.identity, currentRoomContainer.transform);
+        currentBoss.name = $"Boss_Round{roomMapSystem.CurrentRound}";
+
+        // 获取Boss的Health组件
+        currentBossHealth = currentBoss.GetComponent<MonsterHealth>();
+        if (currentBossHealth == null)
+        {
+            Debug.LogError($"<color=red>Boss预制体 {selectedBossPrefab.name} 没有MonsterHealth组件！</color>");
+        }
+
+        Debug.Log($"<color=green>✓ Boss已生成: {selectedBossPrefab.name} 在位置 {bossSpawnPosition}</color>");
+    }
+
+    /// <summary>
+    /// ⭐ 计算Boss生成位置（在玩家周围，但保持一定距离）
+    /// </summary>
+    Vector3 CalculateBossSpawnPosition()
+    {
+        if (playerTransform == null)
+        {
+            // 如果没有玩家引用，在房间中心生成
+            return new Vector3(roomSize.x * tileSize / 2f, 0, roomSize.y * tileSize / 2f);
+        }
+
+        // 在玩家周围随机方向生成
+        Vector2 randomCircle = Random.insideUnitCircle.normalized * bossSpawnDistance;
+        Vector3 spawnPos = playerTransform.position + new Vector3(randomCircle.x, 0, randomCircle.y);
+
+        // 确保在房间范围内
+        spawnPos.x = Mathf.Clamp(spawnPos.x, tileSize * 2, (roomSize.x - 2) * tileSize);
+        spawnPos.z = Mathf.Clamp(spawnPos.z, tileSize * 2, (roomSize.y - 2) * tileSize);
+        spawnPos.y = 0;
+
+        return spawnPos;
     }
 
     void GenerateSpawnAndExitPositions(List<Room> connectedRooms)
@@ -936,6 +1099,12 @@ public class RoomGenerator : MonoBehaviour
         if (currentRoomContainer != null) Destroy(currentRoomContainer);
         floorGrid = null;
         exitDoors.Clear();
+
+        // ⭐ 清除Boss相关状态
+        isBossRoom = false;
+        hasBossBeenDefeated = false;
+        currentBoss = null;
+        currentBossHealth = null;
     }
 
     Vector2Int WorldToGrid(Vector3 worldPos)

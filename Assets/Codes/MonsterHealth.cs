@@ -7,7 +7,10 @@ public class MonsterHealth : MonoBehaviour
     [Header("Health Settings")]
     [SerializeField] private float baseMaxHealth = 100f;  // 基础最大血量
     private float maxHealth;  // 实际最大血量（会被难度缩放）
-
+                              // ⭐ 公共访问器（用于Boss监控）
+    public float CurrentHealth => currentHealth;
+    public float MaxHealth => maxHealth;
+    public bool IsDying => isDying;
     [Header("Knockback Settings")]
     [SerializeField] private float knockbackDuration = 0.2f;
 

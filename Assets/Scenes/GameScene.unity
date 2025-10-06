@@ -755,7 +755,7 @@ MonoBehaviour:
   unwalkableFloorPrefab: {fileID: 2052053460299959166, guid: 09ceaa31c5db0b64fb5ede8b96796544, type: 3}
   transparentFloorPrefab: {fileID: 7365813651155538567, guid: d958a21b08d9d074ea11ef1469860b10, type: 3}
   exitDoorPrefab: {fileID: 5200299255755562888, guid: a288f48319f953944b4ee5c7a955db89, type: 3}
-  treasureChestPrefab: {fileID: 3616723891835211916, guid: 5f786b17101a8b24e89f49a1cec10df8, type: 3}
+  treasureChestPrefab: {fileID: 2154003258674922101, guid: 317953d9af28dbc4ba64bd0eed3795ae, type: 3}
   monsterPrefabs:
   - {fileID: 226442075022878172, guid: 8ed3b229403ec7647882e6ffe7ed57c3, type: 3}
   - {fileID: 226442075022878172, guid: 4cb87fada4061cb4789a73ff4e1f04df, type: 3}
@@ -1410,7 +1410,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &334374640
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1741,7 +1741,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &407676493
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3158,7 +3158,7 @@ RectTransform:
   m_Father: {fileID: 1250574463}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -5128,7 +5128,7 @@ RectTransform:
   m_Father: {fileID: 1120355787}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -5370,7 +5370,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1299120338
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6352,7 +6352,7 @@ RectTransform:
   m_Father: {fileID: 1710865073}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -7230,7 +7230,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1850847360
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7557,7 +7557,7 @@ RectTransform:
   m_Father: {fileID: 597565771}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -7691,7 +7691,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &2041965936
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9386,8 +9386,9 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1024
   checkTriggers: 0
-  capsuleHeightOffset: 0
-  skinWidth: 0.02
+  sweepOnly: 1
+  radiusBias: -0.01
+  allowMoveWithoutTile: 1
 --- !u!222 &7394125538298390062
 CanvasRenderer:
   m_ObjectHideFlags: 0

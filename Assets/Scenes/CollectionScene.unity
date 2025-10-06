@@ -1733,7 +1733,7 @@ RectTransform:
   m_GameObject: {fileID: 1040038589}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1.5020275, z: 1}
+  m_LocalScale: {x: 0.956638, y: 1.1907089, z: 0.89175963}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1522626930}
@@ -2459,8 +2459,8 @@ MonoBehaviour:
   enableFollow: 1
   followOffset: {x: 0, y: 0}
   followSpeedMultiplier: 1
-  itemHeight: 300
-  spacing: 20
+  itemHeight: 250
+  spacing: 30
   paddingTop: 10
   paddingBottom: 10
   scrollSpeed: 1000
@@ -2710,7 +2710,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Collect All
+  m_text: MysteriousButton
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -2737,8 +2737,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 18
-  m_fontSizeBase: 18
+  m_fontSize: 14.5
+  m_fontSizeBase: 14.5
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18

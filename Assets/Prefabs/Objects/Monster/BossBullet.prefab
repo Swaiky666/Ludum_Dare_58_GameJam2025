@@ -4844,7 +4844,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 605a456cfc02f6b499a64717539a27e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 22
+  speed: 5
   hitOffset: 0.1
   UseFirePointRotation: 0
   rotationOffset: {x: 0, y: 0, z: 0}
@@ -5035,7 +5035,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.001
+  m_Radius: 0.2
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &6427452078331001556
 MonoBehaviour:
@@ -5050,10 +5050,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   lifetime: 5
-  isExplosive: 0
-  explosionRadius: 3
+  isExplosive: 1
+  explosionRadius: 1
   explosionDamage: 15
-  explosionKnockback: 8
+  explosionKnockback: 5
   damageDecay: 1
   isBouncy: 0
   maxBounces: 3

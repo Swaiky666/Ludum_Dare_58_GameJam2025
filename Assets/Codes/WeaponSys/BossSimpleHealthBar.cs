@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 /// <summary>
-/// Boss简单血条 - 使用GL直接绘制在屏幕下方
+/// Boss简单血条 - 使用GL直接绘制在屏幕上方
 /// </summary>
 public class BossSimpleHealthBar : MonoBehaviour
 {
@@ -11,7 +11,7 @@ public class BossSimpleHealthBar : MonoBehaviour
     [Header("Health Bar Settings")]
     [SerializeField] private float barWidth = 800f;          // 血条宽度（像素）
     [SerializeField] private float barHeight = 40f;          // 血条高度（像素）
-    [SerializeField] private float bottomOffset = 50f;       // 距离屏幕底部的距离
+    [SerializeField] private float topOffset = 50f;          // 距离屏幕顶部的距离
 
     [Header("Colors")]
     [SerializeField] private Color backgroundColor = new Color(0.2f, 0.2f, 0.2f, 0.8f);
@@ -99,9 +99,9 @@ public class BossSimpleHealthBar : MonoBehaviour
 
     void DrawHealthBar()
     {
-        // 计算血条位置（屏幕下方居中）
+        // 计算血条位置（屏幕上方居中）
         float centerX = Screen.width / 2f;
-        float barY = bottomOffset;
+        float barY = Screen.height - topOffset - barHeight;  // 从顶部往下计算
         float barLeft = centerX - barWidth / 2f;
         float barRight = centerX + barWidth / 2f;
         float barBottom = barY;

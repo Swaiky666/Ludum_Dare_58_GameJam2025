@@ -17,8 +17,8 @@ TagManager:
   - Monster
   - Bullet
   - PiercingBullet
-  - 
-  - 
+  - MonsterBullet
+  - Walls
   - 
   - 
   - 

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 6
   itemName: ArcanePulse
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 0be40bd68b50e1f4a81799f452b69405, type: 3}
   description: "\u201CMagic moves faster than light.\u201D\n\nA focused surge of
     arcane energy that ripples through the air. Each pulse stuns, sears, and reminds
     the world who\u2019s really in control."
@@ -22,4 +22,4 @@ MonoBehaviour:
   dropPrefab: {fileID: 2512001187322032183, guid: aef99fcc361d63f42b60b59b9a763f65, type: 3}
   isCollected: 1
   collectionCount: 1
-  collectionTime: 2025/10/05 15:27
+  collectionTime: 2025/10/06 07:00

@@ -2,6 +2,8 @@
 
 /// <summary>
 /// 玩家控制器（完整版 - 包含移动、朝向鼠标、装备系统、后坐力、震动等）
+/// + 混合判定：网格可走性（地砖） & 指定Layer的物理体阻挡
+/// + 无砖块兜底：脚下无砖块时依然可移动，但仍受物理阻挡
 /// </summary>
 public class PlayerController : MonoBehaviour
 {
@@ -31,6 +33,22 @@ public class PlayerController : MonoBehaviour
     [Header("Camera Shake")]
     [SerializeField] private float damageShakeDuration = 0.3f;
     [SerializeField] private float damageShakeMagnitude = 0.2f;
+
+    // ========= 物理阻挡层设置（新增 + 可选微调） =========
+    [Header("Physics Blocking (Layers)")]
+    [Tooltip("会阻挡玩家的层（Walls/Environment/Props/Enemies 等）")]
+    [SerializeField] private LayerMask blockingLayers;
+    [Tooltip("是否把触发器也当成阻挡")]
+    [SerializeField] private bool checkTriggers = false;
+    [Tooltip("仅用扫掠，避免目标重叠提前拦截导致可见缝隙大")]
+    [SerializeField] private bool sweepOnly = true;
+    [Tooltip("检测半径微调（负值可让视觉更贴墙，建议 -0.01 ~ -0.03）")]
+    [SerializeField] private float radiusBias = -0.01f;
+
+    // ========= 无砖块兜底开关（新增） =========
+    [Header("No-Tile Fallback")]
+    [Tooltip("脚下无砖块也允许移动，但依然受物理阻挡")]
+    [SerializeField] private bool allowMoveWithoutTile = true;
 
     // 当前状态
     private float currentHealth;
@@ -105,7 +123,6 @@ public class PlayerController : MonoBehaviour
         HandleShooting();
         RegenerateShield();
     }
-
 
     /// <summary>
     /// 处理朝向鼠标
@@ -420,38 +437,165 @@ public class PlayerController : MonoBehaviour
         Debug.Log("玩家死亡！");
     }
 
+    // ================== 网格 + 物理 的混合可走判定（右侧空气墙修复版） ==================
+
     bool CanMoveTo(Vector3 targetPosition)
     {
-        if (roomGenerator == null || roomGenerator.FloorGrid == null)
-        {
-            return true;
-        }
+        bool hasGrid = (roomGenerator != null && roomGenerator.FloorGrid != null);
 
-        if (!IsPositionWalkable(targetPosition))
+        // 先检查目标中心位置的砖块类型
+        if (hasGrid)
         {
-            return false;
-        }
-
-        Vector3[] checkPoints = new Vector3[8];
-        checkPoints[0] = targetPosition + new Vector3(collisionRadius, 0, 0);
-        checkPoints[1] = targetPosition + new Vector3(-collisionRadius, 0, 0);
-        checkPoints[2] = targetPosition + new Vector3(0, 0, collisionRadius);
-        checkPoints[3] = targetPosition + new Vector3(0, 0, -collisionRadius);
-        checkPoints[4] = targetPosition + new Vector3(collisionRadius, 0, collisionRadius);
-        checkPoints[5] = targetPosition + new Vector3(-collisionRadius, 0, collisionRadius);
-        checkPoints[6] = targetPosition + new Vector3(collisionRadius, 0, -collisionRadius);
-        checkPoints[7] = targetPosition + new Vector3(-collisionRadius, 0, -collisionRadius);
-
-        foreach (Vector3 point in checkPoints)
-        {
-            if (!IsPositionWalkable(point))
+            if (TryGetFloorAtUnclamped(targetPosition, out Floor targetFloor, out bool targetInBounds))
             {
-                return false;
+                if (targetInBounds && targetFloor != null)
+                {
+                    // ⭐ 拦截所有不可穿越的砖块类型
+                    if (targetFloor.type == FloorType.Unwalkable ||
+                        targetFloor.type == FloorType.UnwalkableTransparent)
+                    {
+                        return false;
+                    }
+
+                    // 如果是 Walkable，继续检测
+                    if (targetFloor.type == FloorType.Walkable)
+                    {
+                        // 物理检测
+                        if (HitsPhysicsBlocking(targetPosition)) return false;
+
+                        // ⭐ 关键修复：8点边角检测 - 同时检查网格和物理
+                        float r = collisionRadius;
+                        Vector3[] checkPoints = new Vector3[8];
+                        checkPoints[0] = targetPosition + new Vector3(r, 0, 0);
+                        checkPoints[1] = targetPosition + new Vector3(-r, 0, 0);
+                        checkPoints[2] = targetPosition + new Vector3(0, 0, r);
+                        checkPoints[3] = targetPosition + new Vector3(0, 0, -r);
+                        checkPoints[4] = targetPosition + new Vector3(r, 0, r);
+                        checkPoints[5] = targetPosition + new Vector3(-r, 0, r);
+                        checkPoints[6] = targetPosition + new Vector3(r, 0, -r);
+                        checkPoints[7] = targetPosition + new Vector3(-r, 0, -r);
+
+                        foreach (Vector3 p in checkPoints)
+                        {
+                            // 先检查物理
+                            if (HitsPhysicsBlocking(p)) return false;
+
+                            // ⭐ 新增：检查边角点的网格类型
+                            if (TryGetFloorAtUnclamped(p, out Floor cornerFloor, out bool cornerInBounds))
+                            {
+                                if (cornerInBounds && cornerFloor != null)
+                                {
+                                    if (cornerFloor.type == FloorType.Unwalkable ||
+                                        cornerFloor.type == FloorType.UnwalkableTransparent)
+                                    {
+                                        return false; // 边角进入不可穿越区域
+                                    }
+                                }
+                            }
+                        }
+                        return true;
+                    }
+                }
+                else if (!targetInBounds)
+                {
+                    // 出界处理
+                    if (allowMoveWithoutTile)
+                    {
+                        if (HitsPhysicsBlocking(targetPosition)) return false;
+
+                        float r = collisionRadius;
+                        Vector3[] checkPoints = new Vector3[8];
+                        checkPoints[0] = targetPosition + new Vector3(r, 0, 0);
+                        checkPoints[1] = targetPosition + new Vector3(-r, 0, 0);
+                        checkPoints[2] = targetPosition + new Vector3(0, 0, r);
+                        checkPoints[3] = targetPosition + new Vector3(0, 0, -r);
+                        checkPoints[4] = targetPosition + new Vector3(r, 0, r);
+                        checkPoints[5] = targetPosition + new Vector3(-r, 0, r);
+                        checkPoints[6] = targetPosition + new Vector3(r, 0, -r);
+                        checkPoints[7] = targetPosition + new Vector3(-r, 0, -r);
+
+                        foreach (Vector3 p in checkPoints)
+                        {
+                            if (HitsPhysicsBlocking(p)) return false;
+                        }
+                        return true;
+                    }
+                    return false;
+                }
             }
         }
 
-        return true;
+        // 没有网格系统的情况（兜底）
+        if (!hasGrid)
+        {
+            if (HitsPhysicsBlocking(targetPosition)) return false;
+
+            float r = collisionRadius;
+            Vector3[] checkPoints = new Vector3[8];
+            checkPoints[0] = targetPosition + new Vector3(r, 0, 0);
+            checkPoints[1] = targetPosition + new Vector3(-r, 0, 0);
+            checkPoints[2] = targetPosition + new Vector3(0, 0, r);
+            checkPoints[3] = targetPosition + new Vector3(0, 0, -r);
+            checkPoints[4] = targetPosition + new Vector3(r, 0, r);
+            checkPoints[5] = targetPosition + new Vector3(-r, 0, r);
+            checkPoints[6] = targetPosition + new Vector3(r, 0, -r);
+            checkPoints[7] = targetPosition + new Vector3(-r, 0, -r);
+
+            foreach (Vector3 p in checkPoints)
+            {
+                if (HitsPhysicsBlocking(p)) return false;
+            }
+            return true;
+        }
+
+        return false;
     }
+
+    // ===== 物理层阻挡检测（与 CharacterController 胶囊精确对齐；支持扫掠+半径微调） =====
+    bool HitsPhysicsBlocking(Vector3 targetPosition)
+    {
+        // 读取胶囊尺寸与中心
+        float radius = (characterController != null) ? characterController.radius : 0.5f;
+        float height = (characterController != null) ? characterController.height : 2f;
+        Vector3 ccCenterWorld = transform.position + (characterController != null ? characterController.center : Vector3.up);
+
+        // 当前端点
+        Vector3 curBottom = ccCenterWorld + Vector3.up * (-(height * 0.5f) + radius);
+        Vector3 curTop = ccCenterWorld + Vector3.up * (+(height * 0.5f) - radius);
+
+        // 目标端点
+        Vector3 tgtCenterWorld = targetPosition + (characterController != null ? characterController.center : Vector3.up);
+        Vector3 tgtBottom = tgtCenterWorld + Vector3.up * (-(height * 0.5f) + radius);
+        Vector3 tgtTop = tgtCenterWorld + Vector3.up * (+(height * 0.5f) - radius);
+
+        QueryTriggerInteraction trig = checkTriggers ? QueryTriggerInteraction.Collide
+                                                     : QueryTriggerInteraction.Ignore;
+
+        // 与 CC.skinWidth 协同的检测半径（radiusBias 建议为负数，略微缩小检测）
+        float ccSkin = (characterController != null) ? characterController.skinWidth : 0.08f;
+        float shrink = Mathf.Max(0.0f, ccSkin * 0.5f) - radiusBias; // radiusBias<0 → 实际更小
+        float castRadius = Mathf.Max(0.01f, radius - shrink);
+
+        // 扫掠（防穿透，尽量贴边）
+        Vector3 delta = targetPosition - transform.position;
+        float distance = delta.magnitude;
+        if (distance > 1e-4f)
+        {
+            if (Physics.CapsuleCast(curBottom, curTop, castRadius, delta.normalized, out RaycastHit hit, distance, blockingLayers, trig))
+                return true;
+        }
+
+        // 可选：若仍希望兜底做目标重叠（可能更早拦截），把 sweepOnly 设为 false
+        if (!sweepOnly)
+        {
+            if (Physics.CheckCapsule(tgtBottom, tgtTop, castRadius, blockingLayers, trig))
+                return true;
+        }
+
+        return false;
+    }
+
+    // ================== 网格判定（保持你的原逻辑；供其他功能使用） ==================
 
     bool IsPositionWalkable(Vector3 position)
     {
@@ -493,6 +637,40 @@ public class PlayerController : MonoBehaviour
         Vector2Int roomSize = roomGenerator.RoomSize;
         return gridPos.x >= 0 && gridPos.x < roomSize.x &&
                gridPos.y >= 0 && gridPos.y < roomSize.y;
+    }
+
+    // ================== 仅供本类内部使用：不改动你的 WorldToGrid，但能准确识别“无砖/越界” ==================
+
+    bool TryGetFloorAtUnclamped(Vector3 worldPos, out Floor floor, out bool inBounds)
+    {
+        floor = null;
+        inBounds = false;
+
+        if (roomGenerator == null || roomGenerator.FloorGrid == null) return false;
+
+        float tileSize = roomGenerator.TileSize;
+
+        // ⭐ 修正：改用 RoundToInt，和 WorldToGrid 保持一致
+        int x = Mathf.RoundToInt(worldPos.x / tileSize);
+        int z = Mathf.RoundToInt(worldPos.z / tileSize);
+
+        Vector2Int size = roomGenerator.RoomSize;
+        if (x < 0 || z < 0 || x >= size.x || z >= size.y)
+        {
+            inBounds = false;
+            return false;
+        }
+
+        inBounds = true;
+        floor = roomGenerator.FloorGrid[x, z];
+        return floor != null;
+    }
+
+    bool IsWalkableTileUnclamped(Vector3 worldPos)
+    {
+        if (!TryGetFloorAtUnclamped(worldPos, out Floor f, out bool inBounds)) return false;
+        if (!inBounds) return false;
+        return f.type == FloorType.Walkable;
     }
 
     void OnDrawGizmos()

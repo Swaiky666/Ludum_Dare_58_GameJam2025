@@ -1,9 +1,10 @@
 ﻿using UnityEngine;
 
 /// <summary>
-/// 玩家控制器（完整版 - 包含移动、朝向鼠标、装备系统、后坐力、震动等）
+/// 玩家控制器（完整版 - 包含移动、朝向鼠标、装备系统、后坐力、震动、死亡处理等）
 /// + 混合判定：网格可走性（地砖） & 指定Layer的物理体阻挡
 /// + 无砖块兜底：脚下无砖块时依然可移动，但仍受物理阻挡
+/// + 死亡返回主菜单：显示"YOU DIED"并自动返回
 /// </summary>
 public class PlayerController : MonoBehaviour
 {
@@ -22,7 +23,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float armor = 10f;
 
     [Header("Rotation Settings")]
-    [SerializeField] private float rotationSpeed = 720f;  // 度/秒
+    [SerializeField] private float rotationSpeed = 720f;
 
     [Header("References")]
     [SerializeField] private RoomGenerator roomGenerator;
@@ -34,7 +35,6 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float damageShakeDuration = 0.3f;
     [SerializeField] private float damageShakeMagnitude = 0.2f;
 
-    // ========= 物理阻挡层设置（新增 + 可选微调） =========
     [Header("Physics Blocking (Layers)")]
     [Tooltip("会阻挡玩家的层（Walls/Environment/Props/Enemies 等）")]
     [SerializeField] private LayerMask blockingLayers;
@@ -45,7 +45,6 @@ public class PlayerController : MonoBehaviour
     [Tooltip("检测半径微调（负值可让视觉更贴墙，建议 -0.01 ~ -0.03）")]
     [SerializeField] private float radiusBias = -0.01f;
 
-    // ========= 无砖块兜底开关（新增） =========
     [Header("No-Tile Fallback")]
     [Tooltip("脚下无砖块也允许移动，但依然受物理阻挡")]
     [SerializeField] private bool allowMoveWithoutTile = true;
@@ -58,8 +57,12 @@ public class PlayerController : MonoBehaviour
     private float dashCooldownTimer;
     private Vector3 dashDirection;
     private CharacterController characterController;
-    private bool canRotate = true;  // 控制旋转锁定
+    private bool canRotate = true;
     private CameraShake cameraShake;
+
+    // 死亡UI相关
+    private bool showDeathScreen = false;
+    private float deathScreenAlpha = 0f;
 
     // 公共访问器
     public float CurrentHealth => currentHealth;
@@ -99,7 +102,6 @@ public class PlayerController : MonoBehaviour
             mainCamera = Camera.main;
         }
 
-        // 获取或添加相机震动组件
         if (mainCamera != null)
         {
             cameraShake = mainCamera.GetComponent<CameraShake>();
@@ -125,13 +127,40 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// 处理朝向鼠标
+    /// 绘制死亡画面
     /// </summary>
+    void OnGUI()
+    {
+        if (!showDeathScreen) return;
+
+        // 保存原始颜色
+        Color originalColor = GUI.color;
+
+        // 绘制半透明黑色背景
+        GUI.color = new Color(0, 0, 0, deathScreenAlpha);
+        GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), Texture2D.whiteTexture);
+
+        // 设置文字颜色为白色（带透明度）
+        GUI.color = new Color(1, 1, 1, deathScreenAlpha);
+
+        // 设置文字样式
+        GUIStyle style = new GUIStyle(GUI.skin.label);
+        style.fontSize = Mathf.RoundToInt(Screen.height * 0.1f);
+        style.alignment = TextAnchor.MiddleCenter;
+        style.normal.textColor = Color.white;
+        style.fontStyle = FontStyle.Bold;
+
+        // 绘制"YOU DIED"文字在屏幕中心
+        GUI.Label(new Rect(0, 0, Screen.width, Screen.height), "YOU DIED", style);
+
+        // 恢复原始颜色
+        GUI.color = originalColor;
+    }
+
     void HandleRotation()
     {
         if (!canRotate || mainCamera == null) return;
 
-        // 获取鼠标在世界中的位置
         Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
         Plane groundPlane = new Plane(Vector3.up, transform.position);
 
@@ -153,9 +182,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 处理射击输入（支持按住持续射击）
-    /// </summary>
     void HandleShooting()
     {
         if (equipmentManager == null) return;
@@ -163,27 +189,21 @@ public class PlayerController : MonoBehaviour
         Vector3 shootDirection = transform.forward;
         Vector3 shootOrigin = transform.position;
 
-        // 左键 - 按住持续使用槽位0的装备
         if (Input.GetMouseButton(0))
         {
             equipmentManager.UseEquipment(0, shootDirection, shootOrigin);
         }
 
-        // 右键 - 按住持续使用槽位1的装备
         if (Input.GetMouseButton(1))
         {
             equipmentManager.UseEquipment(1, shootDirection, shootOrigin);
         }
     }
 
-    /// <summary>
-    /// 处理移动 - 使用GetAxisRaw去除惯性
-    /// </summary>
     void HandleMovement()
     {
         if (isDashing) return;
 
-        // 使用GetAxisRaw替代GetAxis，立即响应，无惯性
         float horizontal = Input.GetAxisRaw("Horizontal");
         float vertical = Input.GetAxisRaw("Vertical");
 
@@ -205,9 +225,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 处理冲刺
-    /// </summary>
     void HandleDash()
     {
         if (dashCooldownTimer > 0)
@@ -248,7 +265,6 @@ public class PlayerController : MonoBehaviour
 
     void StartDash()
     {
-        // 冲刺也使用GetAxisRaw，确保响应灵敏
         float horizontal = Input.GetAxisRaw("Horizontal");
         float vertical = Input.GetAxisRaw("Vertical");
 
@@ -267,9 +283,6 @@ public class PlayerController : MonoBehaviour
         Debug.Log($"冲刺开始！方向: {dashDirection}");
     }
 
-    /// <summary>
-    /// 外部调用的冲刺方法（供技能使用）
-    /// </summary>
     public void StartDashInDirection(Vector3 direction, float distance, float duration)
     {
         dashDirection = direction.normalized;
@@ -310,9 +323,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 受到伤害
-    /// </summary>
     public void TakeDamage(float damage, Vector3 knockbackDirection, float knockbackForce)
     {
         float damageReduction = armor / (armor + 100f);
@@ -341,7 +351,6 @@ public class PlayerController : MonoBehaviour
             Debug.Log($"生命值受到 {actualDamage} 伤害，剩余生命: {currentHealth}");
         }
 
-        // 相机震动 - 受伤效果
         if (cameraShake != null)
         {
             cameraShake.Shake(damageShakeDuration, damageShakeMagnitude);
@@ -358,12 +367,9 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 应用击退（击退时禁用旋转）
-    /// </summary>
     System.Collections.IEnumerator ApplyKnockback(Vector3 direction, float force)
     {
-        canRotate = false;  // 禁用鼠标旋转
+        canRotate = false;
         float knockbackDuration = 0.2f;
         float elapsed = 0;
 
@@ -389,22 +395,15 @@ public class PlayerController : MonoBehaviour
             yield return null;
         }
 
-        canRotate = true;  // 恢复鼠标旋转
+        canRotate = true;
     }
 
-    /// <summary>
-    /// 应用武器后坐力
-    /// </summary>
     public void ApplyRecoil(Vector3 recoilDirection, float recoilForce)
     {
         if (isDashing) return;
-
         StartCoroutine(ApplyRecoilEffect(recoilDirection, recoilForce));
     }
 
-    /// <summary>
-    /// 后坐力效果
-    /// </summary>
     private System.Collections.IEnumerator ApplyRecoilEffect(Vector3 direction, float force)
     {
         float recoilDuration = 0.1f;
@@ -432,38 +431,158 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 玩家死亡处理
+    /// </summary>
     void Die()
     {
-        Debug.Log("玩家死亡！");
+        Debug.Log("<color=red>玩家死亡！</color>");
+
+        // 禁用玩家控制
+        enabled = false;
+
+        // 启动死亡处理协程
+        StartCoroutine(HandleDeath());
     }
 
-    // ================== 网格 + 物理 的混合可走判定（右侧空气墙修复版） ==================
+    /// <summary>
+    /// 死亡处理协程
+    /// </summary>
+    System.Collections.IEnumerator HandleDeath()
+    {
+        // 显示死亡画面
+        showDeathScreen = true;
+
+        // 淡入效果（0.5秒）
+        float fadeInDuration = 0.5f;
+        float elapsed = 0f;
+
+        while (elapsed < fadeInDuration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            deathScreenAlpha = Mathf.Clamp01(elapsed / fadeInDuration);
+            yield return null;
+        }
+
+        deathScreenAlpha = 1f;
+
+        // 暂停游戏并等待2秒
+        Time.timeScale = 0f;
+        yield return new WaitForSecondsRealtime(2f);
+
+        // 淡出效果（0.5秒）
+        float fadeOutDuration = 0.5f;
+        elapsed = 0f;
+
+        while (elapsed < fadeOutDuration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            deathScreenAlpha = 1f - Mathf.Clamp01(elapsed / fadeOutDuration);
+            yield return null;
+        }
+
+        showDeathScreen = false;
+        deathScreenAlpha = 0f;
+
+        // 恢复时间流速
+        Time.timeScale = 1f;
+
+        // 保存武器和重置系统
+        SaveEquippedWeaponToCollection();
+
+        if (EnhancementManager.Instance != null)
+        {
+            EnhancementManager.Instance.ResetAllEnhancements();
+        }
+
+        if (DifficultyManager.Instance != null)
+        {
+            DifficultyManager.Instance.ResetDifficulty();
+        }
+
+        // 返回主菜单
+        if (GameSceneManager.Instance != null)
+        {
+            Debug.Log("<color=yellow>返回主菜单...</color>");
+            GameSceneManager.Instance.LoadMainMenu();
+        }
+        else
+        {
+            Debug.LogError("GameSceneManager.Instance 为空！无法返回主菜单");
+        }
+    }
+
+    /// <summary>
+    /// 保存武器到收集系统
+    /// </summary>
+    void SaveEquippedWeaponToCollection()
+    {
+        if (equipmentManager == null) return;
+
+        int savedCount = 0;
+
+        // 保存左手装备（槽位0）
+        IEquippable leftEquipment = equipmentManager.GetEquipment(0);
+        GameObject leftPrefab = equipmentManager.GetEquipmentPrefab(0);
+        if (leftEquipment != null && leftPrefab != null)
+        {
+            SaveWeaponFromPrefab(leftPrefab, "左手");
+            savedCount++;
+        }
+
+        // 保存右手装备（槽位1）
+        IEquippable rightEquipment = equipmentManager.GetEquipment(1);
+        GameObject rightPrefab = equipmentManager.GetEquipmentPrefab(1);
+        if (rightEquipment != null && rightPrefab != null)
+        {
+            SaveWeaponFromPrefab(rightPrefab, "右手");
+            savedCount++;
+        }
+
+        if (savedCount > 0)
+        {
+            Debug.Log($"<color=cyan>玩家死亡 - 共保存了 {savedCount} 个武器到收集系统</color>");
+        }
+    }
+
+    void SaveWeaponFromPrefab(GameObject weaponPrefab, string slotName)
+    {
+        if (weaponPrefab == null || CollectionManager.Instance == null)
+            return;
+
+        var allCollectibles = CollectionManager.Instance.GetAllCollectibles();
+
+        foreach (CollectibleData collectible in allCollectibles)
+        {
+            if (collectible != null && collectible.prefab == weaponPrefab)
+            {
+                CollectionManager.Instance.CollectItem(collectible.id);
+                Debug.Log($"<color=green>✓ {slotName}武器 {collectible.itemName} 已记录到收集系统</color>");
+                return;
+            }
+        }
+    }
 
     bool CanMoveTo(Vector3 targetPosition)
     {
         bool hasGrid = (roomGenerator != null && roomGenerator.FloorGrid != null);
 
-        // 先检查目标中心位置的砖块类型
         if (hasGrid)
         {
             if (TryGetFloorAtUnclamped(targetPosition, out Floor targetFloor, out bool targetInBounds))
             {
                 if (targetInBounds && targetFloor != null)
                 {
-                    // ⭐ 拦截所有不可穿越的砖块类型
                     if (targetFloor.type == FloorType.Unwalkable ||
                         targetFloor.type == FloorType.UnwalkableTransparent)
                     {
                         return false;
                     }
 
-                    // 如果是 Walkable，继续检测
                     if (targetFloor.type == FloorType.Walkable)
                     {
-                        // 物理检测
                         if (HitsPhysicsBlocking(targetPosition)) return false;
 
-                        // ⭐ 关键修复：8点边角检测 - 同时检查网格和物理
                         float r = collisionRadius;
                         Vector3[] checkPoints = new Vector3[8];
                         checkPoints[0] = targetPosition + new Vector3(r, 0, 0);
@@ -477,10 +596,8 @@ public class PlayerController : MonoBehaviour
 
                         foreach (Vector3 p in checkPoints)
                         {
-                            // 先检查物理
                             if (HitsPhysicsBlocking(p)) return false;
 
-                            // ⭐ 新增：检查边角点的网格类型
                             if (TryGetFloorAtUnclamped(p, out Floor cornerFloor, out bool cornerInBounds))
                             {
                                 if (cornerInBounds && cornerFloor != null)
@@ -488,7 +605,7 @@ public class PlayerController : MonoBehaviour
                                     if (cornerFloor.type == FloorType.Unwalkable ||
                                         cornerFloor.type == FloorType.UnwalkableTransparent)
                                     {
-                                        return false; // 边角进入不可穿越区域
+                                        return false;
                                     }
                                 }
                             }
@@ -498,7 +615,6 @@ public class PlayerController : MonoBehaviour
                 }
                 else if (!targetInBounds)
                 {
-                    // 出界处理
                     if (allowMoveWithoutTile)
                     {
                         if (HitsPhysicsBlocking(targetPosition)) return false;
@@ -525,7 +641,6 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // 没有网格系统的情况（兜底）
         if (!hasGrid)
         {
             if (HitsPhysicsBlocking(targetPosition)) return false;
@@ -551,19 +666,15 @@ public class PlayerController : MonoBehaviour
         return false;
     }
 
-    // ===== 物理层阻挡检测（与 CharacterController 胶囊精确对齐；支持扫掠+半径微调） =====
     bool HitsPhysicsBlocking(Vector3 targetPosition)
     {
-        // 读取胶囊尺寸与中心
         float radius = (characterController != null) ? characterController.radius : 0.5f;
         float height = (characterController != null) ? characterController.height : 2f;
         Vector3 ccCenterWorld = transform.position + (characterController != null ? characterController.center : Vector3.up);
 
-        // 当前端点
         Vector3 curBottom = ccCenterWorld + Vector3.up * (-(height * 0.5f) + radius);
         Vector3 curTop = ccCenterWorld + Vector3.up * (+(height * 0.5f) - radius);
 
-        // 目标端点
         Vector3 tgtCenterWorld = targetPosition + (characterController != null ? characterController.center : Vector3.up);
         Vector3 tgtBottom = tgtCenterWorld + Vector3.up * (-(height * 0.5f) + radius);
         Vector3 tgtTop = tgtCenterWorld + Vector3.up * (+(height * 0.5f) - radius);
@@ -571,12 +682,10 @@ public class PlayerController : MonoBehaviour
         QueryTriggerInteraction trig = checkTriggers ? QueryTriggerInteraction.Collide
                                                      : QueryTriggerInteraction.Ignore;
 
-        // 与 CC.skinWidth 协同的检测半径（radiusBias 建议为负数，略微缩小检测）
         float ccSkin = (characterController != null) ? characterController.skinWidth : 0.08f;
-        float shrink = Mathf.Max(0.0f, ccSkin * 0.5f) - radiusBias; // radiusBias<0 → 实际更小
+        float shrink = Mathf.Max(0.0f, ccSkin * 0.5f) - radiusBias;
         float castRadius = Mathf.Max(0.01f, radius - shrink);
 
-        // 扫掠（防穿透，尽量贴边）
         Vector3 delta = targetPosition - transform.position;
         float distance = delta.magnitude;
         if (distance > 1e-4f)
@@ -585,7 +694,6 @@ public class PlayerController : MonoBehaviour
                 return true;
         }
 
-        // 可选：若仍希望兜底做目标重叠（可能更早拦截），把 sweepOnly 设为 false
         if (!sweepOnly)
         {
             if (Physics.CheckCapsule(tgtBottom, tgtTop, castRadius, blockingLayers, trig))
@@ -594,8 +702,6 @@ public class PlayerController : MonoBehaviour
 
         return false;
     }
-
-    // ================== 网格判定（保持你的原逻辑；供其他功能使用） ==================
 
     bool IsPositionWalkable(Vector3 position)
     {
@@ -639,8 +745,6 @@ public class PlayerController : MonoBehaviour
                gridPos.y >= 0 && gridPos.y < roomSize.y;
     }
 
-    // ================== 仅供本类内部使用：不改动你的 WorldToGrid，但能准确识别“无砖/越界” ==================
-
     bool TryGetFloorAtUnclamped(Vector3 worldPos, out Floor floor, out bool inBounds)
     {
         floor = null;
@@ -650,7 +754,6 @@ public class PlayerController : MonoBehaviour
 
         float tileSize = roomGenerator.TileSize;
 
-        // ⭐ 修正：改用 RoundToInt，和 WorldToGrid 保持一致
         int x = Mathf.RoundToInt(worldPos.x / tileSize);
         int z = Mathf.RoundToInt(worldPos.z / tileSize);
 
@@ -677,11 +780,9 @@ public class PlayerController : MonoBehaviour
     {
         if (!Application.isPlaying) return;
 
-        // 绘制玩家碰撞半径
         Gizmos.color = new Color(0, 1, 0, 0.3f);
         Gizmos.DrawWireSphere(transform.position, collisionRadius);
 
-        // 绘制朝向
         Gizmos.color = Color.blue;
         Gizmos.DrawRay(transform.position, transform.forward * 2f);
     }

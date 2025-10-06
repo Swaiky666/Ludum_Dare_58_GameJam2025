@@ -16,69 +16,76 @@ public class MainMenuUI : MonoBehaviour
     [Header("设置面板按钮")]
     public Button backButton;
 
-    // ⬇⬇⬇ 新增：把你创建的 EquippedWeaponData 资源挂到这里
     [Header("Data")]
-    [SerializeField] private EquippedWeaponData equippedWeaponData; // 在Inspector里拖拽赋值
+    [SerializeField] private EquippedWeaponData equippedWeaponData;
 
     private void Start()
     {
         ShowMainPanel();
 
-        startButton.onClick.AddListener(OnStartGame);
-        collectionButton.onClick.AddListener(OnCollection);
-        settingsButton.onClick.AddListener(OnSettings);
-        quitButton.onClick.AddListener(OnQuit);
-        backButton.onClick.AddListener(OnBackToMain);
+        // 添加空引用检查
+        if (startButton != null)
+            startButton.onClick.AddListener(OnStartGame);
+        else
+            Debug.LogError("StartButton 未在Inspector中分配！");
+
+        if (collectionButton != null)
+            collectionButton.onClick.AddListener(OnCollection);
+        else
+            Debug.LogWarning("CollectionButton 未在Inspector中分配");
+
+        if (settingsButton != null)
+            settingsButton.onClick.AddListener(OnSettings);
+        else
+            Debug.LogWarning("SettingsButton 未在Inspector中分配");
+
+        if (quitButton != null)
+            quitButton.onClick.AddListener(OnQuit);
+        else
+            Debug.LogWarning("QuitButton 未在Inspector中分配");
+
+        if (backButton != null)
+            backButton.onClick.AddListener(OnBackToMain);
+        else
+            Debug.LogWarning("BackButton 未在Inspector中分配");
     }
 
     private void ShowMainPanel()
     {
-        mainPanel.SetActive(true);
-        settingsPanel.SetActive(false);
+        if (mainPanel != null) mainPanel.SetActive(true);
+        if (settingsPanel != null) settingsPanel.SetActive(false);
     }
 
     private void ShowSettingsPanel()
     {
-        mainPanel.SetActive(false);
-        settingsPanel.SetActive(true);
+        if (mainPanel != null) mainPanel.SetActive(false);
+        if (settingsPanel != null) settingsPanel.SetActive(true);
     }
 
     private void OnStartGame()
     {
-        // 1) 原有：可选的“自动收集第一个物品”
         if (CollectionManager.Instance != null)
         {
-            CollectionManager.Instance.CheckAndCollectFirstItem(); // 不改你现有逻辑
-        }
-        else
-        {
-            Debug.LogWarning("CollectionManager.Instance is null! 无法检查第一个收集品");
+            CollectionManager.Instance.CheckAndCollectFirstItem();
         }
 
-        // 2) 新增：若当前未装备武器，则用 Collectible 列表的第一个来装备
         if (equippedWeaponData != null && !equippedWeaponData.IsEquipped())
         {
             var cm = CollectionManager.Instance;
             if (cm != null)
             {
-                CollectibleData first = cm.GetFirstCollectible(); // 列表第一个
+                CollectibleData first = cm.GetFirstCollectible();
                 if (first != null)
                 {
-                    equippedWeaponData.EquipWeapon(first); // 把 Collectible 内容写入 EquippedWeaponData
-                    //（可选）如果你希望开始游戏时一定“标记为已收集”，可以确保它被计入收集：
+                    equippedWeaponData.EquipWeapon(first);
                     if (!first.isCollected)
                     {
                         cm.CollectItem(first.id);
                     }
                 }
-                else
-                {
-                    Debug.LogWarning("Collectible 列表为空，无法默认装备武器。");
-                }
             }
         }
 
-        // 3) 进入游戏场景
         if (GameSceneManager.Instance != null)
         {
             GameSceneManager.Instance.LoadGameScene();
@@ -87,7 +94,8 @@ public class MainMenuUI : MonoBehaviour
 
     private void OnCollection()
     {
-        GameSceneManager.Instance.LoadCollectionScene();
+        if (GameSceneManager.Instance != null)
+            GameSceneManager.Instance.LoadCollectionScene();
     }
 
     private void OnSettings()
@@ -97,7 +105,8 @@ public class MainMenuUI : MonoBehaviour
 
     private void OnQuit()
     {
-        GameSceneManager.Instance.QuitGame();
+        if (GameSceneManager.Instance != null)
+            GameSceneManager.Instance.QuitGame();
     }
 
     private void OnBackToMain()

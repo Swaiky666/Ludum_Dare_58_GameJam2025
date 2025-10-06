@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 2
   itemName: AK-47
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: f924c21024db2fa44afa39fe2a3a0950, type: 3}
   description: "\u201CReliability never dies.\u201D\n\nThe classic roar of rebellion.
     Built to jam never, built to last forever \u2014 it sprays lead and legends in
     equal measure."

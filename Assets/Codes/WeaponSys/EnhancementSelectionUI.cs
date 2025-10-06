@@ -28,10 +28,12 @@ public class EnhancementSelectionUI : MonoBehaviour
     [SerializeField] private float damageBonus = 0.8f;           // 伤害提升80% (1.8倍)
     [SerializeField] private float fireRateBonus = 0.5f;         // 攻速提升50% (1.5倍)
     [SerializeField] private float bulletsPerShotMultiplier = 3f; // 子弹数量x3
-    [SerializeField] private int bonusBounces = 2;               // 额外弹射2次
+    [SerializeField] private int bonusBounces = 1;               // 额外弹射1次（改为加算）
     [SerializeField] private float slowEffectBonus = 0.2f;       // 减速效果+20%
+    [SerializeField] private float bulletSpeedUpMultiplier = 1.3f;   // 子弹速度提升30%
+    [SerializeField] private float bulletSpeedDownMultiplier = 0.7f; // 子弹速度降低30%
 
-    // 所有可用的武器强化类型
+    // 所有可用的武器强化类型（移除Piercing）
     private string[] allEnhancements = new string[]
     {
         "Damage",
@@ -39,9 +41,10 @@ public class EnhancementSelectionUI : MonoBehaviour
         "BulletsPerShot",
         "Bounce",
         "SlowEffect",
+        "BulletSpeedUp",
+        "BulletSpeedDown",
         "Homing",
-        "Explosion",
-        "Piercing"
+        "Explosion"
     };
 
     // 当前选择的强化类型
@@ -197,12 +200,14 @@ public class EnhancementSelectionUI : MonoBehaviour
                 return $"Bounce +{bonusBounces}";
             case "SlowEffect":
                 return $"Slow Effect +{slowEffectBonus * 100:F0}%";
+            case "BulletSpeedUp":
+                return $"Bullet Speed +{(bulletSpeedUpMultiplier - 1) * 100:F0}%";
+            case "BulletSpeedDown":
+                return $"Bullet Speed -{(1 - bulletSpeedDownMultiplier) * 100:F0}%";
             case "Homing":
                 return "Homing";
             case "Explosion":
                 return "Explosion";
-            case "Piercing":
-                return "Piercing";
             default:
                 return enhancementType;
         }
@@ -298,14 +303,17 @@ public class EnhancementSelectionUI : MonoBehaviour
             case "SlowEffect":
                 EnhancementManager.Instance.AddWeaponEnhancement(slot, "SlowEffect", slowEffectBonus);
                 break;
+            case "BulletSpeedUp":
+                EnhancementManager.Instance.AddWeaponEnhancement(slot, "BulletSpeed", bulletSpeedUpMultiplier);
+                break;
+            case "BulletSpeedDown":
+                EnhancementManager.Instance.AddWeaponEnhancement(slot, "BulletSpeed", bulletSpeedDownMultiplier);
+                break;
             case "Homing":
                 EnhancementManager.Instance.AddWeaponEnhancement(slot, "Homing", 1f);
                 break;
             case "Explosion":
                 EnhancementManager.Instance.AddWeaponEnhancement(slot, "Explosion", 1f);
-                break;
-            case "Piercing":
-                EnhancementManager.Instance.AddWeaponEnhancement(slot, "Piercing", 1f);
                 break;
         }
     }

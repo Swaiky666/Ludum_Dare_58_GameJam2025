@@ -5051,17 +5051,17 @@ MonoBehaviour:
   isExplosive: 0
   explosionRadius: 1
   explosionDamage: 15
-  explosionKnockback: 8
+  explosionKnockback: 1
   damageDecay: 1
   isBouncy: 0
-  maxBounces: 3
+  maxBounces: 0
   bounceSpeedMultiplier: 0.8
-  bulletPrefab: {fileID: 0}
+  bulletPrefab: {fileID: 1564468091806366}
   hasSlowEffect: 0
-  slowMultiplier: 0.5
-  slowDuration: 2
+  slowMultiplier: 0.1
+  slowDuration: 1
   isHoming: 0
-  homingTurnSpeed: 180
+  homingTurnSpeed: 500
   homingRange: 15
   homingActivationDelay: 0.1
   usePredictiveAiming: 1

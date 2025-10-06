@@ -9917,16 +9917,16 @@ MonoBehaviour:
   lifetime: 5
   isExplosive: 1
   explosionRadius: 1.1
-  explosionDamage: 15
-  explosionKnockback: 2
+  explosionDamage: 12
+  explosionKnockback: 1
   damageDecay: 0
   isBouncy: 1
-  maxBounces: 2
+  maxBounces: 1
   bounceSpeedMultiplier: 0.8
   bulletPrefab: {fileID: 1985767573034186}
   hasSlowEffect: 0
-  slowMultiplier: 0.5
-  slowDuration: 2
+  slowMultiplier: 0.1
+  slowDuration: 1
   isHoming: 1
   homingTurnSpeed: 1000
   homingRange: 25

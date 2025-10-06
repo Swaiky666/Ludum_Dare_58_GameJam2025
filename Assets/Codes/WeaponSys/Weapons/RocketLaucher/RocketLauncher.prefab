@@ -45,9 +45,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   weaponName: RocketLauncher
-  weaponIcon: {fileID: 0}
+  weaponIcon: {fileID: 21300000, guid: 01c6206c25d3a884f842f7709a4d2249, type: 3}
   damage: 80
-  cooldown: 1
+  cooldown: 2
   enemyKnockbackForce: 5
   playerRecoilForce: 20
   fireSound: {fileID: 0}
@@ -57,7 +57,7 @@ MonoBehaviour:
   bulletSpeed: 18
   bulletsPerShot: 1
   spreadAngle: 0
-  fireRate: 1
+  fireRate: 0.5
   muzzleFlash: {fileID: 0}
   shakeDuration: 0.15
   shakeMagnitude: 0.1

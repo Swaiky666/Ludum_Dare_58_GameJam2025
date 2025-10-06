@@ -45,19 +45,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   weaponName: Slingshot
-  weaponIcon: {fileID: 0}
+  weaponIcon: {fileID: 21300000, guid: 91c6b729bced5a849ac2276ae8f3c57b, type: 3}
   damage: 25
-  cooldown: 0.5
+  cooldown: 1
   enemyKnockbackForce: 2
   playerRecoilForce: 3
   fireSound: {fileID: 0}
   fireSoundVolume: 1
   firePoint: {fileID: 0}
-  bulletPrefab: {fileID: 1979403604311268, guid: bc0b77b5d64c11e48b0a22fadb7489ce, type: 3}
+  bulletPrefab: {fileID: 1979403604311268, guid: 6e1320dbbca6c4049acd7d20eec2b2e9, type: 3}
   bulletSpeed: 30
   bulletsPerShot: 1
   spreadAngle: 0
-  fireRate: 2
+  fireRate: 1
   muzzleFlash: {fileID: 0}
   shakeDuration: 0.1
   shakeMagnitude: 0.05

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 7
   itemName: VerdantSeeker
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 8864fc3515d9b774e9e8287578e4443e, type: 3}
   description: "\u201CThe forest never misses.\u201D\n\nA living weapon born of root
     and wrath. Its emerald projectiles chase heat and heartbeat alike, leaving trails
     of blooming vines where blood once flowed."

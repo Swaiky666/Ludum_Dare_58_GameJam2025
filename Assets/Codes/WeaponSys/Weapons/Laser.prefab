@@ -5049,19 +5049,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   lifetime: 5
   isExplosive: 0
-  explosionRadius: 3
-  explosionDamage: 15
-  explosionKnockback: 8
+  explosionRadius: 1
+  explosionDamage: 10
+  explosionKnockback: 1
   damageDecay: 0
   isBouncy: 1
   maxBounces: 3
   bounceSpeedMultiplier: 0.8
   bulletPrefab: {fileID: 1658112780640456}
   hasSlowEffect: 0
-  slowMultiplier: 0.5
-  slowDuration: 2
+  slowMultiplier: 0.1
+  slowDuration: 1
   isHoming: 0
-  homingTurnSpeed: 180
+  homingTurnSpeed: 500
   homingRange: 15
   homingActivationDelay: 0.1
   usePredictiveAiming: 1

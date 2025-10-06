@@ -21,13 +21,12 @@ public class EnhancementSelectionUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI[] rightHandTexts = new TextMeshProUGUI[3];
 
     [Header("Visual Settings")]
-    [SerializeField] private Color normalColor = Color.white;
-    [SerializeField] private Color highlightColor = new Color(1f, 0.8f, 0f, 1f); // 金色高亮
+    [SerializeField] private Material selectedMaterial; // 选中时的Material
 
     [Header("Enhancement Settings")]
     [SerializeField] private float damageBonus = 0.8f;           // 伤害提升80% (1.8倍)
     [SerializeField] private float fireRateBonus = 0.5f;         // 攻速提升50% (1.5倍)
-    [SerializeField] private float bulletsPerShotMultiplier = 3f; // 子弹数量x3
+    [SerializeField] private int bulletsPerShotBonus = 2;    // 额外子弹数量+2
     [SerializeField] private int bonusBounces = 1;               // 额外弹射1次（改为加算）
     [SerializeField] private float slowEffectBonus = 0.2f;       // 减速效果+20%
     [SerializeField] private float bulletSpeedUpMultiplier = 1.3f;   // 子弹速度提升30%
@@ -164,9 +163,12 @@ public class EnhancementSelectionUI : MonoBehaviour
                 leftHandTexts[i].text = GetEnhancementDisplayName(leftHandEnhancements[i]);
             }
 
-            ColorBlock colors = leftHandButtons[i].colors;
-            colors.normalColor = (i == selectedLeftIndex) ? highlightColor : normalColor;
-            leftHandButtons[i].colors = colors;
+            // 修改Material而不是颜色
+            Image buttonImage = leftHandButtons[i].GetComponent<Image>();
+            if (buttonImage != null)
+            {
+                buttonImage.material = (i == selectedLeftIndex) ? selectedMaterial : null;
+            }
         }
 
         // 更新右手按钮
@@ -177,9 +179,12 @@ public class EnhancementSelectionUI : MonoBehaviour
                 rightHandTexts[i].text = GetEnhancementDisplayName(rightHandEnhancements[i]);
             }
 
-            ColorBlock colors = rightHandButtons[i].colors;
-            colors.normalColor = (i == selectedRightIndex) ? highlightColor : normalColor;
-            rightHandButtons[i].colors = colors;
+            // 修改Material而不是颜色
+            Image buttonImage = rightHandButtons[i].GetComponent<Image>();
+            if (buttonImage != null)
+            {
+                buttonImage.material = (i == selectedRightIndex) ? selectedMaterial : null;
+            }
         }
     }
 
@@ -195,7 +200,7 @@ public class EnhancementSelectionUI : MonoBehaviour
             case "FireRate":
                 return $"Fire Rate +{fireRateBonus * 100:F0}%";
             case "BulletsPerShot":
-                return $"Bullets x{bulletsPerShotMultiplier:F0}";
+                return $"Bullets +{bulletsPerShotBonus}";
             case "Bounce":
                 return $"Bounce +{bonusBounces}";
             case "SlowEffect":
@@ -220,6 +225,10 @@ public class EnhancementSelectionUI : MonoBehaviour
     {
         selectedLeftIndex = index;
         UpdateButtonVisuals();
+
+        // 强制Canvas立即更新，确保Material变化立即生效
+        Canvas.ForceUpdateCanvases();
+
         Debug.Log($"<color=green>[强化选择] 左手选择: {leftHandEnhancements[index]}</color>");
     }
 
@@ -230,6 +239,10 @@ public class EnhancementSelectionUI : MonoBehaviour
     {
         selectedRightIndex = index;
         UpdateButtonVisuals();
+
+        // 强制Canvas立即更新，确保Material变化立即生效
+        Canvas.ForceUpdateCanvases();
+
         Debug.Log($"<color=green>[强化选择] 右手选择: {rightHandEnhancements[index]}</color>");
     }
 
@@ -295,7 +308,7 @@ public class EnhancementSelectionUI : MonoBehaviour
                 EnhancementManager.Instance.AddWeaponEnhancement(slot, "FireRate", 1f + fireRateBonus);
                 break;
             case "BulletsPerShot":
-                EnhancementManager.Instance.AddWeaponEnhancement(slot, "BulletsPerShot", bulletsPerShotMultiplier);
+                EnhancementManager.Instance.AddWeaponEnhancement(slot, "BulletsPerShot", bulletsPerShotBonus);
                 break;
             case "Bounce":
                 EnhancementManager.Instance.AddWeaponEnhancement(slot, "Bounce", bonusBounces);

@@ -207,6 +207,8 @@ MonoBehaviour:
   countText: {fileID: 48663625364884426}
   timeText: {fileID: 6564779290346904457}
   descriptionText: {fileID: 167913182984092770}
+  selectionHighlightImage: {fileID: 7977174812641386418}
+  selectionMaterial: {fileID: 2100000, guid: 592aae96c6d03a1409778b524f9a4e05, type: 2}
   equipButton: {fileID: 7728287239282202741}
   equipButtonText: {fileID: 0}
   equippedWeaponData: {fileID: 11400000, guid: c4e1af51cc9a63a438e8079dceb3ff19, type: 2}

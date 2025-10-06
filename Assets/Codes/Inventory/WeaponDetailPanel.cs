@@ -179,7 +179,7 @@ public class WeaponDetailPanel : MonoBehaviour, IDropHandler
         {
             enhancedDamage = baseDamage * enhancement.damageMultiplier;
             enhancedFireRate = baseFireRate * enhancement.fireRateMultiplier;
-            enhancedBulletsPerShot = Mathf.RoundToInt(baseBulletsPerShot * enhancement.bulletsPerShotMultiplier);
+            enhancedBulletsPerShot = baseBulletsPerShot + enhancement.bulletsPerShotBonus; // 改为加算
             enhancedBulletSpeed = baseBulletSpeed * enhancement.bulletSpeedMultiplier;
             enhancedCooldown = baseCooldown / enhancement.fireRateMultiplier;
         }
@@ -215,9 +215,9 @@ public class WeaponDetailPanel : MonoBehaviour, IDropHandler
         // 显示每次子弹数
         if (bulletsPerShotText != null)
         {
-            if (enhancement != null && enhancement.bulletsPerShotMultiplier != 1f)
+            if (enhancement != null && enhancement.bulletsPerShotBonus != 0)
             {
-                bulletsPerShotText.text = $"Bullets Per Shot: {enhancedBulletsPerShot} (x{enhancement.bulletsPerShotMultiplier:F1})";
+                bulletsPerShotText.text = $"Bullets Per Shot: {enhancedBulletsPerShot} (+{enhancement.bulletsPerShotBonus})";
             }
             else
             {

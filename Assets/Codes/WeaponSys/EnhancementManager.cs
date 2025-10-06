@@ -159,8 +159,8 @@ public class EnhancementManager : MonoBehaviour
                 Debug.Log($"<color=yellow>槽位{slot} 攻速倍率提升至: {enhancement.fireRateMultiplier}</color>");
                 break;
             case "BulletsPerShot":
-                enhancement.bulletsPerShotMultiplier *= value;
-                Debug.Log($"<color=yellow>槽位{slot} 子弹数量倍率提升至: {enhancement.bulletsPerShotMultiplier}</color>");
+                enhancement.bulletsPerShotBonus += (int)value;
+                Debug.Log($"<color=yellow>槽位{slot} 额外子弹数量: {enhancement.bulletsPerShotBonus}</color>");
                 break;
             case "Bounce":
                 enhancement.bonusBounces += (int)value;

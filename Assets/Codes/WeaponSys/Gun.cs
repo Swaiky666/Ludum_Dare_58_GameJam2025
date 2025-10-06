@@ -72,16 +72,16 @@ public class Gun : WeaponBase
             // 伤害强化
             enhancedDamage *= enhancement.damageMultiplier;
 
-            // 子弹数量强化
-            enhancedBulletsPerShot = Mathf.RoundToInt(bulletsPerShot * enhancement.bulletsPerShotMultiplier);
+            // 子弹数量强化（加算）
+            enhancedBulletsPerShot = bulletsPerShot + enhancement.bulletsPerShotBonus;
 
             // 子弹速度强化
             enhancedBulletSpeed *= enhancement.bulletSpeedMultiplier;
 
-            // 如果子弹数量不是1，修改散射角度为8度
+            // 如果子弹数量不是1，修改散射角度为10度
             if (enhancedBulletsPerShot != 1 && spreadAngle == 0f)
             {
-                enhancedSpreadAngle = 8f;
+                enhancedSpreadAngle = 10f;
             }
         }
 

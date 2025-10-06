@@ -1,8 +1,9 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.EventSystems;
 
-public class CollectibleItemUI : MonoBehaviour
+public class CollectibleItemUI : MonoBehaviour, IPointerClickHandler
 {
     [Header("UI组件")]
     public Image iconImage;
@@ -13,6 +14,10 @@ public class CollectibleItemUI : MonoBehaviour
     public TextMeshProUGUI timeText;
     public TextMeshProUGUI descriptionText;
 
+    [Header("选择高亮")]
+    public Image selectionHighlightImage;  // 用于显示选中状态的Image
+    public Material selectionMaterial;     // 选中时的Material
+
     [Header("装备按钮")]
     public Button equipButton;  // 装备按钮
     public TextMeshProUGUI equipButtonText;  // 按钮文字
@@ -22,11 +27,50 @@ public class CollectibleItemUI : MonoBehaviour
 
     private CollectibleData data;
 
+    // 静态变量：跟踪当前选中的item
+    private static CollectibleItemUI currentSelectedItem;
+
     public void Setup(CollectibleData collectibleData)
     {
         this.data = collectibleData;
         UpdateDisplay();
         SetupEquipButton();
+
+        // ⭐ 检查是否是当前装备的武器，如果是则自动选中
+        if (equippedWeaponData != null && data != null &&
+            equippedWeaponData.weaponId == data.id && data.isCollected)
+        {
+            // 延迟选中，确保UI完全初始化
+            Invoke(nameof(SelectWithoutEquipping), 0.1f);
+        }
+        else
+        {
+            // 初始时取消选中状态
+            Deselect();
+        }
+    }
+
+    /// <summary>
+    /// 选中但不触发装备（用于初始化时同步显示）
+    /// </summary>
+    private void SelectWithoutEquipping()
+    {
+        // 如果已经有其他item被选中了，不要覆盖
+        if (currentSelectedItem != null && currentSelectedItem != this)
+        {
+            return;
+        }
+
+        // 设置当前item为选中状态
+        currentSelectedItem = this;
+
+        // 仅应用Material，不触发装备逻辑
+        if (selectionHighlightImage != null && selectionMaterial != null)
+        {
+            selectionHighlightImage.material = selectionMaterial;
+            Canvas.ForceUpdateCanvases();
+            Debug.Log($"<color=cyan>初始化时自动选中已装备武器: {data?.itemName}</color>");
+        }
     }
 
     private void SetupEquipButton()
@@ -46,24 +90,9 @@ public class CollectibleItemUI : MonoBehaviour
 
     private void OnEquipButtonClicked()
     {
-        if (data == null || equippedWeaponData == null)
-        {
-            Debug.LogWarning("数据为空，无法装备武器！");
-            return;
-        }
-
-        // 检查是否已收集
-        if (!data.isCollected)
-        {
-            Debug.LogWarning($"{data.itemName} 尚未收集，无法装备！");
-            return;
-        }
-
-        // 装备武器
-        equippedWeaponData.EquipWeapon(data);
-
-        // 更新按钮显示
-        UpdateEquipButton();
+        // ⭐ 装备按钮现在直接调用Select()方法
+        // 这样点击按钮和点击item的效果是一致的
+        Select();
     }
 
     private void UpdateEquipButton()
@@ -167,8 +196,131 @@ public class CollectibleItemUI : MonoBehaviour
         UpdateEquipButton();
     }
 
+    /// <summary>
+    /// 处理点击事件 - 选中这个item
+    /// </summary>
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        // 点击任意位置都可以选中
+        Select();
+    }
+
+    /// <summary>
+    /// 选中这个item（同时装备武器）
+    /// </summary>
+    public void Select()
+    {
+        // 如果已经是选中状态，则不做处理
+        if (currentSelectedItem == this)
+        {
+            return;
+        }
+
+        // 检查是否已收集
+        if (data == null || !data.isCollected)
+        {
+            Debug.LogWarning($"未收集的物品无法选择和装备！");
+            return;
+        }
+
+        // 取消之前选中的item
+        if (currentSelectedItem != null)
+        {
+            currentSelectedItem.Deselect();
+        }
+
+        // 设置当前item为选中状态
+        currentSelectedItem = this;
+
+        // 应用Material
+        if (selectionHighlightImage != null && selectionMaterial != null)
+        {
+            selectionHighlightImage.material = selectionMaterial;
+
+            // 强制Canvas立即更新
+            Canvas.ForceUpdateCanvases();
+
+            Debug.Log($"<color=yellow>选中收集品: {data?.itemName}</color>");
+        }
+        else
+        {
+            if (selectionHighlightImage == null)
+                Debug.LogWarning($"CollectibleItemUI ({data?.itemName}): selectionHighlightImage 未设置！");
+            if (selectionMaterial == null)
+                Debug.LogWarning($"CollectibleItemUI ({data?.itemName}): selectionMaterial 未设置！");
+        }
+
+        // ⭐ 关键：选中时自动装备武器
+        if (equippedWeaponData != null && data != null)
+        {
+            equippedWeaponData.EquipWeapon(data);
+            Debug.Log($"<color=green>已装备武器: {data.itemName}</color>");
+
+            // 更新装备按钮显示（如果有的话）
+            UpdateEquipButton();
+        }
+    }
+
+    /// <summary>
+    /// 取消选中
+    /// </summary>
+    public void Deselect()
+    {
+        // 移除Material
+        if (selectionHighlightImage != null)
+        {
+            selectionHighlightImage.material = null;
+
+            // 强制Canvas立即更新
+            Canvas.ForceUpdateCanvases();
+        }
+
+        // 如果这个item是当前选中的，清空静态引用
+        if (currentSelectedItem == this)
+        {
+            currentSelectedItem = null;
+        }
+    }
+
+    /// <summary>
+    /// 检查是否被选中
+    /// </summary>
+    public bool IsSelected()
+    {
+        return currentSelectedItem == this;
+    }
+
+    /// <summary>
+    /// 获取当前选中的item（静态方法）
+    /// </summary>
+    public static CollectibleItemUI GetCurrentSelectedItem()
+    {
+        return currentSelectedItem;
+    }
+
+    /// <summary>
+    /// 清除所有选中状态（静态方法）
+    /// </summary>
+    public static void ClearAllSelection()
+    {
+        if (currentSelectedItem != null)
+        {
+            currentSelectedItem.Deselect();
+            currentSelectedItem = null;
+        }
+    }
+
     public CollectibleData GetData()
     {
         return data;
+    }
+
+    private void OnDestroy()
+    {
+        // 销毁时，如果是当前选中的item，清空引用
+        if (currentSelectedItem == this)
+        {
+            currentSelectedItem = null;
+        }
     }
 }

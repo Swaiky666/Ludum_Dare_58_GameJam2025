@@ -15,6 +15,9 @@ public class CollectionUI : MonoBehaviour
     [Header("滚动控制")]
     [SerializeField] private ManualScrollController manualScroller;
 
+    [Header("选择高亮Material")]
+    [SerializeField] private Material selectionMaterial;  // 选中时使用的Material
+
     [Header("筛选按钮")]
     [SerializeField] private UnityEngine.UI.Button showAllButton;
     [SerializeField] private UnityEngine.UI.Button showCollectedButton;
@@ -124,6 +127,9 @@ public class CollectionUI : MonoBehaviour
 
     public void RefreshDisplay()
     {
+        // 清除所有选中状态
+        CollectibleItemUI.ClearAllSelection();
+
         ClearItems();
 
         if (CollectionManager.Instance == null)
@@ -153,6 +159,8 @@ public class CollectionUI : MonoBehaviour
             CollectibleItemUI itemUI = itemObj.GetComponent<CollectibleItemUI>();
             if (itemUI != null)
             {
+                // ⭐ 设置选择Material
+                itemUI.selectionMaterial = selectionMaterial;
                 itemUI.equippedWeaponData = equippedWeaponData;
                 itemUI.Setup(collectible);
                 currentItems.Add(itemUI);
@@ -292,5 +300,18 @@ public class CollectionUI : MonoBehaviour
             manualScroller.RecalculateHeight();
             Debug.Log($"Item Count: {currentItems.Count}");
         }
+    }
+
+    /// <summary>
+    /// 获取当前选中的收集品数据
+    /// </summary>
+    public CollectibleData GetSelectedCollectibleData()
+    {
+        CollectibleItemUI selectedItem = CollectibleItemUI.GetCurrentSelectedItem();
+        if (selectedItem != null)
+        {
+            return selectedItem.GetData();
+        }
+        return null;
     }
 }

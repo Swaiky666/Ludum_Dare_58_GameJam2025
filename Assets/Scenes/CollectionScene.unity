@@ -2800,6 +2800,7 @@ MonoBehaviour:
   progressSlider: {fileID: 1363800636}
   progressText: {fileID: 1385745456}
   manualScroller: {fileID: 1522626934}
+  selectionMaterial: {fileID: 2100000, guid: 592aae96c6d03a1409778b524f9a4e05, type: 2}
   showAllButton: {fileID: 1221428876}
   showCollectedButton: {fileID: 2025741629}
   showUnCollectedButton: {fileID: 139477908}

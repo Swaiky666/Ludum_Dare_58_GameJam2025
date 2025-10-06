@@ -20,6 +20,10 @@ public class InventoryUI : MonoBehaviour
     [SerializeField] private GameObject weaponDropPrefab;      // 武器掉落物预制体
     [SerializeField] private float dropOffset = 0.5f;          // 掉落偏移距离（可以设小一点）
 
+    [Header("Weapon Objects")]
+    [SerializeField] private GameObject leftHandWeaponObj;   // 左手武器物体
+    [SerializeField] private GameObject rightHandWeaponObj;  // 右手武器物体
+
     private bool isOpen = false;
 
     void Start()
@@ -32,6 +36,12 @@ public class InventoryUI : MonoBehaviour
             {
                 Debug.LogError("InventoryUI: 未找到EquipmentManager！");
             }
+        }
+
+        // ⭐ 将武器显示物体引用传递给EquipmentManager
+        if (equipmentManager != null)
+        {
+            equipmentManager.SetWeaponDisplayObjects(leftHandWeaponObj, rightHandWeaponObj);
         }
 
         // 尝试从EquipmentManager获取leftFirePoint
@@ -83,6 +93,9 @@ public class InventoryUI : MonoBehaviour
             rightHandSlot.OnWeaponSwap += OnWeaponSwap;
             rightHandSlot.OnDragStarted += OnAnySlotDragStarted; // 订阅拖动开始事件
         }
+
+        // 初始化时更新武器贴图
+        UpdateWeaponSprites();
     }
 
     void Update()
@@ -191,6 +204,57 @@ public class InventoryUI : MonoBehaviour
             else
             {
                 rightHandSlot.ClearSlot();
+            }
+        }
+
+        // 更新武器贴图
+        UpdateWeaponSprites();
+    }
+
+    /// <summary>
+    /// 更新左右手武器物体的显示状态和贴图
+    /// </summary>
+    void UpdateWeaponSprites()
+    {
+        if (equipmentManager == null) return;
+
+        // 更新左手武器
+        IEquippable leftWeapon = equipmentManager.GetEquipment(0);
+        if (leftHandWeaponObj != null)
+        {
+            if (leftWeapon != null && leftWeapon.Icon != null)
+            {
+                // 更新SpriteRenderer的sprite
+                SpriteRenderer leftSR = leftHandWeaponObj.GetComponent<SpriteRenderer>();
+                if (leftSR != null)
+                {
+                    leftSR.sprite = leftWeapon.Icon;
+                }
+                // 注意：active状态由EquipmentManager在开火时控制
+            }
+            else
+            {
+                leftHandWeaponObj.SetActive(false);
+            }
+        }
+
+        // 更新右手武器
+        IEquippable rightWeapon = equipmentManager.GetEquipment(1);
+        if (rightHandWeaponObj != null)
+        {
+            if (rightWeapon != null && rightWeapon.Icon != null)
+            {
+                // 更新SpriteRenderer的sprite
+                SpriteRenderer rightSR = rightHandWeaponObj.GetComponent<SpriteRenderer>();
+                if (rightSR != null)
+                {
+                    rightSR.sprite = rightWeapon.Icon;
+                }
+                // 注意：active状态由EquipmentManager在开火时控制
+            }
+            else
+            {
+                rightHandWeaponObj.SetActive(false);
             }
         }
     }

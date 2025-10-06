@@ -16,6 +16,11 @@ public class EquipmentManager : MonoBehaviour
     [Header("Equipped Data (ScriptableObject)")]
     [SerializeField] private EquippedWeaponData equippedWeaponData; // 与主菜单共用的SO，启动时从这里同步装备
 
+    [Header("Weapon Display Objects")]
+    private GameObject leftHandWeaponObj;   // 左手武器显示物体（由InventoryUI设置）
+    private GameObject rightHandWeaponObj;  // 右手武器显示物体（由InventoryUI设置）
+    [SerializeField] private float weaponDisplayDuration = 0.5f; // 武器显示持续时间（秒）
+
     private IEquippable leftHandEquipment;   // 左手装备实例
     private IEquippable rightHandEquipment;  // 右手装备实例
 
@@ -23,9 +28,28 @@ public class EquipmentManager : MonoBehaviour
     private GameObject leftHandPrefab;   // 左手武器的原始预制体
     private GameObject rightHandPrefab;  // 右手武器的原始预制体
 
+    // 协程引用，用于取消之前的隐藏操作
+    private Coroutine leftWeaponHideCoroutine;
+    private Coroutine rightWeaponHideCoroutine;
+
     // 公共只读访问器（其他系统查询当前装备）
     public IEquippable LeftHandEquipment => leftHandEquipment;
     public IEquippable RightHandEquipment => rightHandEquipment;
+
+    /// <summary>
+    /// 由InventoryUI调用，设置武器显示物体引用
+    /// </summary>
+    public void SetWeaponDisplayObjects(GameObject leftObj, GameObject rightObj)
+    {
+        leftHandWeaponObj = leftObj;
+        rightHandWeaponObj = rightObj;
+
+        Debug.Log($"<color=green>[EquipmentManager] 武器显示物体已设置: Left={leftObj?.name}, Right={rightObj?.name}</color>");
+
+        // 初始化时隐藏
+        if (leftHandWeaponObj != null) leftHandWeaponObj.SetActive(false);
+        if (rightHandWeaponObj != null) rightHandWeaponObj.SetActive(false);
+    }
 
     private void Start()
     {
@@ -144,6 +168,63 @@ public class EquipmentManager : MonoBehaviour
         if (equipment != null && equipment.CanUse())
         {
             equipment.Use(direction, origin);
+
+            // ⭐ 开火时显示武器物体
+            ShowWeaponDisplay(slot);
+        }
+    }
+
+    /// <summary>
+    /// 显示武器物体（开火时调用）
+    /// </summary>
+    void ShowWeaponDisplay(int slot)
+    {
+        GameObject weaponObj = (slot == 0) ? leftHandWeaponObj : rightHandWeaponObj;
+        IEquippable equipment = (slot == 0) ? leftHandEquipment : rightHandEquipment;
+
+        if (weaponObj != null && equipment != null && equipment.Icon != null)
+        {
+            // 更新SpriteRenderer的sprite
+            SpriteRenderer sr = weaponObj.GetComponent<SpriteRenderer>();
+            if (sr != null)
+            {
+                sr.sprite = equipment.Icon;
+            }
+
+            // 取消之前的隐藏协程
+            if (slot == 0 && leftWeaponHideCoroutine != null)
+            {
+                StopCoroutine(leftWeaponHideCoroutine);
+            }
+            else if (slot == 1 && rightWeaponHideCoroutine != null)
+            {
+                StopCoroutine(rightWeaponHideCoroutine);
+            }
+
+            // 显示武器
+            weaponObj.SetActive(true);
+
+            // 启动隐藏协程
+            if (slot == 0)
+            {
+                leftWeaponHideCoroutine = StartCoroutine(HideWeaponAfterDelay(weaponObj));
+            }
+            else
+            {
+                rightWeaponHideCoroutine = StartCoroutine(HideWeaponAfterDelay(weaponObj));
+            }
+        }
+    }
+
+    /// <summary>
+    /// 延迟隐藏武器物体
+    /// </summary>
+    System.Collections.IEnumerator HideWeaponAfterDelay(GameObject weaponObj)
+    {
+        yield return new WaitForSeconds(weaponDisplayDuration);
+        if (weaponObj != null)
+        {
+            weaponObj.SetActive(false);
         }
     }
 

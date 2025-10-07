@@ -68,6 +68,8 @@ public class BossAI : MonoBehaviour
     [SerializeField] private GameObject obstaclePrefab;
     [SerializeField] private int obstacleCount = 5;
     [SerializeField] private float obstacleSpawnRadius = 12f;
+    [SerializeField] private float obstacleSafeDistance = 3f;   // 新增：阻碍物与玩家的安全距离
+    [SerializeField] private int obstacleMaxAttempts = 20;      // 新增：每个阻碍物的最大尝试次数
 
     private enum BossState
     {
@@ -484,18 +486,56 @@ public class BossAI : MonoBehaviour
 
         if (obstaclePrefab == null) yield break;
 
-        for (int i = 0; i < obstacleCount; i++)
+        int spawnedCount = 0;
+        int totalAttempts = 0;
+
+        while (spawnedCount < obstacleCount && totalAttempts < obstacleCount * obstacleMaxAttempts)
         {
+            totalAttempts++;
+
+            // 随机生成位置
             Vector2 randomCircle = Random.insideUnitCircle * obstacleSpawnRadius;
             Vector3 spawnPosition = transform.position + new Vector3(randomCircle.x, 0, randomCircle.y);
 
-            GameObject obstacle = Instantiate(obstaclePrefab, spawnPosition, Quaternion.identity);
-            obstacle.name = $"BossObstacle_{Time.time}_{i}";
+            // 检查生成位置周围是否有玩家
+            bool isSafePosition = true;
+            Collider[] nearbyColliders = Physics.OverlapSphere(spawnPosition, obstacleSafeDistance);
+            foreach (Collider col in nearbyColliders)
+            {
+                if (col.CompareTag("Player"))
+                {
+                    isSafePosition = false;
+                    Debug.Log($"<color=orange>阻碍物生成位置 {spawnPosition} 太靠近玩家，跳过</color>");
+                    break;
+                }
+            }
 
-            yield return new WaitForSeconds(0.2f);
+            // 如果位置安全，生成阻碍物
+            if (isSafePosition)
+            {
+                GameObject obstacle = Instantiate(obstaclePrefab, spawnPosition, Quaternion.identity);
+                obstacle.name = $"BossObstacle_{Time.time}_{spawnedCount}";
+                spawnedCount++;
+
+                Debug.Log($"成功生成阻碍物 {spawnedCount}/{obstacleCount} 在 {spawnPosition}");
+
+                yield return new WaitForSeconds(0.2f);
+            }
+            else
+            {
+                // 位置不安全，立即尝试下一个位置（不等待）
+                yield return null;
+            }
         }
 
-        Debug.Log("阻碍物召唤完成！");
+        if (spawnedCount < obstacleCount)
+        {
+            Debug.LogWarning($"<color=orange>阻碍物召唤未完成！只生成了 {spawnedCount}/{obstacleCount} 个（尝试了 {totalAttempts} 次）</color>");
+        }
+        else
+        {
+            Debug.Log($"<color=green>阻碍物召唤完成！成功生成 {spawnedCount}/{obstacleCount} 个</color>");
+        }
 
         yield return new WaitForSeconds(0.5f);
     }

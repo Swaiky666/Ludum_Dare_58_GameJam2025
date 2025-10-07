@@ -116,7 +116,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0d550be478073c847b52b73c06cc22d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  baseMaxHealth: 1111
+  baseMaxHealth: 20000
   knockbackDuration: 0
   deathDelay: 0.3
   deathKnockbackMultiplier: 0.1

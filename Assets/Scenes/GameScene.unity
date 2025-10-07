@@ -763,7 +763,7 @@ MonoBehaviour:
   bossRoomPrefabs: []
   bossPrefabs:
   - {fileID: 2364593720301106117, guid: 3633fee2bdd16f246b62cef3267922e0, type: 3}
-  bossSpawnDistance: 10
+  bossSpawnDistance: 5
   bossExitDoorPrefab: {fileID: 5200299255755562888, guid: 52546c73193d7aa4a94bd849281c5dfd, type: 3}
   roomMapSystem: {fileID: 627761977}
   playerTransform: {fileID: 6476052857356830022}
@@ -2615,7 +2615,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   difficultyText: {fileID: 0}
   currentDifficulty: 0
-  healthScalePerLevel: 0.3
+  healthScalePerLevel: 0.5
   damageScalePerLevel: 0.2
   spawnRateIncreasePerLevel: 0.03
   maxDifficulty: 20

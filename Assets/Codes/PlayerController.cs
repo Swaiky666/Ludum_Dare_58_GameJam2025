@@ -5,6 +5,7 @@
 /// + 混合判定：网格可走性（地砖） & 指定Layer的物理体阻挡
 /// + 无砖块兜底：脚下无砖块时依然可移动，但仍受物理阻挡
 /// + 死亡返回主菜单：显示"YOU DIED"并自动返回
+/// + ⭐ 修复：使用RoomGenerator的坐标转换，正确处理房间偏移
 /// </summary>
 public class PlayerController : MonoBehaviour
 {
@@ -721,19 +722,19 @@ public class PlayerController : MonoBehaviour
         return floor.type == FloorType.Walkable;
     }
 
+    /// <summary>
+    /// ⭐ 修复：使用RoomGenerator的坐标转换（已处理偏移）
+    /// </summary>
     Vector2Int WorldToGrid(Vector3 worldPos)
     {
-        if (roomGenerator == null) return Vector2Int.zero;
+        if (roomGenerator == null)
+        {
+            Debug.LogWarning("RoomGenerator为空，无法转换坐标！");
+            return Vector2Int.zero;
+        }
 
-        float tileSize = roomGenerator.TileSize;
-        int x = Mathf.RoundToInt(worldPos.x / tileSize);
-        int z = Mathf.RoundToInt(worldPos.z / tileSize);
-
-        Vector2Int roomSize = roomGenerator.RoomSize;
-        return new Vector2Int(
-            Mathf.Clamp(x, 0, roomSize.x - 1),
-            Mathf.Clamp(z, 0, roomSize.y - 1)
-        );
+        // ⭐ 使用RoomGenerator的公共方法，它会正确处理偏移
+        return roomGenerator.WorldToGridPublic(worldPos);
     }
 
     bool IsValidGrid(Vector2Int gridPos)
@@ -745,27 +746,33 @@ public class PlayerController : MonoBehaviour
                gridPos.y >= 0 && gridPos.y < roomSize.y;
     }
 
+    /// <summary>
+    /// ⭐ 修复：使用RoomGenerator的坐标转换获取地板信息
+    /// </summary>
     bool TryGetFloorAtUnclamped(Vector3 worldPos, out Floor floor, out bool inBounds)
     {
         floor = null;
         inBounds = false;
 
-        if (roomGenerator == null || roomGenerator.FloorGrid == null) return false;
+        if (roomGenerator == null || roomGenerator.FloorGrid == null)
+        {
+            return false;
+        }
 
-        float tileSize = roomGenerator.TileSize;
-
-        int x = Mathf.RoundToInt(worldPos.x / tileSize);
-        int z = Mathf.RoundToInt(worldPos.z / tileSize);
+        // ⭐ 使用RoomGenerator的坐标转换（已处理偏移）
+        Vector2Int gridPos = roomGenerator.WorldToGridPublic(worldPos);
 
         Vector2Int size = roomGenerator.RoomSize;
-        if (x < 0 || z < 0 || x >= size.x || z >= size.y)
+
+        // 检查是否在范围内
+        if (gridPos.x < 0 || gridPos.y < 0 || gridPos.x >= size.x || gridPos.y >= size.y)
         {
             inBounds = false;
             return false;
         }
 
         inBounds = true;
-        floor = roomGenerator.FloorGrid[x, z];
+        floor = roomGenerator.FloorGrid[gridPos.x, gridPos.y];
         return floor != null;
     }
 

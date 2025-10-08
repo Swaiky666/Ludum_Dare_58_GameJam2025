@@ -57,6 +57,10 @@ public class RoomGenerator : MonoBehaviour
     [SerializeField] private Vector2Int roomSize = new Vector2Int(30, 20);
     [SerializeField] private float tileSize = 1f;
 
+    [Header("Room Offset Settings")]
+    [SerializeField] private float roundOffsetDistance = 10000f; // ⭐ 每轮的偏移距离（更大）
+    [SerializeField] private float roomOffsetDistance = 1000f;   // ⭐ 同轮内每个房间的偏移距离
+
     [Header("Quadtree Settings")]
     [SerializeField, Range(1, 6)] private int maxDepth = 4;
     [SerializeField, Range(0, 1)] private float splitChance = 0.7f;
@@ -88,13 +92,14 @@ public class RoomGenerator : MonoBehaviour
     [SerializeField] private List<GameObject> bossRoomPrefabs = new List<GameObject>();
 
     [Header("Boss Settings")]
-    [SerializeField] private List<GameObject> bossPrefabs = new List<GameObject>();  // ⭐ Boss预制体列表
-    [SerializeField] private float bossSpawnDistance = 10f;                          // Boss生成距离
-    [SerializeField] private GameObject bossExitDoorPrefab;                          // Boss击败后生成的传送门
+    [SerializeField] private List<GameObject> bossPrefabs = new List<GameObject>();
+    [SerializeField] private float bossSpawnDistance = 10f;
+    [SerializeField] private GameObject bossExitDoorPrefab;
 
     [Header("References")]
     [SerializeField] private RoomMapSystem roomMapSystem;
     [SerializeField] private Transform playerTransform;
+    [SerializeField] private Camera mainCamera;  // ⭐ 新增：主摄像机引用
 
     private Floor[,] floorGrid;
     private Vector3 playerSpawnPosition;
@@ -105,16 +110,31 @@ public class RoomGenerator : MonoBehaviour
     private bool isInitialized = false;
     private QuadTreeNode rootNode;
 
-    // ⭐ Boss相关
-    private GameObject currentBoss;           // 当前Boss实例
-    private MonsterHealth currentBossHealth;  // Boss血量组件
-    private bool isBossRoom = false;          // 是否是Boss房间
-    private bool hasBossBeenDefeated = false; // Boss是否已被击败
+    private GameObject currentBoss;
+    private MonsterHealth currentBossHealth;
+    private bool isBossRoom = false;
+    private bool hasBossBeenDefeated = false;
+
+    // ⭐ 房间偏移量
+    private Vector3 currentRoundOffset = Vector3.zero;   // 当前轮次的偏移量
+    private Vector3 currentRoomOffset = Vector3.zero;    // 当前房间的偏移量（在轮次偏移基础上）
+
+    // ⭐ FOV控制
+    private float originalFOV = 60f;      // 原始FOV
+    private bool hasSavedFOV = false;     // 是否已保存原始FOV
 
     public Floor[,] FloorGrid => floorGrid;
     public Vector2Int RoomSize => roomSize;
     public float TileSize => tileSize;
     public Vector3 PlayerSpawnPosition => playerSpawnPosition;
+
+    /// <summary>
+    /// ⭐ 公共方法：世界坐标转格子坐标（供外部调用，已处理偏移）
+    /// </summary>
+    public Vector2Int WorldToGridPublic(Vector3 worldPos)
+    {
+        return WorldToGrid(worldPos);
+    }
 
     void Start()
     {
@@ -122,6 +142,23 @@ public class RoomGenerator : MonoBehaviour
         {
             Debug.LogError("RoomMapSystem reference is missing!");
             return;
+        }
+
+        // ⭐ 查找主摄像机并保存原始FOV
+        if (mainCamera == null)
+        {
+            mainCamera = Camera.main;
+            if (mainCamera == null)
+            {
+                Debug.LogWarning("RoomGenerator: 未找到主摄像机，FOV功能将不可用");
+            }
+        }
+
+        if (mainCamera != null && !hasSavedFOV)
+        {
+            originalFOV = mainCamera.fieldOfView;
+            hasSavedFOV = true;
+            Debug.Log($"<color=cyan>保存原始FOV: {originalFOV}</color>");
         }
     }
 
@@ -142,7 +179,6 @@ public class RoomGenerator : MonoBehaviour
             CheckPlayerAtDoor();
         }
 
-        // ⭐ 监控Boss血量
         if (isBossRoom && currentBoss != null && !hasBossBeenDefeated)
         {
             MonitorBossHealth();
@@ -154,12 +190,17 @@ public class RoomGenerator : MonoBehaviour
     /// </summary>
     public void ResetAndRegenerateRoom()
     {
-        Debug.Log("<color=yellow>RoomGenerator: 重置状态并重新生成房间</color>");
+        Debug.Log("<color=yellow>RoomGenerator: 重置状态并重新生成房间（新一轮）</color>");
 
         // 重置初始化状态
         isInitialized = false;
         currentRoomId = -1;
         hasCheckedPlayer = false;
+
+        // ⭐ 增加轮次偏移量，让新一轮的地图远离旧地图
+        currentRoundOffset += new Vector3(roundOffsetDistance, 0, 0);
+        currentRoomOffset = Vector3.zero; // 重置房间偏移
+        Debug.Log($"<color=cyan>新一轮开始，轮次偏移量: {currentRoundOffset}</color>");
 
         // 清空当前房间
         ClearCurrentRoom();
@@ -180,9 +221,6 @@ public class RoomGenerator : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// ⭐ 监控Boss血量
-    /// </summary>
     void MonitorBossHealth()
     {
         if (currentBossHealth == null)
@@ -195,7 +233,6 @@ public class RoomGenerator : MonoBehaviour
             }
         }
 
-        // ⭐ 修正：检查Boss的CurrentHealth是否<=0
         if (currentBossHealth.CurrentHealth <= 0)
         {
             Debug.Log("<color=yellow>检测到Boss血量<=0，准备生成传送门...</color>");
@@ -203,9 +240,11 @@ public class RoomGenerator : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// ⭐ Boss被击败时调用
-    /// </summary>
+    Vector3 GetTotalOffset()
+    {
+        return currentRoundOffset + currentRoomOffset;
+    }
+
     void OnBossDefeated()
     {
         if (hasBossBeenDefeated) return;
@@ -213,7 +252,13 @@ public class RoomGenerator : MonoBehaviour
 
         Debug.Log("<color=yellow>========== Boss被击败！==========</color>");
 
-        // 获取Boss位置（如果Boss已被销毁，使用房间中心）
+        // ⭐ Boss被击败：恢复原始FOV
+        if (mainCamera != null)
+        {
+            mainCamera.fieldOfView = originalFOV;
+            Debug.Log($"<color=green>Boss被击败，FOV恢复到: {originalFOV}</color>");
+        }
+
         Vector3 doorPosition;
         if (currentBoss != null)
         {
@@ -221,16 +266,13 @@ public class RoomGenerator : MonoBehaviour
         }
         else
         {
-            doorPosition = new Vector3(roomSize.x * tileSize / 2f, 0, roomSize.y * tileSize / 2f);
+            // ⭐ 加上总偏移量
+            doorPosition = GetTotalOffset() + new Vector3(roomSize.x * tileSize / 2f, 0, roomSize.y * tileSize / 2f);
         }
 
-        // 生成传送门
         SpawnBossExitDoor(doorPosition);
     }
 
-    /// <summary>
-    /// ⭐ 生成Boss传送门
-    /// </summary>
     void SpawnBossExitDoor(Vector3 position)
     {
         if (bossExitDoorPrefab == null)
@@ -239,13 +281,11 @@ public class RoomGenerator : MonoBehaviour
             return;
         }
 
-        // 确保位置在地面上
         position.y = 0;
 
         GameObject door = Instantiate(bossExitDoorPrefab, position, Quaternion.identity, currentRoomContainer.transform);
         door.name = "BossExitDoor";
 
-        // ⭐ 使用公共方法设置 RoomMapSystem 引用
         BossExitDoor doorScript = door.GetComponent<BossExitDoor>();
         if (doorScript != null && roomMapSystem != null)
         {
@@ -259,12 +299,8 @@ public class RoomGenerator : MonoBehaviour
         Debug.Log($"<color=cyan>Boss传送门已生成在: {position}</color>");
     }
 
-    /// <summary>
-    /// 生成房间 - 添加难度系统和强化选择
-    /// </summary>
     void GenerateRoom()
     {
-        // ✨ 增加难度（每次进入新房间时）
         if (DifficultyManager.Instance != null)
         {
             if (currentRoomId >= 0)
@@ -279,13 +315,19 @@ public class RoomGenerator : MonoBehaviour
         }
 
         ClearCurrentRoom();
-        currentRoomContainer = new GameObject($"Room_{currentRoomId}");
+
+        // ⭐ 计算总偏移量：轮次偏移 + 房间偏移
+        Vector3 totalOffset = GetTotalOffset();
+
+        // ⭐ 创建房间容器，并设置偏移位置
+        currentRoomContainer = new GameObject($"Room_{currentRoomId}_Round{roomMapSystem?.CurrentRound}_Offset{totalOffset.x}");
+        currentRoomContainer.transform.position = totalOffset;
         currentRoomId++;
 
         var connectedRooms = roomMapSystem.GetCurrentRoomConnections();
         var currentRoom = roomMapSystem.GetCurrentRoom();
 
-        Debug.Log($"=== 生成新房间 - 类型: {currentRoom.type}, 连接数: {connectedRooms.Count} ===");
+        Debug.Log($"=== 生成新房间 - 类型: {currentRoom.type}, 连接数: {connectedRooms.Count}, 总偏移: {totalOffset} (轮次: {currentRoundOffset}, 房间: {currentRoomOffset}) ===");
 
         if (currentRoom.type == RoomType.Boss)
         {
@@ -296,7 +338,8 @@ public class RoomGenerator : MonoBehaviour
         if (connectedRooms.Count == 0)
         {
             Debug.LogWarning("没有连接房间");
-            playerSpawnPosition = new Vector3(roomSize.x * tileSize / 2f, 0, roomSize.y * tileSize / 2f);
+            // ⭐ 加上总偏移量
+            playerSpawnPosition = GetTotalOffset() + new Vector3(roomSize.x * tileSize / 2f, 0, roomSize.y * tileSize / 2f);
             TeleportPlayer();
             return;
         }
@@ -308,6 +351,12 @@ public class RoomGenerator : MonoBehaviour
         EnsureSpawnAndDoorsWalkable();
         InstantiateFloors();
         GenerateMonsters();
+
+        // ⭐ 普通房间：确保FOV是正常的
+        if (mainCamera != null)
+        {
+            mainCamera.fieldOfView = originalFOV;
+        }
 
         if (currentRoom.type == RoomType.Treasure)
         {
@@ -321,10 +370,8 @@ public class RoomGenerator : MonoBehaviour
                   $"Unwalkable: {CountFloorType(FloorType.Unwalkable)}, " +
                   $"Transparent: {CountFloorType(FloorType.UnwalkableTransparent)}");
 
-        // ⭐ 新增：触发强化选择UI
         if (EnhancementSelectionUI.Instance != null)
         {
-            // 延迟0.5秒后显示强化选择面板，确保玩家传送完成
             StartCoroutine(ShowEnhancementSelectionDelayed());
         }
         else
@@ -333,12 +380,9 @@ public class RoomGenerator : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 延迟显示强化选择面板
-    /// </summary>
     System.Collections.IEnumerator ShowEnhancementSelectionDelayed()
     {
-        yield return new WaitForSecondsRealtime(0.3f); // 使用Realtime因为可能会暂停
+        yield return new WaitForSecondsRealtime(0.3f);
 
         if (EnhancementSelectionUI.Instance != null)
         {
@@ -423,25 +467,23 @@ public class RoomGenerator : MonoBehaviour
     {
         Debug.Log($"<color=red>=== 生成Boss房间（第 {roomMapSystem.CurrentRound}/{roomMapSystem.MaxRounds} 轮）===</color>");
 
-        // ⭐ 标记为Boss房间
         isBossRoom = true;
         hasBossBeenDefeated = false;
         currentBoss = null;
         currentBossHealth = null;
 
-        // 1. 生成Boss房间场景（可选）
         if (bossRoomPrefabs.Count > 0)
         {
             GameObject selectedPrefab = bossRoomPrefabs[Random.Range(0, bossRoomPrefabs.Count)];
-            GameObject bossRoom = Instantiate(selectedPrefab, Vector3.zero, Quaternion.identity, currentRoomContainer.transform);
+            // ⭐ 加上总偏移量
+            GameObject bossRoom = Instantiate(selectedPrefab, GetTotalOffset(), Quaternion.identity, currentRoomContainer.transform);
             bossRoom.name = "BossRoom";
             Debug.Log($"已生成Boss房间: {selectedPrefab.name}");
         }
 
-        // 2. 设置玩家出生点
-        playerSpawnPosition = new Vector3(roomSize.x * tileSize * 0.2f, 0, roomSize.y * tileSize / 2f);
+        // ⭐ 加上总偏移量
+        playerSpawnPosition = GetTotalOffset() + new Vector3(roomSize.x * tileSize * 0.2f, 0, roomSize.y * tileSize / 2f);
 
-        // 检查是否有自定义出生点
         Transform spawnPoint = GameObject.Find("PlayerSpawn")?.transform;
         if (spawnPoint != null)
         {
@@ -451,18 +493,22 @@ public class RoomGenerator : MonoBehaviour
 
         TeleportPlayer();
 
-        // 3. ⭐ 延迟生成Boss（等玩家传送完成）
+        // ⭐ Boss房间：放大FOV到2倍
+        if (mainCamera != null)
+        {
+            float bossFOV = originalFOV * 2f;
+            mainCamera.fieldOfView = bossFOV;
+            Debug.Log($"<color=yellow>进入Boss房间，FOV放大到: {bossFOV} (原始: {originalFOV})</color>");
+        }
+
         StartCoroutine(SpawnBossAfterDelay());
 
         hasCheckedPlayer = false;
     }
 
-    /// <summary>
-    /// ⭐ 延迟生成Boss
-    /// </summary>
     System.Collections.IEnumerator SpawnBossAfterDelay()
     {
-        yield return new WaitForSeconds(1f); // 等待1秒确保玩家传送完成
+        yield return new WaitForSeconds(1f);
 
         if (bossPrefabs.Count == 0)
         {
@@ -470,17 +516,13 @@ public class RoomGenerator : MonoBehaviour
             yield break;
         }
 
-        // 随机选择一个Boss
         GameObject selectedBossPrefab = bossPrefabs[Random.Range(0, bossPrefabs.Count)];
 
-        // 计算Boss生成位置（在玩家周围一定距离）
         Vector3 bossSpawnPosition = CalculateBossSpawnPosition();
 
-        // 生成Boss
         currentBoss = Instantiate(selectedBossPrefab, bossSpawnPosition, Quaternion.identity, currentRoomContainer.transform);
         currentBoss.name = $"Boss_Round{roomMapSystem.CurrentRound}";
 
-        // 获取Boss的Health组件
         currentBossHealth = currentBoss.GetComponent<MonsterHealth>();
         if (currentBossHealth == null)
         {
@@ -490,24 +532,21 @@ public class RoomGenerator : MonoBehaviour
         Debug.Log($"<color=green>✓ Boss已生成: {selectedBossPrefab.name} 在位置 {bossSpawnPosition}</color>");
     }
 
-    /// <summary>
-    /// ⭐ 计算Boss生成位置（在玩家周围，但保持一定距离）
-    /// </summary>
     Vector3 CalculateBossSpawnPosition()
     {
         if (playerTransform == null)
         {
-            // 如果没有玩家引用，在房间中心生成
-            return new Vector3(roomSize.x * tileSize / 2f, 0, roomSize.y * tileSize / 2f);
+            // ⭐ 加上总偏移量
+            return GetTotalOffset() + new Vector3(roomSize.x * tileSize / 2f, 0, roomSize.y * tileSize / 2f);
         }
 
-        // 在玩家周围随机方向生成
         Vector2 randomCircle = Random.insideUnitCircle.normalized * bossSpawnDistance;
         Vector3 spawnPos = playerTransform.position + new Vector3(randomCircle.x, 0, randomCircle.y);
 
-        // 确保在房间范围内
-        spawnPos.x = Mathf.Clamp(spawnPos.x, tileSize * 2, (roomSize.x - 2) * tileSize);
-        spawnPos.z = Mathf.Clamp(spawnPos.z, tileSize * 2, (roomSize.y - 2) * tileSize);
+        // ⭐ 确保在当前房间范围内（加上总偏移量）
+        Vector3 totalOffset = GetTotalOffset();
+        spawnPos.x = Mathf.Clamp(spawnPos.x, totalOffset.x + tileSize * 2, totalOffset.x + (roomSize.x - 2) * tileSize);
+        spawnPos.z = Mathf.Clamp(spawnPos.z, totalOffset.z + tileSize * 2, totalOffset.z + (roomSize.y - 2) * tileSize);
         spawnPos.y = 0;
 
         return spawnPos;
@@ -523,9 +562,11 @@ public class RoomGenerator : MonoBehaviour
         spawnZOptions[1] = roomSize.y * tileSize * 0.5f;
         spawnZOptions[2] = roomSize.y * tileSize * 0.75f;
         float spawnZ = spawnZOptions[Random.Range(0, 3)];
-        playerSpawnPosition = new Vector3(leftX, 0, spawnZ);
 
-        Debug.Log($"玩家起点: X={leftX}, Z={spawnZ}");
+        // ⭐ 加上总偏移量
+        playerSpawnPosition = GetTotalOffset() + new Vector3(leftX, 0, spawnZ);
+
+        Debug.Log($"玩家起点: X={leftX}, Z={spawnZ} (偏移后: {playerSpawnPosition})");
 
         List<Room> sortedRooms = connectedRooms.OrderByDescending(r => r.row).ToList();
 
@@ -563,7 +604,9 @@ public class RoomGenerator : MonoBehaviour
         {
             Room targetRoom = sortedRooms[i];
             float doorZ = doorZPositions[i];
-            Vector3 doorPos = new Vector3(rightX, 0, doorZ);
+
+            // ⭐ 加上总偏移量
+            Vector3 doorPos = GetTotalOffset() + new Vector3(rightX, 0, doorZ);
 
             int originalIndex = connectedRooms.IndexOf(targetRoom);
 
@@ -599,11 +642,14 @@ public class RoomGenerator : MonoBehaviour
         {
             for (int y = 0; y < roomSize.y; y++)
             {
+                // ⭐ 世界坐标加上总偏移量
+                Vector3 worldPos = GetTotalOffset() + new Vector3(x * tileSize, 0, y * tileSize);
+
                 floorGrid[x, y] = new Floor
                 {
                     type = FloorType.Walkable,
                     gridPosition = new Vector2Int(x, y),
-                    worldPosition = new Vector3(x * tileSize, 0, y * tileSize)
+                    worldPosition = worldPos
                 };
             }
         }
@@ -727,10 +773,10 @@ public class RoomGenerator : MonoBehaviour
             }
         }
 
-        AddScatteredObstacles();
+        AddScatteredObstaclesWithValidation();
     }
 
-    void AddScatteredObstacles()
+    void AddScatteredObstaclesWithValidation()
     {
         List<Vector2Int> walkableTiles = new List<Vector2Int>();
         Vector2Int spawnGrid = WorldToGrid(playerSpawnPosition);
@@ -764,21 +810,42 @@ public class RoomGenerator : MonoBehaviour
         int scatterCount = Mathf.RoundToInt(walkableTiles.Count * scatterObstacleDensity);
         walkableTiles = walkableTiles.OrderBy(x => Random.value).ToList();
 
-        for (int i = 0; i < scatterCount && i < walkableTiles.Count; i++)
+        int successCount = 0;
+        int skipCount = 0;
+
+        for (int i = 0; i < walkableTiles.Count && successCount < scatterCount; i++)
         {
             Vector2Int pos = walkableTiles[i];
 
-            if (Random.value < 0.5f)
+            FloorType originalType = floorGrid[pos.x, pos.y].type;
+            FloorType newType = Random.value < 0.5f ? FloorType.Unwalkable : FloorType.UnwalkableTransparent;
+            floorGrid[pos.x, pos.y].type = newType;
+
+            bool allPathsValid = true;
+            foreach (var door in exitDoors)
             {
-                floorGrid[pos.x, pos.y].type = FloorType.Unwalkable;
+                Vector2Int doorGrid = WorldToGrid(door.position);
+                List<Vector2Int> path = FindPath(spawnGrid, doorGrid);
+
+                if (path == null || path.Count == 0)
+                {
+                    allPathsValid = false;
+                    break;
+                }
+            }
+
+            if (!allPathsValid)
+            {
+                floorGrid[pos.x, pos.y].type = originalType;
+                skipCount++;
             }
             else
             {
-                floorGrid[pos.x, pos.y].type = FloorType.UnwalkableTransparent;
+                successCount++;
             }
         }
 
-        Debug.Log($"添加了 {scatterCount} 个散落障碍物");
+        Debug.Log($"<color=cyan>添加散落障碍物: 成功 {successCount}/{scatterCount}，跳过 {skipCount} 个（会阻断路径）</color>");
     }
 
     List<Vector2Int> FindPath(Vector2Int start, Vector2Int end)
@@ -810,6 +877,7 @@ public class RoomGenerator : MonoBehaviour
             {
                 if (closedSet.Contains(neighbor)) continue;
                 if (!IsValidGrid(neighbor)) continue;
+
                 if (floorGrid[neighbor.x, neighbor.y].type != FloorType.Walkable) continue;
 
                 float tentativeG = current.gCost + Vector2Int.Distance(current.position, neighbor);
@@ -1116,6 +1184,11 @@ public class RoomGenerator : MonoBehaviour
             if (Vector3.Distance(playerXZ, doorXZ) < tileSize * doorDetectionRange)
             {
                 Debug.Log($"玩家进入门 {i}");
+
+                // ⭐ 进入下一个房间，增加房间偏移量（在同一轮内）
+                currentRoomOffset += new Vector3(roomOffsetDistance, 0, 0);
+                Debug.Log($"<color=cyan>切换房间，新房间偏移: {currentRoomOffset}, 总偏移: {GetTotalOffset()}</color>");
+
                 roomMapSystem.MoveToConnectedRoom(exitDoors[i].connectedRoomIndex);
                 GenerateRoom();
                 return;
@@ -1129,7 +1202,13 @@ public class RoomGenerator : MonoBehaviour
         floorGrid = null;
         exitDoors.Clear();
 
-        // ⭐ 清除Boss相关状态
+        // ⭐ 清除Boss房间状态时，恢复FOV（以防万一）
+        if (isBossRoom && mainCamera != null)
+        {
+            mainCamera.fieldOfView = originalFOV;
+            Debug.Log($"<color=cyan>清除Boss房间，FOV恢复到: {originalFOV}</color>");
+        }
+
         isBossRoom = false;
         hasBossBeenDefeated = false;
         currentBoss = null;
@@ -1138,9 +1217,12 @@ public class RoomGenerator : MonoBehaviour
 
     Vector2Int WorldToGrid(Vector3 worldPos)
     {
+        // ⭐ 减去总偏移量，转换为相对格子坐标
+        Vector3 relativePos = worldPos - GetTotalOffset();
+
         return new Vector2Int(
-            Mathf.Clamp(Mathf.RoundToInt(worldPos.x / tileSize), 0, roomSize.x - 1),
-            Mathf.Clamp(Mathf.RoundToInt(worldPos.z / tileSize), 0, roomSize.y - 1)
+            Mathf.Clamp(Mathf.RoundToInt(relativePos.x / tileSize), 0, roomSize.x - 1),
+            Mathf.Clamp(Mathf.RoundToInt(relativePos.z / tileSize), 0, roomSize.y - 1)
         );
     }
 

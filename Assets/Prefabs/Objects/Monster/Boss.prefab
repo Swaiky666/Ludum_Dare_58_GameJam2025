@@ -182,18 +182,18 @@ MonoBehaviour:
   spawnDistance: 10
   spawnDelay: 2
   playerSearchInterval: 0.5
-  skillCooldown: 0.5
+  skillCooldown: 0.01
   minDistanceToPlayer: 5
-  maxDistanceFromPlayer: 12
-  teleportDistance: 7
+  maxDistanceFromPlayer: 8
+  teleportDistance: 5
   bulletPrefab: {fileID: 1019054629656254, guid: a1c8c7e5e0ae1e549a931585ac5d698c, type: 3}
   firePoint: {fileID: 0}
   aimedBulletCount: 5
   aimedBulletInterval: 0.2
-  aimedBulletSpeed: 0.1
+  aimedBulletSpeed: 0.3
   aimedBulletDamage: 15
   denseBulletCount: 24
-  denseBulletSpeed: 0.1
+  denseBulletSpeed: 0.4
   denseBulletDamage: 10
   minBarrageRounds: 1
   maxBarrageRounds: 3
@@ -215,6 +215,8 @@ MonoBehaviour:
   obstaclePrefab: {fileID: 2052053460299959166, guid: 09ceaa31c5db0b64fb5ede8b96796544, type: 3}
   obstacleCount: 3
   obstacleSpawnRadius: 15
+  obstacleSafeDistance: 3
+  obstacleMaxAttempts: 20
 --- !u!114 &4652423879063470649
 MonoBehaviour:
   m_ObjectHideFlags: 0

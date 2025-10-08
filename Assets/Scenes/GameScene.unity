@@ -740,6 +740,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   roomSize: {x: 25, y: 25}
   tileSize: 1
+  roundOffsetDistance: 10000
+  roomOffsetDistance: 1000
   maxDepth: 6
   splitChance: 0.7
   minRegionSize: 3
@@ -767,6 +769,7 @@ MonoBehaviour:
   bossExitDoorPrefab: {fileID: 5200299255755562888, guid: 52546c73193d7aa4a94bd849281c5dfd, type: 3}
   roomMapSystem: {fileID: 627761977}
   playerTransform: {fileID: 6476052857356830022}
+  mainCamera: {fileID: 963194227}
 --- !u!4 &85173679
 Transform:
   m_ObjectHideFlags: 0
@@ -4617,7 +4620,7 @@ MonoBehaviour:
   roomGenerator: {fileID: 85173678}
   roomMapSystem: {fileID: 627761977}
   playerTransform: {fileID: 6476052857356830022}
-  mapScale: 2.5
+  mapScale: 5
   mapOffset: {x: 20, y: 20}
   bossRoomTexture: {fileID: 0}
   walkableColor: {r: 0.509434, g: 0.43974727, b: 0.43974727, a: 0.8}

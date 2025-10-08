@@ -2,6 +2,7 @@
 
 /// <summary>
 /// 小地图显示系统（右上角）
+/// ⭐ 修复：使用RoomGenerator的坐标转换，正确处理房间偏移
 /// </summary>
 public class MinimapSystem : MonoBehaviour
 {
@@ -27,11 +28,11 @@ public class MinimapSystem : MonoBehaviour
     {
         if (roomGenerator == null)
         {
-            Debug.LogError("RoomGenerator reference is missing!");
+            Debug.LogError("MinimapSystem: RoomGenerator reference is missing!");
         }
         if (playerTransform == null)
         {
-            Debug.LogError("PlayerTransform reference is missing!");
+            Debug.LogError("MinimapSystem: PlayerTransform reference is missing!");
         }
     }
 
@@ -122,20 +123,24 @@ public class MinimapSystem : MonoBehaviour
     }
 
     /// <summary>
-    /// 绘制玩家位置
+    /// ⭐ 修复：绘制玩家位置（使用RoomGenerator的坐标转换）
     /// </summary>
     void DrawPlayer()
     {
-        if (playerTransform == null) return;
+        if (playerTransform == null || roomGenerator == null) return;
 
-        // 将玩家世界坐标转换为网格坐标
-        Vector3 playerPos = playerTransform.position;
-        float tileSize = roomGenerator.TileSize;
+        // ⭐ 使用RoomGenerator的坐标转换（已处理偏移）
+        Vector2Int gridPos = roomGenerator.WorldToGridPublic(playerTransform.position);
 
-        int gridX = Mathf.RoundToInt(playerPos.x / tileSize);
-        int gridY = Mathf.RoundToInt(playerPos.z / tileSize);
+        // 检查是否在有效范围内
+        Vector2Int roomSize = roomGenerator.RoomSize;
+        if (gridPos.x < 0 || gridPos.y < 0 || gridPos.x >= roomSize.x || gridPos.y >= roomSize.y)
+        {
+            // 玩家不在当前房间内，不绘制
+            return;
+        }
 
-        Vector2 screenPos = GridToScreenPosition(gridX, gridY);
+        Vector2 screenPos = GridToScreenPosition(gridPos.x, gridPos.y);
 
         // 绘制玩家（比格子大一点）
         float playerSize = mapScale * 1.5f;

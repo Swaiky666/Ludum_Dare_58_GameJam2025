@@ -87,6 +87,10 @@ public class BossAI : MonoBehaviour
     private float playerSearchTimer = 0f;
     private bool hasFoundPlayer = false;
 
+    // ⭐ 跟踪Boss生成的障碍物和怪物
+    private List<GameObject> spawnedObstacles = new List<GameObject>();
+    private List<GameObject> summonedMonsters = new List<GameObject>();
+
     void Start()
     {
         if (monsterHealth == null)
@@ -425,6 +429,9 @@ public class BossAI : MonoBehaviour
             GameObject monster = Instantiate(monsterPrefab, summonPosition, Quaternion.identity);
             monster.name = $"SummonedMonster_{i}";
 
+            // ⭐ 添加到跟踪列表
+            summonedMonsters.Add(monster);
+
             Debug.Log($"召唤怪物 {i + 1}/{summonCount} 在 {summonPosition}");
 
             yield return new WaitForSeconds(0.3f);
@@ -515,6 +522,10 @@ public class BossAI : MonoBehaviour
             {
                 GameObject obstacle = Instantiate(obstaclePrefab, spawnPosition, Quaternion.identity);
                 obstacle.name = $"BossObstacle_{Time.time}_{spawnedCount}";
+
+                // ⭐ 添加到跟踪列表
+                spawnedObstacles.Add(obstacle);
+
                 spawnedCount++;
 
                 Debug.Log($"成功生成阻碍物 {spawnedCount}/{obstacleCount} 在 {spawnPosition}");
@@ -601,5 +612,46 @@ public class BossAI : MonoBehaviour
         // 生成时的搜索范围
         Gizmos.color = Color.magenta;
         Gizmos.DrawWireSphere(transform.position, spawnSearchRadius);
+    }
+
+    /// <summary>
+    /// ⭐ Boss被销毁时清理生成的障碍物
+    /// </summary>
+    void OnDestroy()
+    {
+        CleanupSpawnedObstacles();
+    }
+
+    /// <summary>
+    /// ⭐ 清理所有Boss生成的障碍物和怪物
+    /// </summary>
+    void CleanupSpawnedObstacles()
+    {
+        int cleanedObstacles = 0;
+        foreach (GameObject obstacle in spawnedObstacles)
+        {
+            if (obstacle != null)
+            {
+                Destroy(obstacle);
+                cleanedObstacles++;
+            }
+        }
+        spawnedObstacles.Clear();
+
+        int cleanedMonsters = 0;
+        foreach (GameObject monster in summonedMonsters)
+        {
+            if (monster != null)
+            {
+                Destroy(monster);
+                cleanedMonsters++;
+            }
+        }
+        summonedMonsters.Clear();
+
+        if (cleanedObstacles > 0 || cleanedMonsters > 0)
+        {
+            Debug.Log($"<color=cyan>Boss死亡，清理了 {cleanedObstacles} 个障碍物和 {cleanedMonsters} 个召唤怪物</color>");
+        }
     }
 }

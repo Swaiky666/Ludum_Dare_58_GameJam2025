@@ -4800,7 +4800,6 @@ ParticleSystemRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 2687a30d68920d9418667b64d76a5fab, type: 2}
-  - {fileID: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -9837,7 +9836,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.001
+  m_Radius: 0.05
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &-2746515533432174925
 MonoBehaviour:
@@ -9865,8 +9864,8 @@ MonoBehaviour:
   slowMultiplier: 0.1
   slowDuration: 1
   isHoming: 0
-  homingTurnSpeed: 500
-  homingRange: 15
+  homingTurnSpeed: 1000
+  homingRange: 25
   homingActivationDelay: 0.1
   usePredictiveAiming: 1
   maxTrackingAngle: 60

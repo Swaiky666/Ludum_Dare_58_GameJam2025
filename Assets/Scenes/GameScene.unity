@@ -738,7 +738,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 847802a23a05f2e42bd671e122941a73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  roomSize: {x: 25, y: 25}
+  roomSize: {x: 30, y: 30}
   tileSize: 1
   roundOffsetDistance: 10000
   roomOffsetDistance: 1000
@@ -2828,7 +2828,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxRoomHalf: 3
-  treasureChance: 0.3
+  treasureChance: 0.4
   maxRounds: 3
   equippedWeaponData: {fileID: 11400000, guid: c4e1af51cc9a63a438e8079dceb3ff19, type: 2}
   mapScale: 0.25
@@ -6630,10 +6630,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 600}
+  m_ReferenceResolution: {x: 960, y: 600}
   m_ScreenMatchMode: 0
   m_MatchWidthOrHeight: 0
   m_PhysicalUnit: 3

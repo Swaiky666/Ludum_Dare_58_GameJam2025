@@ -20,6 +20,6 @@ MonoBehaviour:
     like falling snow\u2014beautiful, silent, and mercilessly still."
   prefab: {fileID: 8220254170530117568, guid: 78918014be3f508478538d921163770f, type: 3}
   dropPrefab: {fileID: 2512001187322032183, guid: aef99fcc361d63f42b60b59b9a763f65, type: 3}
-  isCollected: 1
-  collectionCount: 1
-  collectionTime: 2025/10/05 15:27
+  isCollected: 0
+  collectionCount: 0
+  collectionTime: 

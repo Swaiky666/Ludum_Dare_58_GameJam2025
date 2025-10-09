@@ -18,6 +18,6 @@ MonoBehaviour:
   description: "\u201CBoom, but make it magical.\u201D"
   prefab: {fileID: 8220254170530117568, guid: 27daf0ef5ab7ae040a865acf18f29f82, type: 3}
   dropPrefab: {fileID: 2512001187322032183, guid: aef99fcc361d63f42b60b59b9a763f65, type: 3}
-  isCollected: 1
-  collectionCount: 1
-  collectionTime: 2025/10/06 07:00
+  isCollected: 0
+  collectionCount: 0
+  collectionTime: 

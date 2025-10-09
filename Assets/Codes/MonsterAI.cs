@@ -33,14 +33,15 @@ public class MonsterAI : MonoBehaviour
     [SerializeField] private float patrolRadius = 5f;
 
     [Header("Chase Settings")]
-    [SerializeField] private float pathUpdateInterval = 0.5f;
+    [SerializeField] private float pathUpdateInterval = 0.3f;
     [SerializeField] private float teleportDistance = 3f;
     [SerializeField] private int maxPathfindingAttempts = 3;
+    [SerializeField] private float playerMovementThreshold = 3f;
 
     [Header("Attack Settings")]
     [SerializeField] private float attackRange = 2f;
-    [SerializeField] private float baseAttackDamage = 20f;  // 基础攻击伤害
-    private float attackDamage;  // 实际伤害（会被难度缩放）
+    [SerializeField] private float baseAttackDamage = 20f;
+    private float attackDamage;
     [SerializeField] private float attackCooldown = 1.5f;
     [SerializeField] private float knockbackForce = 10f;
     [SerializeField] private float attackScaleMultiplier = 1.3f;
@@ -76,6 +77,9 @@ public class MonsterAI : MonoBehaviour
     private Vector3 originalScale;
     private Coroutine attackScaleCoroutine;
 
+    // ⭐ 新增：房间偏移量
+    private Vector3 roomOffset = Vector3.zero;
+
     private static readonly Vector2Int[] NeighborDirections = {
         new Vector2Int(0, 1), new Vector2Int(1, 0),
         new Vector2Int(0, -1), new Vector2Int(-1, 0),
@@ -85,6 +89,13 @@ public class MonsterAI : MonoBehaviour
 
     void Start()
     {
+        // ⭐ 获取房间偏移量（如果是房间容器的子物体）
+        if (transform.parent != null)
+        {
+            roomOffset = transform.parent.position;
+            Debug.Log($"{gameObject.name}: 房间偏移量 = {roomOffset}");
+        }
+
         // 根据难度缩放攻击伤害
         if (DifficultyManager.Instance != null)
         {
@@ -360,13 +371,14 @@ public class MonsterAI : MonoBehaviour
 
     #endregion
 
-    #region 追击状态
+    #region 追击状态（改进版）
 
     void SwitchToChase()
     {
         currentState = MonsterState.Chase;
         pathUpdateTimer = 0;
         pathfindingFailCount = 0;
+        lastKnownPlayerPosition = Vector3.zero;
         Debug.Log($"{gameObject.name}: 发现玩家，开始追击！");
     }
 
@@ -394,7 +406,18 @@ public class MonsterAI : MonoBehaviour
         }
 
         pathUpdateTimer -= Time.deltaTime;
-        if (pathUpdateTimer <= 0)
+        bool needsPathUpdate = pathUpdateTimer <= 0;
+
+        if (lastKnownPlayerPosition != Vector3.zero)
+        {
+            float playerMovedDistance = Vector3.Distance(lastKnownPlayerPosition, playerTransform.position);
+            if (playerMovedDistance > playerMovementThreshold)
+            {
+                needsPathUpdate = true;
+            }
+        }
+
+        if (needsPathUpdate)
         {
             pathUpdateTimer = pathUpdateInterval;
             UpdatePathToPlayer();
@@ -406,7 +429,161 @@ public class MonsterAI : MonoBehaviour
         }
         else
         {
+            TryDirectApproach();
+        }
+    }
+
+    void TryDirectApproach()
+    {
+        Vector3 directionToPlayer = (playerTransform.position - transform.position).normalized;
+        directionToPlayer.y = 0;
+
+        Vector3 nextPosition = transform.position + directionToPlayer * moveSpeed * Time.deltaTime;
+        Vector2Int nextGridPos = WorldToGrid(nextPosition);
+
+        if (IsWalkable(nextGridPos))
+        {
             MoveTowards(playerTransform.position);
+        }
+        else
+        {
+            TryFindAlternativePath(directionToPlayer);
+        }
+    }
+
+    void TryFindAlternativePath(Vector3 blockedDirection)
+    {
+        Vector3[] alternativeDirections = new Vector3[]
+        {
+            Quaternion.Euler(0, 45, 0) * blockedDirection,
+            Quaternion.Euler(0, -45, 0) * blockedDirection,
+            Quaternion.Euler(0, 90, 0) * blockedDirection,
+            Quaternion.Euler(0, -90, 0) * blockedDirection,
+            Quaternion.Euler(0, 135, 0) * blockedDirection,
+            Quaternion.Euler(0, -135, 0) * blockedDirection
+        };
+
+        foreach (var dir in alternativeDirections)
+        {
+            Vector3 testPosition = transform.position + dir * moveSpeed * Time.deltaTime;
+            Vector2Int testGridPos = WorldToGrid(testPosition);
+
+            if (IsWalkable(testGridPos))
+            {
+                Vector3 targetPos = transform.position + dir.normalized * 2f;
+                MoveTowards(targetPos);
+                return;
+            }
+        }
+
+        pathUpdateTimer = 0;
+    }
+
+    void UpdatePathToPlayer()
+    {
+        Vector2Int startGrid = WorldToGrid(transform.position);
+        Vector2Int targetGrid = WorldToGrid(playerTransform.position);
+
+        if (!IsWalkable(startGrid))
+        {
+            startGrid = FindNearestWalkableCell(startGrid);
+        }
+
+        if (!IsWalkable(targetGrid))
+        {
+            targetGrid = FindNearestWalkableCell(targetGrid);
+        }
+
+        currentPath = FindPathAStar(startGrid, targetGrid);
+
+        if (currentPath == null || currentPath.Count == 0)
+        {
+            pathfindingFailCount++;
+
+            if (pathfindingFailCount >= maxPathfindingAttempts)
+            {
+                float directDistance = Vector3.Distance(transform.position, playerTransform.position);
+                if (directDistance > detectionRange * 0.8f)
+                {
+                    TeleportNearPlayer();
+                }
+                pathfindingFailCount = 0;
+            }
+        }
+        else
+        {
+            pathfindingFailCount = 0;
+            currentPathIndex = 0;
+            lastKnownPlayerPosition = playerTransform.position;
+
+            if (currentPath.Count > 20)
+            {
+                currentPath = currentPath.GetRange(0, 20);
+            }
+        }
+    }
+
+    Vector2Int FindNearestWalkableCell(Vector2Int center)
+    {
+        if (IsWalkable(center)) return center;
+
+        for (int radius = 1; radius <= 5; radius++)
+        {
+            for (int x = -radius; x <= radius; x++)
+            {
+                for (int y = -radius; y <= radius; y++)
+                {
+                    if (Mathf.Abs(x) == radius || Mathf.Abs(y) == radius)
+                    {
+                        Vector2Int testPos = center + new Vector2Int(x, y);
+                        if (IsWalkable(testPos))
+                        {
+                            return testPos;
+                        }
+                    }
+                }
+            }
+        }
+
+        return center;
+    }
+
+    void FollowPath()
+    {
+        if (currentPathIndex >= currentPath.Count)
+        {
+            currentPath = null;
+            return;
+        }
+
+        Vector3 targetWorldPos = GridToWorld(currentPath[currentPathIndex]);
+        targetWorldPos.y = transform.position.y;
+
+        float distanceToWaypoint = Vector3.Distance(transform.position, targetWorldPos);
+
+        float reachDistance = waypointReachDistance;
+        if (currentPathIndex == currentPath.Count - 1)
+        {
+            reachDistance = waypointReachDistance * 2f;
+        }
+
+        if (distanceToWaypoint < reachDistance)
+        {
+            currentPathIndex++;
+
+            if (currentPathIndex < currentPath.Count - 2)
+            {
+                Vector3 nextWaypoint = GridToWorld(currentPath[currentPathIndex + 1]);
+                float distanceToNext = Vector3.Distance(transform.position, nextWaypoint);
+                if (distanceToNext < waypointReachDistance * 3f)
+                {
+                    currentPathIndex++;
+                }
+            }
+        }
+        else
+        {
+            MoveTowards(targetWorldPos);
         }
     }
 
@@ -414,12 +591,10 @@ public class MonsterAI : MonoBehaviour
     {
         if (targetPlayer == null)
         {
-            Debug.LogWarning($"{gameObject.name}: 无法攻击 - targetPlayer 是 null！尝试重新查找玩家...");
             targetPlayer = FindObjectOfType<PlayerController>();
             if (targetPlayer != null)
             {
                 playerTransform = targetPlayer.transform;
-                Debug.Log($"{gameObject.name}: 重新找到玩家！");
             }
             else
             {
@@ -440,7 +615,7 @@ public class MonsterAI : MonoBehaviour
             attackScaleCoroutine = StartCoroutine(AttackScaleAnimation());
         }
 
-        Debug.Log($"{gameObject.name} 攻击了玩家 {targetPlayer.gameObject.name}！伤害: {attackDamage}");
+        Debug.Log($"{gameObject.name} 攻击了玩家！伤害: {attackDamage}");
     }
 
     IEnumerator AttackScaleAnimation()
@@ -469,53 +644,6 @@ public class MonsterAI : MonoBehaviour
         }
 
         spriteRenderer.transform.localScale = originalScale;
-    }
-
-    void UpdatePathToPlayer()
-    {
-        Vector2Int startGrid = WorldToGrid(transform.position);
-        Vector2Int targetGrid = WorldToGrid(playerTransform.position);
-
-        currentPath = FindPathAStar(startGrid, targetGrid);
-
-        if (currentPath == null || currentPath.Count == 0)
-        {
-            pathfindingFailCount++;
-            Debug.LogWarning($"{gameObject.name}: 无法找到路径到玩家 (失败次数: {pathfindingFailCount})");
-
-            if (pathfindingFailCount >= maxPathfindingAttempts)
-            {
-                TeleportNearPlayer();
-                pathfindingFailCount = 0;
-            }
-        }
-        else
-        {
-            pathfindingFailCount = 0;
-            currentPathIndex = 0;
-            lastKnownPlayerPosition = playerTransform.position;
-        }
-    }
-
-    void FollowPath()
-    {
-        if (currentPathIndex >= currentPath.Count)
-        {
-            currentPath = null;
-            return;
-        }
-
-        Vector3 targetWorldPos = GridToWorld(currentPath[currentPathIndex]);
-        targetWorldPos.y = transform.position.y;
-
-        if (Vector3.Distance(transform.position, targetWorldPos) < waypointReachDistance)
-        {
-            currentPathIndex++;
-        }
-        else
-        {
-            MoveTowards(targetWorldPos);
-        }
     }
 
     void TeleportNearPlayer()
@@ -555,10 +683,6 @@ public class MonsterAI : MonoBehaviour
             }
 
             Debug.Log($"{gameObject.name}: 瞬移到玩家附近 {teleportPos}");
-        }
-        else
-        {
-            Debug.LogWarning($"{gameObject.name}: 无法找到瞬移位置");
         }
     }
 
@@ -661,7 +785,7 @@ public class MonsterAI : MonoBehaviour
 
     #endregion
 
-    #region 移动和辅助方法
+    #region 移动和辅助方法（⭐修复：处理房间偏移）
 
     void MoveTowards(Vector3 targetPosition)
     {
@@ -684,13 +808,19 @@ public class MonsterAI : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// ⭐ 修复：世界坐标转格子坐标（处理房间偏移）
+    /// </summary>
     Vector2Int WorldToGrid(Vector3 worldPos)
     {
         if (roomGenerator == null) return Vector2Int.zero;
 
+        // ⭐ 减去房间偏移量，得到相对坐标
+        Vector3 relativePos = worldPos - roomOffset;
+
         float tileSize = roomGenerator.TileSize;
-        int x = Mathf.RoundToInt(worldPos.x / tileSize);
-        int z = Mathf.RoundToInt(worldPos.z / tileSize);
+        int x = Mathf.RoundToInt(relativePos.x / tileSize);
+        int z = Mathf.RoundToInt(relativePos.z / tileSize);
 
         Vector2Int roomSize = roomGenerator.RoomSize;
         return new Vector2Int(
@@ -699,12 +829,17 @@ public class MonsterAI : MonoBehaviour
         );
     }
 
+    /// <summary>
+    /// ⭐ 修复：格子坐标转世界坐标（处理房间偏移）
+    /// </summary>
     Vector3 GridToWorld(Vector2Int gridPos)
     {
         if (roomGenerator == null) return Vector3.zero;
 
         float tileSize = roomGenerator.TileSize;
-        return new Vector3(gridPos.x * tileSize, 0, gridPos.y * tileSize);
+
+        // ⭐ 加上房间偏移量，得到世界坐标
+        return roomOffset + new Vector3(gridPos.x * tileSize, 0, gridPos.y * tileSize);
     }
 
     bool IsWalkable(Vector2Int gridPos)

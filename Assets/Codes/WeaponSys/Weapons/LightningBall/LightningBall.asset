@@ -20,6 +20,6 @@ MonoBehaviour:
     stronger with each bounce."
   prefab: {fileID: 8220254170530117568, guid: 481b5afd6cede41499d72433db2aa6fe, type: 3}
   dropPrefab: {fileID: 2512001187322032183, guid: aef99fcc361d63f42b60b59b9a763f65, type: 3}
-  isCollected: 1
-  collectionCount: 1
-  collectionTime: 2025/10/06 07:00
+  isCollected: 0
+  collectionCount: 0
+  collectionTime: 

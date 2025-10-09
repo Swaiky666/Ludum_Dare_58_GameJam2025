@@ -20,6 +20,6 @@ MonoBehaviour:
     with dazzling precision\u2014each rebound chasing the next heartbeat of light."
   prefab: {fileID: 8220254170530117568, guid: 168ef0e3283190f43a9d8411c345ba0e, type: 3}
   dropPrefab: {fileID: 2512001187322032183, guid: aef99fcc361d63f42b60b59b9a763f65, type: 3}
-  isCollected: 1
-  collectionCount: 1
-  collectionTime: 2025/10/05 15:27
+  isCollected: 0
+  collectionCount: 0
+  collectionTime: 

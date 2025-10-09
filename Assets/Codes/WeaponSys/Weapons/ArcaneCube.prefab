@@ -14779,8 +14779,8 @@ MonoBehaviour:
   slowMultiplier: 0.1
   slowDuration: 1
   isHoming: 0
-  homingTurnSpeed: 500
-  homingRange: 15
+  homingTurnSpeed: 1000
+  homingRange: 25
   homingActivationDelay: 0.1
   usePredictiveAiming: 1
   maxTrackingAngle: 60

@@ -182,7 +182,7 @@ MonoBehaviour:
   spawnDistance: 10
   spawnDelay: 2
   playerSearchInterval: 0.5
-  skillCooldown: 0.01
+  skillCooldown: 0.1
   minDistanceToPlayer: 5
   maxDistanceFromPlayer: 8
   teleportDistance: 5
@@ -207,8 +207,8 @@ MonoBehaviour:
   - {fileID: 226442075022878172, guid: 4cb87fada4061cb4789a73ff4e1f04df, type: 3}
   summonCount: 1
   summonRadius: 8
-  chargeDistance: 12
-  chargeDuration: 1.2
+  chargeDistance: 10
+  chargeDuration: 1.5
   chargeDamage: 25
   chargeKnockback: 12
   chargeActivateRange: 10

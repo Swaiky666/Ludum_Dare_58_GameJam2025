@@ -20,6 +20,6 @@ MonoBehaviour:
     those worthy can wield its power.\r\n"
   prefab: {fileID: 8220254170530117568, guid: 5132f94568c15d44ba4ebc7f671191e6, type: 3}
   dropPrefab: {fileID: 2512001187322032183, guid: aef99fcc361d63f42b60b59b9a763f65, type: 3}
-  isCollected: 1
-  collectionCount: 1
-  collectionTime: 2025/10/05 15:27
+  isCollected: 0
+  collectionCount: 0
+  collectionTime: 

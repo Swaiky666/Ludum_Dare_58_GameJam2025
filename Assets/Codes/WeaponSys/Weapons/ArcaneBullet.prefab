@@ -4800,7 +4800,6 @@ ParticleSystemRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 12fb1d84a82a2de4f8b3e8b1f2747b43, type: 2}
-  - {fileID: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -9928,8 +9927,8 @@ MonoBehaviour:
   slowMultiplier: 0.25
   slowDuration: 1
   isHoming: 0
-  homingTurnSpeed: 500
-  homingRange: 15
+  homingTurnSpeed: 1000
+  homingRange: 25
   homingActivationDelay: 0.1
   usePredictiveAiming: 1
   maxTrackingAngle: 60
